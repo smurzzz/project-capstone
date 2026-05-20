@@ -12,9 +12,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
-import { appointmentsAPI, ordersAPI } from "../utils/api.js";
+} from "../../components/ui/card.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { appointmentsAPI, ordersAPI } from "../../utils/api.js";
 
 export default function ClientHome() {
   const { user } = useAuth();

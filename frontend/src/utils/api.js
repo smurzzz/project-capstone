@@ -36,6 +36,8 @@ export const authAPI = {
         api.post("/auth/customer/login", { email, password }),
     registerCustomer: (customerData) =>
         api.post("/auth/customer/register", customerData),
+    googleCustomer: (credential) =>
+        api.post("/auth/google/customer", { credential }),
     loginStaff: (email, password) =>
         api.post("/auth/staff/login", { email, password })
 };
@@ -110,6 +112,22 @@ export const staffAPI = {
     delete: (id) => api.delete(`/staff/${id}`),
     deactivate: (id) => api.put(`/staff/${id}/deactivate`, {}),
     getStats: () => api.get("/staff/stats")
+};
+
+// REPORTS APIs
+export const reportsAPI = {
+    getOverview: ({ period = "monthly", offset = 0, date } = {}) => {
+        const params = new URLSearchParams({
+            period,
+            offset: String(offset),
+        });
+
+        if (date) {
+            params.set("date", date);
+        }
+
+        return api.get(`/reports/overview?${params.toString()}`);
+    }
 };
 
 export default api;

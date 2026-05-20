@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react";
 import { ImageIcon, Search, ShoppingCart, Plus, Minus } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card.jsx";
-import { Input } from "../components/ui/input.jsx";
+} from "../../components/ui/card.jsx";
+import { Input } from "../../components/ui/input.jsx";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select.jsx";
-import { productsAPI } from "../utils/api.js";
+} from "../../components/ui/select.jsx";
+import { productsAPI } from "../../utils/api.js";
 import { toast } from "sonner";
-import { useCart } from "../context/CartContext.jsx";
+import { useCart } from "../../context/CartContext.jsx";
 import { useNavigate } from "react-router-dom";
 
 const categoryColors = {
@@ -38,13 +38,8 @@ export default function ClientProducts() {
   const { quantities, addToCart, updateQuantity, getTotalItems } = useCart();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
+  async function fetchProducts() {
     try {
-      setLoading(true);
       const response = await productsAPI.getAll();
       setProducts(response.data.data || []);
     } catch (error) {
@@ -59,7 +54,12 @@ export default function ClientProducts() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProducts();
+  }, []);
 
   const categories = ["all", ...Array.from(new Set(products.map((product) => product.category)))];
 

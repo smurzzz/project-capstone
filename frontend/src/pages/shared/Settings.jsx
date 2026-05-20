@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Camera, ImageIcon, ShieldCheck, UserRound } from "lucide-react";
-import { Button } from "../components/ui/button.jsx";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Label } from "../components/ui/label.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
-import { customersAPI, staffAPI } from "../utils/api.js";
-import { imageFileToDataUrl } from "../utils/imageFile.js";
+import { Button } from "../../components/ui/button.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Label } from "../../components/ui/label.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { customersAPI, staffAPI } from "../../utils/api.js";
+import { imageFileToDataUrl } from "../../utils/imageFile.js";
 
 export default function Settings() {
   const { user, updateUser } = useAuth();
@@ -22,6 +22,8 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // Keep the editable form in sync when a different account signs in.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData({
       name: user?.name || "",
       email: user?.email || "",

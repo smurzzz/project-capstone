@@ -12,8 +12,10 @@ import ordersRoutes from "./routes/orders.js"
 import appointmentsRoutes from "./routes/appointments.js"
 import staffRoutes from "./routes/staff.js"
 import packageDealsRoutes from "./routes/packageDeals.js"
+import reportsRoutes from "./routes/reports.js"
 
 dotenv.config()
+dotenv.config({ path: ".env.local", override: true })
 
 const app = express()
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,http://127.0.0.1:5173")
@@ -41,7 +43,7 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
 }))
-app.use(express.json({ limit: "2mb" }))
+app.use(express.json({ limit: "6mb" }))
 app.use(sanitizeInput)
 app.use(createRateLimiter())
 
@@ -55,6 +57,7 @@ app.use('/api/products', productsRoutes)
 app.use('/api/packages', packageDealsRoutes)
 app.use('/api/customers', customersRoutes)
 app.use('/api/orders', ordersRoutes)
+app.use('/api/reports', reportsRoutes)
 
 // Health check route
 app.get('/api/health', (req, res) => {

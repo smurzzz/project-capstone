@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
-import { Calendar } from "../components/ui/calendar.jsx";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
+import { Calendar } from "../../components/ui/calendar.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog.jsx";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select.jsx";
-import { appointmentsAPI } from "../utils/api.js";
+} from "../../components/ui/select.jsx";
+import { appointmentsAPI } from "../../utils/api.js";
 
 const statusColors = {
   Scheduled: "bg-yellow-100 text-yellow-700",
@@ -31,11 +31,7 @@ export default function Appointments() {
   const [newStatus, setNewStatus] = useState("");
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
-
-  const fetchAppointments = async () => {
+  async function fetchAppointments() {
     try {
       const response = await appointmentsAPI.getAll();
       setAppointmentsList(response.data.data || []);
@@ -45,7 +41,12 @@ export default function Appointments() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAppointments();
+  }, []);
 
   const handleUpdateStatus = async () => {
     if (!selectedAppointment || !newStatus) return;
@@ -99,7 +100,7 @@ export default function Appointments() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 border-0 shadow-sm">
           <CardHeader>
             <CardTitle>Calendar</CardTitle>
           </CardHeader>
@@ -108,7 +109,7 @@ export default function Appointments() {
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border border-gray-300 text-center"
+              className="mx-auto border-gray-100 text-center"
             />
           </CardContent>
         </Card>

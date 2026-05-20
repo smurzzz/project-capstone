@@ -7,28 +7,11 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
-import { SimpleBarChart, SimpleLineChart } from "../components/ui/simple-charts.jsx";
-import { appointmentsAPI, ordersAPI, packagesAPI, productsAPI } from "../utils/api.js";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
+import { SimpleBarChart, SimpleLineChart } from "../../components/ui/simple-charts.jsx";
+import { reportsAPI } from "../../utils/api.js";
 
-const salesData = [
-  { month: "Jan", sales: 12000 },
-  { month: "Feb", sales: 15000 },
-  { month: "Mar", sales: 18000 },
-  { month: "Apr", sales: 16000 },
-  { month: "May", sales: 22000 },
-  { month: "Jun", sales: 25000 },
-];
-
-const ordersData = [
-  { day: "Mon", orders: 45 },
-  { day: "Tue", orders: 52 },
-  { day: "Wed", orders: 48 },
-  { day: "Thu", orders: 61 },
-  { day: "Fri", orders: 55 },
-  { day: "Sat", orders: 67 },
-  { day: "Sun", orders: 43 },
-];
+const POLL_INTERVAL_MS = 15000;
 
 const statusColor = (status) => {
   if (status === "Completed" || status === "Delivered") return "bg-green-100 text-green-700";
@@ -37,60 +20,74 @@ const statusColor = (status) => {
   return "bg-yellow-100 text-yellow-700";
 };
 
+const formatMoney = (value) => `PHP ${Number(value || 0).toLocaleString()}`;
+
+const formatChange = (value) => {
+  const numberValue = Number(value || 0);
+  const prefix = numberValue > 0 ? "+" : "";
+  return `${prefix}${numberValue}% vs previous week`;
+};
+
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalOrders: 0,
-    appointments: 0,
-    inventoryItems: 0,
-    packageDeals: 0,
-    totalRevenue: 0,
-  });
-  const [recentOrders, setRecentOrders] = useState([]);
+  const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
+    let active = true;
+
     const fetchDashboardData = async () => {
       try {
-        const [orderStats, appointments, products, packages, orders] = await Promise.all([
-          ordersAPI.getStats(),
-          appointmentsAPI.getAll(),
-          productsAPI.getAll(),
-          packagesAPI.getAll(true),
-          ordersAPI.getAll(),
-        ]);
-
-        setStats({
-          totalOrders: orderStats.data.data.totalOrders || 0,
-          appointments: appointments.data.data?.length || 0,
-          inventoryItems: products.data.data?.length || 0,
-          packageDeals: packages.data.data?.length || 0,
-          totalRevenue: orderStats.data.data.totalRevenue || 0,
-        });
-        setRecentOrders(orders.data.data?.slice(0, 4) || []);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        const response = await reportsAPI.getOverview({ period: "weekly", offset: 0 });
+        if (!active) return;
+        setReport(response.data.data);
+        setLastUpdated(new Date());
+        setError("");
+      } catch (fetchError) {
+        if (active) {
+          console.error("Error fetching dashboard data:", fetchError);
+          setError(fetchError.response?.data?.message || "Failed to load dashboard data");
+        }
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     fetchDashboardData();
+    const interval = window.setInterval(fetchDashboardData, POLL_INTERVAL_MS);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
   }, []);
+
+  if (loading) {
+    return <div className="p-6">Loading dashboard...</div>;
+  }
+
+  const allTime = report?.allTime || {};
+  const metrics = report?.metrics || {};
+  const comparison = report?.comparison || {};
+  const recentOrders = report?.recentOrders || [];
+  const revenueTrend = report?.charts?.revenueTrend || [];
+  const ordersTrend = report?.charts?.ordersTrend || [];
 
   const cards = [
     {
       title: "Total Orders",
-      value: stats.totalOrders.toLocaleString(),
-      change: "+12.5%",
-      trend: "up",
+      value: Number(allTime.totalOrders || 0).toLocaleString(),
+      change: formatChange(comparison.orders),
+      trend: Number(comparison.orders || 0) >= 0 ? "up" : "down",
       icon: ShoppingCart,
       color: "text-blue-600",
       bg: "bg-blue-50",
     },
     {
       title: "Appointments",
-      value: stats.appointments.toLocaleString(),
-      change: "+8.2%",
+      value: Number(allTime.appointments || 0).toLocaleString(),
+      change: `${Number(metrics.appointments || 0).toLocaleString()} this week`,
       trend: "up",
       icon: Calendar,
       color: "text-green-600",
@@ -98,16 +95,16 @@ export default function AdminDashboard() {
     },
     {
       title: "Inventory Items",
-      value: stats.inventoryItems.toLocaleString(),
-      change: "-3.1%",
-      trend: "down",
+      value: Number(allTime.inventoryItems || 0).toLocaleString(),
+      change: `${Number(allTime.lowStockItems || 0).toLocaleString()} low stock`,
+      trend: Number(allTime.lowStockItems || 0) > 0 ? "down" : "up",
       icon: Package,
       color: "text-purple-600",
       bg: "bg-purple-50",
     },
     {
       title: "Package Deals",
-      value: stats.packageDeals.toLocaleString(),
+      value: Number(allTime.packageDeals || 0).toLocaleString(),
       change: "Active store offers",
       trend: "up",
       icon: Package,
@@ -116,25 +113,32 @@ export default function AdminDashboard() {
     },
     {
       title: "Total Revenue",
-      value: `PHP ${stats.totalRevenue.toLocaleString()}`,
-      change: "+15.3%",
-      trend: "up",
+      value: formatMoney(allTime.totalRevenue),
+      change: formatChange(comparison.revenue),
+      trend: Number(comparison.revenue || 0) >= 0 ? "up" : "down",
       icon: DollarSign,
       color: "text-orange-600",
       bg: "bg-orange-50",
     },
   ];
 
-  if (loading) {
-    return <div className="p-6">Loading dashboard...</div>;
-  }
-
   return (
     <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl mb-2">Dashboard Overview</h1>
-        <p className="text-gray-500">Welcome back! Here's what's happening today.</p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl md:text-3xl mb-2">Dashboard Overview</h1>
+          <p className="text-gray-500">Live database snapshot for {report?.period?.label || "this week"}.</p>
+        </div>
+        <p className="text-xs text-gray-500">
+          {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : "Waiting for first update"}
+        </p>
       </div>
+
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-4 text-sm text-red-700">{error}</CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((stat) => {
@@ -176,19 +180,19 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Sales Overview</CardTitle>
+            <CardTitle>Revenue This Week</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleLineChart data={salesData} xKey="month" yKey="sales" />
+            <SimpleLineChart data={revenueTrend} xKey="label" yKey="revenue" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Weekly Orders</CardTitle>
+            <CardTitle>Orders This Week</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleBarChart data={ordersData} xKey="day" yKey="orders" />
+            <SimpleBarChart data={ordersTrend} xKey="label" yKey="orders" />
           </CardContent>
         </Card>
       </div>
@@ -204,7 +208,7 @@ export default function AdminDashboard() {
                 <tr className="border-b">
                   <th className="text-left py-3 px-4">Order ID</th>
                   <th className="text-left py-3 px-4">Customer</th>
-                  <th className="text-left py-3 px-4 hidden md:table-cell">Product</th>
+                  <th className="text-left py-3 px-4 hidden md:table-cell">Date</th>
                   <th className="text-left py-3 px-4">Amount</th>
                   <th className="text-left py-3 px-4">Status</th>
                 </tr>
@@ -213,9 +217,11 @@ export default function AdminDashboard() {
                 {recentOrders.map((order) => (
                   <tr key={order._id} className="border-b last:border-0">
                     <td className="py-3 px-4">{order.referenceNumber}</td>
-                    <td className="py-3 px-4">{order.customerId?.name || order.fullName || "Guest"}</td>
-                    <td className="py-3 px-4 hidden md:table-cell">Customer order</td>
-                    <td className="py-3 px-4">PHP {Number(order.total || 0).toLocaleString()}</td>
+                    <td className="py-3 px-4">{order.customerName}</td>
+                    <td className="py-3 px-4 hidden md:table-cell">
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="py-3 px-4">{formatMoney(order.total)}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-2 py-1 rounded-full text-xs ${statusColor(order.status)}`}>
                         {order.status}

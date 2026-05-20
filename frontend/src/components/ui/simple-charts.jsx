@@ -1,31 +1,67 @@
 const getMax = (data, key) => Math.max(...data.map((item) => item[key]), 1);
 
-export function SimpleLineChart({ data, xKey, yKey, color = "#3b82f6", height = 260 }) {
+const compactNumber = (value) =>
+  Intl.NumberFormat(undefined, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(Number(value || 0));
+
+export function SimpleLineChart({ data = [], xKey, yKey, color = "#3b82f6", height = 260, maxLabels = 7 }) {
+  if (!data.length) {
+    return <div className="flex h-[300px] items-center justify-center text-sm text-gray-500">No chart data yet.</div>;
+  }
+
   const max = getMax(data, yKey);
   const width = 640;
-  const padding = 36;
+  const padding = { top: 24, right: 28, bottom: 48, left: 56 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
   const points = data.map((item, index) => {
-    const x = padding + (index * (width - padding * 2)) / Math.max(data.length - 1, 1);
-    const y = height - padding - (item[yKey] / max) * (height - padding * 2);
+    const x = padding.left + (index * chartWidth) / Math.max(data.length - 1, 1);
+    const y = padding.top + chartHeight - (Number(item[yKey] || 0) / max) * chartHeight;
     return { x, y, label: item[xKey], value: item[yKey] };
   });
   const path = points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
+  const labelStride = Math.max(1, Math.ceil(data.length / maxLabels));
+  const shouldShowLabel = (index) => index === 0 || index === data.length - 1 || index % labelStride === 0;
+  const areaPath =
+    points.length > 1
+      ? `${path} L ${points[points.length - 1].x} ${height - padding.bottom} L ${points[0].x} ${height - padding.bottom} Z`
+      : "";
+  const yTicks = [0, 0.5, 1].map((ratio) => ({
+    value: max * ratio,
+    y: padding.top + chartHeight - ratio * chartHeight,
+  }));
 
   return (
     <div className="w-full overflow-hidden">
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-[300px]">
-        {[0, 1, 2, 3].map((line) => {
-          const y = padding + line * ((height - padding * 2) / 3);
-          return <line key={line} x1={padding} x2={width - padding} y1={y} y2={y} stroke="#e5e7eb" />;
+        <defs>
+          <linearGradient id={`line-fill-${yKey}`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        {yTicks.map((tick) => {
+          return (
+            <g key={tick.y}>
+              <line x1={padding.left} x2={width - padding.right} y1={tick.y} y2={tick.y} stroke="#edf2f7" />
+              <text x={padding.left - 10} y={tick.y + 4} textAnchor="end" fontSize="11" fill="#94a3b8">
+                {compactNumber(tick.value)}
+              </text>
+            </g>
+          );
         })}
-        <polyline fill="none" stroke={color} strokeWidth="3" points={points.map((point) => `${point.x},${point.y}`).join(" ")} />
-        <path d={path} fill="none" stroke={color} strokeWidth="3" />
-        {points.map((point) => (
-          <g key={point.label}>
-            <circle cx={point.x} cy={point.y} r="4" fill={color} />
-            <text x={point.x} y={height - 10} textAnchor="middle" fontSize="12" fill="#6b7280">
-              {point.label}
-            </text>
+        {areaPath && <path d={areaPath} fill={`url(#line-fill-${yKey})`} />}
+        <path d={path} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {points.map((point, index) => (
+          <g key={`${point.label}-${index}`}>
+            <circle cx={point.x} cy={point.y} r={index === points.length - 1 ? "4" : "3"} fill="#fff" stroke={color} strokeWidth="2" />
+            {shouldShowLabel(index) && (
+              <text x={point.x} y={height - 16} textAnchor="middle" fontSize="11" fill="#64748b">
+                {point.label}
+              </text>
+            )}
           </g>
         ))}
       </svg>

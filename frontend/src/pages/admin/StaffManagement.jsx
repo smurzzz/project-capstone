@@ -11,14 +11,14 @@ import {
   UsersRound,
   UserX,
 } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Label } from "../components/ui/label.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
-import { staffAPI } from "../utils/api.js";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Label } from "../../components/ui/label.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { staffAPI } from "../../utils/api.js";
 
 const emptyForm = {
   name: "",
@@ -56,7 +56,7 @@ export default function StaffManagement() {
     fetchStaff();
   }, []);
 
-  const fetchStaff = async () => {
+  async function fetchStaff() {
     try {
       const [staffResponse, statsResponse] = await Promise.all([
         staffAPI.getAll(),
@@ -76,7 +76,7 @@ export default function StaffManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const filteredStaff = useMemo(() => {
     const query = searchTerm.toLowerCase();

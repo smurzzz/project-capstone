@@ -4,6 +4,7 @@ import Staff from "../models/Staff.js";
 import Customer from "../models/Customer.js";
 import { signAuthToken } from "../middleware/auth.js";
 import { cleanString, isStrongPassword, normalizeEmail } from "../utils/validation.js";
+import { verifyGoogleIdToken } from "../utils/googleAuth.js";
 
 const SALT_ROUNDS = 12;
 
@@ -102,6 +103,13 @@ export const loginCustomer = async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "Invalid credentials",
+            });
+        }
+
+        if (!user.password) {
+            return res.status(401).json({
+                success: false,
+                message: "This account uses Google sign-in",
             });
         }
 
@@ -253,6 +261,100 @@ export const registerCustomer = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Internal server error",
+        });
+    }
+};
+
+/**
+ * Customer Google Login/Registration
+ */
+export const googleCustomerAuth = async (req, res) => {
+    try {
+        const credential = cleanString(req.body.credential, 10_000);
+
+        if (!credential) {
+            return res.status(400).json({
+                success: false,
+                message: "Google credential is required",
+            });
+        }
+
+        const googleProfile = await verifyGoogleIdToken(credential);
+        const email = normalizeEmail(googleProfile.email);
+        const name = cleanString(googleProfile.name, 120) || email;
+        const profileImageUrl = cleanString(googleProfile.picture, 1000);
+
+        const existingStaff = await Staff.findOne({ email });
+        if (existingStaff) {
+            return res.status(400).json({
+                success: false,
+                message: "This email belongs to a staff account. Please use staff login.",
+            });
+        }
+
+        let user = await User.findOne({ email, role: "customer" });
+
+        if (!user) {
+            const customer = await getOrCreateMemberCustomer({
+                name,
+                email,
+                phone: "Google account",
+                address: "Not provided",
+            });
+
+            user = await User.create({
+                name,
+                email,
+                phone: "",
+                address: "",
+                profileImageUrl,
+                role: "customer",
+                customerId: customer._id,
+                authProvider: "google",
+                googleId: googleProfile.googleId,
+                emailVerified: true,
+            });
+        } else {
+            if (user.googleId && user.googleId !== googleProfile.googleId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Google account does not match this email",
+                });
+            }
+
+            let customer = null;
+            if (user.customerId) {
+                customer = await Customer.findById(user.customerId);
+            }
+
+            if (!customer) {
+                customer = await getOrCreateMemberCustomer({
+                    name: user.name || name,
+                    email,
+                    phone: user.phone || "Google account",
+                    address: user.address || "Not provided",
+                });
+                user.customerId = customer._id;
+            }
+
+            user.googleId = user.googleId || googleProfile.googleId;
+            user.emailVerified = true;
+            user.profileImageUrl = user.profileImageUrl || profileImageUrl;
+            user.name = user.name || name;
+            await user.save();
+        }
+
+        const session = await issueCustomerSession(user);
+
+        return res.status(200).json({
+            success: true,
+            message: "Google authentication successful",
+            ...session,
+        });
+    } catch (error) {
+        return res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.statusCode ? error.message : "Internal server error",
         });
     }
 };

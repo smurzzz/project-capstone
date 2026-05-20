@@ -1,14 +1,16 @@
 import React, { useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext.jsx";
-import { authAPI } from "../utils/api.js";
+import { AuthContext } from "../../context/AuthContext.jsx";
+import { authAPI } from "../../utils/api.js";
 import { useNavigate, Link } from "react-router-dom";
 import { UserCircle } from 'lucide-react';;
+import GoogleAuthButton from "../../components/auth/GoogleAuthButton.jsx";
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isStaffLogin, setIsStaffLogin] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -34,6 +36,24 @@ export default function Login() {
             setError(err.response?.data?.message || "Login failed");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleGoogleCredential = async (credential) => {
+        setError("");
+        setGoogleLoading(true);
+
+        try {
+            const response = await authAPI.googleCustomer(credential);
+
+            if (response.data.success) {
+                login(response.data.user, response.data.token);
+                navigate("/dashboard");
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || "Google login failed");
+        } finally {
+            setGoogleLoading(false);
         }
     };
 
@@ -89,6 +109,22 @@ export default function Login() {
                         {loading ? "Logging in..." : "Login"}
                     </button>
                 </form>
+
+                {!isStaffLogin && (
+                    <div className="mt-5 space-y-4">
+                        <div className="flex items-center gap-3 text-xs text-gray-400">
+                            <span className="h-px flex-1 bg-gray-200" />
+                            <span>or</span>
+                            <span className="h-px flex-1 bg-gray-200" />
+                        </div>
+                        <GoogleAuthButton
+                            disabled={loading || googleLoading}
+                            onError={setError}
+                            onSuccess={handleGoogleCredential}
+                            text="signin_with"
+                        />
+                    </div>
+                )}
 
                 <div style={styles.toggleSection}>
                     <p>

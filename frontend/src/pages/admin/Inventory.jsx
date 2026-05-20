@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, ImageIcon, Package, Plus, Search } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Label } from "../components/ui/label.jsx";
-import { productsAPI } from "../utils/api.js";
-import { imageFileToDataUrl } from "../utils/imageFile.js";
+import { AlertTriangle, ImageIcon, Package, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Label } from "../../components/ui/label.jsx";
+import { Textarea } from "../../components/ui/textarea.jsx";
+import { productsAPI } from "../../utils/api.js";
+import { imageFileToDataUrl } from "../../utils/imageFile.js";
 
 const emptyForm = {
   productName: "",
@@ -25,18 +26,18 @@ const emptyForm = {
 export default function Inventory() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const imageInputRef = useRef(null);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
+  async function fetchProducts(showSpinner = false) {
     try {
+      if (showSpinner) setLoading(true);
       const response = await productsAPI.getAll();
       setProducts(response.data.data || []);
     } catch (error) {
@@ -45,20 +46,55 @@ export default function Inventory() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchProducts();
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const productName = formData.productName.trim();
+    const price = Number(formData.price);
+    const stockLevel = Number(formData.stockLevel);
+    const minStock = Number(formData.minStock || 0);
+
+    if (!productName) {
+      toast.error("Product name is required");
+      return;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+      toast.error("Enter a valid product price");
+      return;
+    }
+
+    if (!Number.isInteger(stockLevel) || stockLevel < 0) {
+      toast.error("Quantity must be a whole number");
+      return;
+    }
+
+    if (!Number.isInteger(minStock) || minStock < 0) {
+      toast.error("Minimum stock must be a whole number");
+      return;
+    }
+
+    setSaving(true);
+
     try {
       const payload = {
         ...formData,
-        sku: formData.sku || undefined,
-        supplier: formData.supplier || undefined,
-        price: Number(formData.price),
-        srp: Number(formData.price),
+        productName,
+        sku: formData.sku.trim() || undefined,
+        supplier: formData.supplier.trim() || undefined,
+        category: formData.category.trim(),
+        description: formData.description.trim(),
+        price,
+        srp: price,
         imageUrl: formData.imageUrl || undefined,
-        stockLevel: Number(formData.stockLevel),
-        minStock: Number(formData.minStock),
+        stockLevel,
+        minStock,
       };
 
       if (editingId) {
@@ -75,7 +111,26 @@ export default function Inventory() {
       fetchProducts();
     } catch (error) {
       console.error("Error saving product:", error);
-      toast.error("Failed to save product");
+      toast.error(error.response?.data?.message || "Failed to save product");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (item) => {
+    const confirmed = window.confirm(`Delete ${item.productName}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingId(item._id);
+    try {
+      await productsAPI.delete(item._id);
+      toast.success("Product deleted");
+      fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error(error.response?.data?.message || "Failed to delete product");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -88,18 +143,25 @@ export default function Inventory() {
       .catch((error) => toast.error(error.message));
   };
 
-  const filteredInventory = products.filter((item) =>
-    [item.productName, item.sku, item.category, item.supplier, item.description]
+  const filteredInventory = products.filter((item) => {
+    const matchesSearch = [item.productName, item.sku, item.category, item.supplier, item.description]
       .filter(Boolean)
       .join(" ")
       .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   const getMinStock = (item) => Number(item.minStock || 0);
-  const lowStockItems = products.filter((item) => item.stockLevel < getMinStock(item));
-  const totalValue = products.reduce((sum, item) => sum + item.stockLevel * item.price, 0);
-  const categories = new Set(products.map((item) => item.category).filter(Boolean));
+  const getStockState = (item) => {
+    if (Number(item.stockLevel || 0) === 0) return "out";
+    if (getMinStock(item) > 0 && Number(item.stockLevel || 0) <= getMinStock(item)) return "low";
+    return "stocked";
+  };
+  const lowStockItems = products.filter((item) => getStockState(item) !== "stocked");
+  const totalValue = products.reduce((sum, item) => sum + Number(item.stockLevel || 0) * Number(item.price || 0), 0);
+  const categoryList = [...new Set(products.map((item) => item.category).filter(Boolean))].sort();
 
   if (loading) {
     return <div className="p-6">Loading inventory...</div>;
@@ -156,7 +218,7 @@ export default function Inventory() {
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-gray-500">Categories</p>
-            <p className="text-3xl mt-2">{categories.size}</p>
+            <p className="text-3xl mt-2">{categoryList.length}</p>
           </CardContent>
         </Card>
       </div>
@@ -195,6 +257,24 @@ export default function Inventory() {
               className="pl-10"
             />
           </div>
+          <div className="mt-4 flex flex-col sm:flex-row gap-3">
+            <select
+              value={categoryFilter}
+              onChange={(event) => setCategoryFilter(event.target.value)}
+              className="h-10 rounded-md border border-gray-200 bg-white px-3 text-sm"
+            >
+              <option value="all">All categories</option>
+              {categoryList.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <Button type="button" variant="outline" onClick={() => fetchProducts(true)}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -220,7 +300,8 @@ export default function Inventory() {
               </thead>
               <tbody>
                 {filteredInventory.map((item) => {
-                  const isLowStock = item.stockLevel < getMinStock(item);
+                  const stockState = getStockState(item);
+                  const isLowStock = stockState !== "stocked";
                   return (
                     <tr key={item._id} className="border-b last:border-0">
                       <td className="py-3 px-4">
@@ -249,37 +330,60 @@ export default function Inventory() {
                       <td className="py-3 px-4 hidden xl:table-cell">{item.supplier || "-"}</td>
                       <td className="py-3 px-4">
                         {isLowStock ? (
-                          <Badge className="bg-orange-100 text-orange-700">Low Stock</Badge>
+                          <Badge className={stockState === "out" ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"}>
+                            {stockState === "out" ? "Out of Stock" : "Low Stock"}
+                          </Badge>
                         ) : (
                           <Badge className="bg-green-100 text-green-700">In Stock</Badge>
                         )}
                       </td>
                       <td className="py-3 px-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingId(item._id);
-                            setFormData({
-                              productName: item.productName,
-                              sku: item.sku || "",
-                              price: item.price,
-                              imageUrl: item.imageUrl || "",
-                              stockLevel: item.stockLevel,
-                              minStock: item.minStock || "",
-                              description: item.description || "",
-                              category: item.category || "",
-                              supplier: item.supplier || "",
-                            });
-                            setDialogOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingId(item._id);
+                              setFormData({
+                                productName: item.productName,
+                                sku: item.sku || "",
+                                price: item.price,
+                                imageUrl: item.imageUrl || "",
+                                stockLevel: item.stockLevel,
+                                minStock: item.minStock || "",
+                                description: item.description || "",
+                                category: item.category || "",
+                                supplier: item.supplier || "",
+                              });
+                              setDialogOpen(true);
+                            }}
+                          >
+                            <Pencil className="w-3.5 h-3.5 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="border-red-200 text-red-600 hover:bg-red-50"
+                            disabled={deletingId === item._id}
+                            onClick={() => handleDelete(item)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
+                            {deletingId === item._id ? "Deleting" : "Delete"}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
                 })}
+                {filteredInventory.length === 0 && (
+                  <tr>
+                    <td className="py-8 px-4 text-center text-gray-500" colSpan={9}>
+                      No inventory items match your filters.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -287,7 +391,7 @@ export default function Inventory() {
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Inventory Item" : "Add New Inventory Item"}</DialogTitle>
           </DialogHeader>
@@ -398,7 +502,18 @@ export default function Inventory() {
                 />
               </div>
             </div>
-            <Button className="w-full">{editingId ? "Update Item" : "Add Item"}</Button>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Add supplier notes, product specs, or restock reminders"
+                value={formData.description}
+                onChange={(event) => setFormData({ ...formData, description: event.target.value })}
+              />
+            </div>
+            <Button className="w-full" disabled={saving}>
+              {saving ? "Saving..." : editingId ? "Update Item" : "Add Item"}
+            </Button>
           </form>
         </DialogContent>
       </Dialog>

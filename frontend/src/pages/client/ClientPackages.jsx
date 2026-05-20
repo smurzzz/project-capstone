@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check, ImageIcon, Star } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card.jsx";
-import { packagesAPI } from "../utils/api.js";
+} from "../../components/ui/card.jsx";
+import { packagesAPI } from "../../utils/api.js";
 
 export default function ClientPackages({ onSelectPackage }) {
   const [packages, setPackages] = useState([]);

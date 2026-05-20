@@ -2,22 +2,22 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { Toaster } from 'sonner';
-import Login from './pages/Login';
-import SignUp from './pages/SignUp';
-import ClientDashboard from './pages/ClientDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import Inventory from './pages/Inventory';
-import Orders from './pages/Orders';
-import Customers from './pages/Customers';
-import Appointments from './pages/Appointments';
-import AdminPackages from './pages/AdminPackages';
-import StaffManagement from './pages/StaffManagement';
-import ClientHomepage from './pages/ClientHomepage';
-import ClientTracking from './pages/ClientTracking';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
+import Login from './pages/auth/Login';
+import SignUp from './pages/auth/SignUp';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminPackages from './pages/admin/AdminPackages';
+import Appointments from './pages/admin/Appointments';
+import Customers from './pages/admin/Customers';
+import Inventory from './pages/admin/Inventory';
+import Orders from './pages/admin/Orders';
+import Reports from './pages/admin/Reports';
+import StaffManagement from './pages/admin/StaffManagement';
+import ClientDashboard from './pages/client/ClientDashboard';
+import ClientHomepage from './pages/client/ClientHomepage';
+import ClientTracking from './pages/client/ClientTracking';
+import Settings from './pages/shared/Settings';
 import ProtectedRoutes from './utils/ProtectedRoutes';
-import Sidebar from './components/Sidebar';
+import Sidebar from './components/admin/Sidebar';
 
 const App = () => {
   return (

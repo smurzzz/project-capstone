@@ -1,28 +1,28 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AlertCircle, Check, Clock } from "lucide-react";
-import { Alert, AlertDescription } from "../components/ui/alert.jsx";
-import { Button } from "../components/ui/button.jsx";
-import { Calendar } from "../components/ui/calendar.jsx";
+import { Alert, AlertDescription } from "../../components/ui/alert.jsx";
+import { Button } from "../../components/ui/button.jsx";
+import { Calendar } from "../../components/ui/calendar.jsx";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Label } from "../components/ui/label.jsx";
+} from "../../components/ui/card.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Label } from "../../components/ui/label.jsx";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select.jsx";
-import { Textarea } from "../components/ui/textarea.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
-import { appointmentsAPI } from "../utils/api.js";
+} from "../../components/ui/select.jsx";
+import { Textarea } from "../../components/ui/textarea.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { appointmentsAPI } from "../../utils/api.js";
 const TIME_SLOTS = [
   "9:00 AM - 10:00 AM",
   "10:00 AM - 11:00 AM",
@@ -68,9 +68,15 @@ export default function ClientAppointments() {
   const [availableSlots, setAvailableSlots] = useState(TIME_SLOTS);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
+  const handleDateSelect = (nextDate) => {
+    setDate(nextDate);
+    if (!nextDate) {
+      setAvailableSlots(TIME_SLOTS);
+    }
+  };
+
   useEffect(() => {
     if (!date) {
-      setAvailableSlots(TIME_SLOTS);
       return;
     }
 
@@ -136,7 +142,7 @@ const handleSubmit = async (event) => {
     toast.success("Appointment booked successfully!");
 
     // reset form
-    setDate(undefined);
+    handleDateSelect(undefined);
     setTimeSlot("");
     setService("");
     setPhone(user?.phone || "");
@@ -165,18 +171,18 @@ const handleSubmit = async (event) => {
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label>Appointment Date *</Label>
-                  <div className="border rounded-lg p-4 flex justify-center">
+                  <div className="rounded-3xl bg-gray-50 p-3 flex justify-center">
                     <Calendar
                       mode="single"
                       selected={date}
-                      onSelect={setDate}
+                      onSelect={handleDateSelect}
                       disabled={isDateUnavailable}
-                      className="rounded-md"
+                      className="border-gray-100"
                       modifiers={{
                         unavailable: UNAVAILABLE_DATES,
                       }}
                       modifiersClassNames={{
-                        unavailable: "bg-red-100 text-red-800 line-through",
+                        unavailable: "bg-transparent text-red-400 line-through opacity-70",
                       }}
                     />
                   </div>

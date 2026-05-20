@@ -26,6 +26,14 @@ const mapProductInput = (body) => {
     };
 };
 
+const getValidationMessage = (error) => {
+    if (error.name !== "ValidationError") {
+        return null;
+    }
+
+    return Object.values(error.errors || {})[0]?.message || "Invalid product data";
+};
+
 /**
  * Get all products
  */
@@ -104,6 +112,14 @@ export const createProduct = async (req, res) => {
             });
         }
 
+        const validationMessage = getValidationMessage(error);
+        if (validationMessage) {
+            return res.status(400).json({
+                success: false,
+                message: validationMessage,
+            });
+        }
+
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -158,6 +174,14 @@ export const updateProduct = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Product name or SKU already exists",
+            });
+        }
+
+        const validationMessage = getValidationMessage(error);
+        if (validationMessage) {
+            return res.status(400).json({
+                success: false,
+                message: validationMessage,
             });
         }
 

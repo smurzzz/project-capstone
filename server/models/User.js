@@ -15,7 +15,24 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: function requirePasswordForPasswordAuth() {
+            return this.authProvider !== "google";
+        }
+    },
+    authProvider: {
+        type: String,
+        enum: ["password", "google"],
+        default: "password"
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true,
+        trim: true
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false
     },
     phone: {
         type: String,

@@ -59,7 +59,7 @@ const productSchema = new mongoose.Schema({
     }
 });
 
-productSchema.pre("validate", function normalizeProductPrice(next) {
+productSchema.pre("validate", function normalizeProductPrice() {
     if (this.srp === undefined || this.srp === null) {
         this.srp = this.price;
     }
@@ -67,8 +67,6 @@ productSchema.pre("validate", function normalizeProductPrice(next) {
     if (this.price === undefined || this.price === null) {
         this.price = this.srp;
     }
-
-    next();
 });
 
 const Product = mongoose.model("Product", productSchema);

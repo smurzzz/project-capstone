@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { authAPI } from "../utils/api.js";
+import { authAPI } from "../../utils/api.js";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import GoogleAuthButton from "../../components/auth/GoogleAuthButton.jsx";
 
 export default function SignUp() {
     const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ export default function SignUp() {
         address: ""
     });
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
     const navigate = useNavigate();
     const { login } = useAuth();
@@ -22,6 +24,24 @@ export default function SignUp() {
             ...formData,
             [e.target.name]: e.target.value
         });
+    };
+
+    const handleGoogleCredential = async (credential) => {
+        setError("");
+        setGoogleLoading(true);
+
+        try {
+            const response = await authAPI.googleCustomer(credential);
+
+            if (response.data.success) {
+                login(response.data.user, response.data.token);
+                navigate("/dashboard");
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || "Google sign up failed");
+        } finally {
+            setGoogleLoading(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -167,6 +187,20 @@ export default function SignUp() {
                         {loading ? "Creating Account..." : "Create Account"}
                     </button>
                 </form>
+
+                <div className="mt-5 space-y-4">
+                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                        <span className="h-px flex-1 bg-gray-200" />
+                        <span>or</span>
+                        <span className="h-px flex-1 bg-gray-200" />
+                    </div>
+                    <GoogleAuthButton
+                        disabled={loading || googleLoading}
+                        onError={setError}
+                        onSuccess={handleGoogleCredential}
+                        text="signup_with"
+                    />
+                </div>
 
                 <div style={styles.loginSection}>
                     <p>

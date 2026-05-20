@@ -1,22 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Edit, ImageIcon, PackagePlus, Plus, Trash2 } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Label } from "../components/ui/label.jsx";
-import { Textarea } from "../components/ui/textarea.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Label } from "../../components/ui/label.jsx";
+import { Textarea } from "../../components/ui/textarea.jsx";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select.jsx";
-import { packagesAPI, productsAPI } from "../utils/api.js";
-import { imageFileToDataUrl } from "../utils/imageFile.js";
+} from "../../components/ui/select.jsx";
+import { packagesAPI, productsAPI } from "../../utils/api.js";
+import { imageFileToDataUrl } from "../../utils/imageFile.js";
 
 const emptyForm = {
   name: "",
@@ -64,7 +64,7 @@ export default function AdminPackages() {
     [products]
   );
 
-  const fetchData = async () => {
+  async function fetchData() {
     try {
       const [packagesResponse, productsResponse] = await Promise.all([
         packagesAPI.getAll(true),
@@ -78,7 +78,7 @@ export default function AdminPackages() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const openCreateDialog = () => {
     setEditingId(null);

@@ -9,29 +9,29 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import { Alert, AlertDescription } from "../components/ui/alert.jsx";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
+import { Alert, AlertDescription } from "../../components/ui/alert.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Label } from "../components/ui/label.jsx";
+} from "../../components/ui/card.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Label } from "../../components/ui/label.jsx";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select.jsx";
-import { Textarea } from "../components/ui/textarea.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
-import { useCart } from "../context/CartContext.jsx";
-import { ordersAPI } from "../utils/api.js";
+} from "../../components/ui/select.jsx";
+import { Textarea } from "../../components/ui/textarea.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { useCart } from "../../context/CartContext.jsx";
+import { ordersAPI } from "../../utils/api.js";
 
 const paymentMethodMap = {
   gcash: "Online Transfer",

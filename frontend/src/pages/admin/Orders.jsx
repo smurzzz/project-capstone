@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Eye, Filter, Search } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog.jsx";
-import { Input } from "../components/ui/input.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog.jsx";
+import { Input } from "../../components/ui/input.jsx";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select.jsx";
-import { ordersAPI } from "../utils/api.js";
+} from "../../components/ui/select.jsx";
+import { ordersAPI } from "../../utils/api.js";
 
 const statusColors = {
   Pending: "bg-yellow-100 text-yellow-700",
@@ -35,7 +35,7 @@ export default function Orders() {
     fetchOrders();
   }, []);
 
-  const fetchOrders = async () => {
+  async function fetchOrders() {
     try {
       const response = await ordersAPI.getAll();
       setOrders(response.data.data || []);
@@ -45,7 +45,7 @@ export default function Orders() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   const handleViewDetails = async (order) => {
     setSelectedOrder(order);

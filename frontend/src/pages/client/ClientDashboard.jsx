@@ -15,17 +15,17 @@ import {
   User,
   Zap,
 } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
-import { useAuth } from "../context/AuthContext.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import ClientAppointments from "./ClientAppointments.jsx";
 import ClientHome from "./ClientHome.jsx";
 import ClientOrderForm from "./ClientOrderForm.jsx";
 import ClientPackages from "./ClientPackages.jsx";
 import ClientProducts from "./ClientProducts.jsx";
 import ClientTracking from "./ClientTracking.jsx";
-import SettingsPage from "./Settings.jsx";
-import { appointmentsAPI, ordersAPI } from "../utils/api.js";
+import SettingsPage from "../shared/Settings.jsx";
+import { appointmentsAPI, ordersAPI } from "../../utils/api.js";
 
 const getStoredReadNotifications = (userId) => {
   try {

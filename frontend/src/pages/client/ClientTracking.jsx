@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { Calendar, Package, Search } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs.jsx";
-import { ordersAPI, appointmentsAPI } from "../utils/api.js";
-import { useAuth } from "../context/AuthContext.jsx";
+} from "../../components/ui/card.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs.jsx";
+import { ordersAPI, appointmentsAPI } from "../../utils/api.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const orderStatusColors = {
   Pending: "bg-gray-100 text-gray-800",
@@ -37,37 +37,31 @@ export default function ClientTracking() {
   const [loading, setLoading] = useState(true);
 
   const fetchUserData = useCallback(async () => {
+    let nextOrders = [];
+    let nextAppointments = [];
+
     try {
-      setLoading(true);
-      
       try {
         const customerId = user?.customerId;
-        if (!customerId) {
-          setMyOrders([]);
-        } else {
+        if (customerId) {
           const ordersResponse = await ordersAPI.getByCustomer(customerId);
-          const orders = ordersResponse.data.data || [];
-          setMyOrders(orders);
+          nextOrders = ordersResponse.data.data || [];
         }
       } catch (orderError) {
         console.error("Error fetching orders:", orderError);
-        setMyOrders([]);
       }
 
       try {
         const appointmentsResponse = await appointmentsAPI.getMyAppointments();
-        const appointments = appointmentsResponse.data.data || [];
-        setMyAppointments(appointments);
+        nextAppointments = appointmentsResponse.data.data || [];
       } catch (appointmentError) {
         console.error("Error fetching appointments:", appointmentError);
-        setMyAppointments([]);
       }
-      
     } catch (error) {
       console.error("Error in fetchUserData:", error);
-      setMyOrders([]);
-      setMyAppointments([]);
     } finally {
+      setMyOrders(nextOrders);
+      setMyAppointments(nextAppointments);
       setLoading(false);
     }
   }, [user]);

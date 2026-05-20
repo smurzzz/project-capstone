@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Calendar, Clock, User, AlertCircle } from "lucide-react";
-import { Badge } from "../components/ui/badge.jsx";
-import { Button } from "../components/ui/button.jsx";
+import { Badge } from "../../components/ui/badge.jsx";
+import { Button } from "../../components/ui/button.jsx";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card.jsx";
-import { appointmentsAPI } from "../utils/api.js";
-import { useAuth } from "../context/AuthContext.jsx";
+} from "../../components/ui/card.jsx";
+import { appointmentsAPI } from "../../utils/api.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const statusColors = {
   Scheduled: "bg-yellow-100 text-yellow-800",
@@ -21,24 +21,12 @@ const statusColors = {
 };
 
 export default function ClientMyAppointments() {
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(Boolean(user));
 
-  useEffect(() => {
-    console.log("User object:", user);
-    console.log("Token in localStorage:", localStorage.getItem("pos-token"));
-    
-    if (user) {
-      fetchMyAppointments();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchMyAppointments = async () => {
+  async function fetchMyAppointments() {
     try {
-      setLoading(true);
       const response = await appointmentsAPI.getMyAppointments();
       setAppointments(response.data.data || []);
     } catch (error) {
@@ -52,7 +40,14 @@ export default function ClientMyAppointments() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchMyAppointments();
+    }
+  }, [user]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);

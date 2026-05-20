@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { customersAPI } from "../utils/api.js";
+import { useState, useEffect } from "react";
+import { customersAPI } from "../../utils/api.js";
 
 export default function Customers() {
     const [customers, setCustomers] = useState([]);
@@ -20,7 +20,7 @@ export default function Customers() {
         fetchCustomers();
     }, []);
 
-    const fetchCustomers = async () => {
+    async function fetchCustomers() {
         try {
             const response = await customersAPI.getAll();
             setCustomers(response.data.data);
@@ -29,7 +29,7 @@ export default function Customers() {
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
