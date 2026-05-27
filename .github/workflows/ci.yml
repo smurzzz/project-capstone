@@ -6,7 +6,8 @@ on:
   pull_request:
 
 jobs:
-  build:
+  frontend:
+    name: Frontend lint and build
     runs-on: ubuntu-latest
 
     steps:
@@ -18,17 +19,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: |
-            frontend/package-lock.json
-            server/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install frontend dependencies
         run: npm ci
         working-directory: frontend
-
-      - name: Install server dependencies
-        run: npm ci
-        working-directory: server
 
       - name: Lint frontend
         run: npm run lint
@@ -37,6 +32,25 @@ jobs:
       - name: Build frontend
         run: npm run build
         working-directory: frontend
+
+  server:
+    name: Server install and syntax check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install server dependencies
+        run: npm ci
+        working-directory: server
 
       - name: Validate server modules
         run: node --check index.js

@@ -11,11 +11,23 @@ services:
         value: production
       - key: MONGODB_URI
         sync: false
+      - key: MONGODB_DB_NAME
+        value: jbm-electro-ventures
       - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 2d
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: CORS_ORIGIN
         sync: false
       - key: PUBLIC_APP_URL
+        sync: false
+      - key: MEMBER_DISCOUNT_RATE
+        value: 0.10
+      - key: MAIL_FROM
         sync: false
       - key: SMTP_HOST
         sync: false

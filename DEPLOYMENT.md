@@ -2,6 +2,20 @@
 
 This project is split into a Vite frontend and an Express/MongoDB API.
 
+## CI/CD pipeline
+
+GitHub Actions is configured with two workflows:
+
+- `.github/workflows/ci.yml` runs on every pull request and on pushes to `main` or `master`.
+- `.github/workflows/deploy.yml` runs after CI succeeds on `main` or `master`, and can also be started manually from the GitHub Actions tab.
+
+Add these GitHub repository secrets before enabling automatic deployment:
+
+- `RENDER_DEPLOY_HOOK_URL`: Render deploy hook URL for the API service.
+- `VERCEL_DEPLOY_HOOK_URL`: Vercel deploy hook URL for the frontend project.
+
+If one deploy hook secret is missing, that deployment step is skipped. This lets you deploy only the API, only the frontend, or both.
+
 ## Required environment variables
 
 Server:
@@ -21,13 +35,17 @@ Server:
 Frontend:
 
 - `VITE_API_BASE_URL=https://your-api-domain.com/api`
+- `VITE_GOOGLE_CLIENT_ID`
 
-## Suggested deployment
+## Production deployment
 
-1. Deploy `server` to Render using the included `render.yaml`, or to Railway/Fly.io/a VPS using `npm ci` then `npm start`.
-2. Deploy `frontend` to Vercel using `frontend/vercel.json`, or to Netlify using `npm ci` then `npm run build`; publish `dist`.
-3. Set `CORS_ORIGIN` on the server to the production frontend URL.
-4. Configure SMTP and payment gateway keys in the server host secret manager.
-5. Confirm `/api/health` returns success before opening the frontend to users.
+1. Deploy `server` to Render using the included `render.yaml`.
+2. In Render, set the server environment variables listed above. Keep secrets in Render's environment manager, not in Git.
+3. Deploy `frontend` to Vercel using `frontend/vercel.json`.
+4. In Vercel, set `VITE_API_BASE_URL` to the production API URL plus `/api`.
+5. Set `CORS_ORIGIN` on the server to the production frontend URL.
+6. Add the Render and Vercel deploy hook URLs as GitHub repository secrets.
+7. Push to `main` or `master`. CI will run first; deployment starts only after CI succeeds.
+8. Confirm `https://your-api-domain.com/api/health` returns success before opening the frontend to users.
 
-The GitHub Actions workflow in `.github/workflows/ci.yml` installs both apps, lints the frontend, builds the frontend, and validates the server entry point on every PR and push.
+For another host such as Railway, Fly.io, Netlify, or a VPS, use the same build commands: `npm ci` then `npm start` in `server`, and `npm ci` then `npm run build` in `frontend`.
