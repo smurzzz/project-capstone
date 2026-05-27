@@ -32,6 +32,20 @@ const buildStaffPayload = (user) => ({
     type: "staff",
 });
 
+const getStaffAccountByToken = async (tokenUser) => {
+    let user = await Staff.findById(tokenUser.id);
+
+    if (user && !user.isActive) {
+        return null;
+    }
+
+    if (!user) {
+        user = await User.findOne({ _id: tokenUser.id, role: "admin" });
+    }
+
+    return user;
+};
+
 const getOrCreateMemberCustomer = async ({ name, email, phone, address }) => {
     const existingCustomer = await Customer.findOne({ "contactInfo.email": email });
 
@@ -184,6 +198,61 @@ export const loginStaff = async (req, res) => {
             success: true,
             token,
             user: payload,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
+export const getCurrentSession = async (req, res) => {
+    try {
+        if (req.user?.type === "staff") {
+            const user = await getStaffAccountByToken(req.user);
+
+            if (!user) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid or inactive staff session",
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                user: buildStaffPayload(user),
+            });
+        }
+
+        if (req.user?.type === "customer") {
+            const user = await User.findOne({ _id: req.user.id, role: "customer" });
+
+            if (!user) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid customer session",
+                });
+            }
+
+            let customer = null;
+            if (user.customerId) {
+                customer = await Customer.findById(user.customerId);
+            }
+
+            if (!customer) {
+                customer = await Customer.findOne({ "contactInfo.email": user.email });
+            }
+
+            return res.status(200).json({
+                success: true,
+                user: buildCustomerPayload(user, customer),
+            });
+        }
+
+        return res.status(401).json({
+            success: false,
+            message: "Invalid session",
         });
     } catch (error) {
         res.status(500).json({

@@ -5,15 +5,15 @@ import { useNavigate, Link } from "react-router-dom";
 import { UserCircle } from 'lucide-react';;
 import GoogleAuthButton from "../../components/auth/GoogleAuthButton.jsx";
 
-export default function Login() {
+export default function Login({ mode = "customer" }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [isStaffLogin, setIsStaffLogin] = useState(false);
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
+    const isStaffLogin = mode === "staff";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -30,7 +30,8 @@ export default function Login() {
 
             if (response.data.success) {
                 login(response.data.user, response.data.token);
-                navigate(isStaffLogin ? "/admin" : "/dashboard");
+                const isAdmin = response.data.user?.type === "staff" && String(response.data.user?.role).toLowerCase() === "admin";
+                navigate(isAdmin ? "/admin" : "/dashboard");
             }
         } catch (err) {
             setError(err.response?.data?.message || "Login failed");
@@ -66,10 +67,10 @@ export default function Login() {
                     </div>
                 </div>
                 <h1 className="text-xl font-semibold text-center" >
-                    {isStaffLogin ? "Staff Login" : "Welcome Back"}
+                    {isStaffLogin ? "Admin Login" : "Welcome Back"}
                 </h1>
                 <p className="text-sm text-gray-500 text-center mt-1 mb-6">
-                    Sign in to your JBM Electro Ventures account
+                    {isStaffLogin ? "Authorized administrators only" : "Sign in to your JBM Electro Ventures account"}
                 </p>
 
                 {error && <div style={styles.error}>{error}</div>}
@@ -126,27 +127,16 @@ export default function Login() {
                     </div>
                 )}
 
-                <div style={styles.toggleSection}>
-                    <p>
-                        {isStaffLogin ? "Are you a customer? " : "Are you staff? "}
-                        <button
-                            type="button"
-                            onClick={() => setIsStaffLogin(!isStaffLogin)}
-                            style={styles.toggleBtn}
-                        >
-                            {isStaffLogin ? "Customer Login" : "Staff Login"}
-                        </button>
-                    </p>
-                </div>
-
-                <div style={styles.signupSection}>
-                    <p>
-                        Don't have an account?{" "}
-                        <Link to="/signup" style={styles.signupLink}>
-                            Sign up here
-                        </Link>
-                    </p>
-                </div>
+                {!isStaffLogin && (
+                    <div style={styles.signupSection}>
+                        <p>
+                            Don't have an account?{" "}
+                            <Link to="/signup" style={styles.signupLink}>
+                                Sign up here
+                            </Link>
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -195,21 +185,9 @@ const styles = {
         fontSize: "16px",
         marginTop: "10px"
     },
-    toggleSection: {
-        textAlign: "center",
-        marginTop: "20px",
-        fontSize: "14px"
-    },
-    toggleBtn: {
-        background: "none",
-        border: "none",
-        color: "#007bff",
-        cursor: "pointer",
-        textDecoration: "underline"
-    },
     signupSection: {
         textAlign: "center",
-        marginTop: "15px",
+        marginTop: "20px",
         fontSize: "14px"
     },
     signupLink: {

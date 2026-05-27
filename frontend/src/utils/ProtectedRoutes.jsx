@@ -1,32 +1,30 @@
-import { useEffect, useContext } from "react";
+import { useContext } from "react";
+import { Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const ProtectedRoutes = ({ children, requireRole }) => {
     const { user, loading } = useContext(AuthContext);
-    const navigate = useNavigate();
+    const isAdminRoute = requireRole?.some((role) => String(role).toLowerCase() === "admin");
+    const loginPath = isAdminRoute ? "/admin/login" : "/login";
 
-    useEffect(() => {
-        if (loading) return;
+    if (loading) {
+        return (
+            <div className="app-loader" role="status" aria-live="polite">
+                <div className="app-loader__spinner" />
+                <span>Loading</span>
+            </div>
+        );
+    }
 
-        if (!user) {
-            navigate("/login");
-            return;
-        }
+    if (!user) return <Navigate to={loginPath} replace />;
 
-        if (requireRole && !requireRole.includes(user.role)) {
-            navigate("/login");
-        }
+    const roleAllowed = !requireRole || requireRole.includes(user.role);
+    const typeAllowed = !isAdminRoute || user.type === "staff";
 
-    }, [user, navigate, requireRole, loading]);
+    if (!roleAllowed || !typeAllowed) {
+        return <Navigate to={loginPath} replace />;
+    }
 
-    // while checking
-    if (loading || !user) return <div>Loading...</div>;
-
-    // block unauthorized
-    if (requireRole && !requireRole.includes(user.role)) return null;
-
-    // ✅ allow access
     return children;
 };
 

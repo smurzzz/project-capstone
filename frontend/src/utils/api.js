@@ -39,7 +39,8 @@ export const authAPI = {
     googleCustomer: (credential) =>
         api.post("/auth/google/customer", { credential }),
     loginStaff: (email, password) =>
-        api.post("/auth/staff/login", { email, password })
+        api.post("/auth/staff/login", { email, password }),
+    getSession: () => api.get("/auth/session")
 };
 
 // PRODUCTS APIs

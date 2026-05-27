@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { authAPI } from "../utils/api.js";
 
 const AuthContext = createContext();
 
@@ -13,7 +14,45 @@ export const AuthProvider = ({ children }) => {
             return null;
         }
     });
-    const [loading] = useState(false);
+    const [loading, setLoading] = useState(() => Boolean(localStorage.getItem("pos-token")));
+
+    useEffect(() => {
+        let mounted = true;
+
+        const verifySession = async () => {
+            const token = localStorage.getItem("pos-token");
+
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const response = await authAPI.getSession();
+                if (!mounted) return;
+
+                const sessionUser = response.data.user;
+                setUser(sessionUser);
+                localStorage.setItem("pos-user", JSON.stringify(sessionUser));
+            } catch {
+                if (!mounted) return;
+
+                setUser(null);
+                localStorage.removeItem("pos-user");
+                localStorage.removeItem("pos-token");
+            } finally {
+                if (mounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        verifySession();
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const login = (userData, token) => {
         setUser(userData);

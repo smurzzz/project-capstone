@@ -79,7 +79,7 @@ export const verifyToken = (req, res, next) => {
  * Middleware to verify user is Admin
  */
 export const verifyAdmin = (req, res, next) => {
-    if (!isAdminRole(req.user?.role)) {
+    if (req.user?.type !== "staff" || !isAdminRole(req.user?.role)) {
         return res.status(403).json({
             success: false,
             message: "Access denied. Admin privileges required",
@@ -93,7 +93,7 @@ export const verifyAdmin = (req, res, next) => {
  * Middleware to verify user is Staff or Admin
  */
 export const verifyStaff = (req, res, next) => {
-    if (!isStaffRole(req.user?.role)) {
+    if (req.user?.type !== "staff" || !isStaffRole(req.user?.role)) {
         return res.status(403).json({
             success: false,
             message: "Access denied. Staff privileges required",

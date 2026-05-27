@@ -13,12 +13,85 @@
 
 * {
     font-family: 'Poppins', sans-serif;
+    box-sizing: border-box;
 }
 
 body {
     margin: 0;
     background: var(--brand-surface);
     color: var(--brand-ink);
+    min-width: 320px;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    transition: border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, background-color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+}
+
+:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--brand-primary), white 35%);
+    outline-offset: 2px;
+}
+
+.app-loader {
+    display: grid;
+    min-height: 100vh;
+    place-content: center;
+    gap: 0.875rem;
+    color: var(--brand-primary-dark);
+    font-weight: 600;
+}
+
+.app-loader__spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    justify-self: center;
+    border: 3px solid color-mix(in srgb, var(--brand-primary), transparent 75%);
+    border-top-color: var(--brand-primary);
+    border-radius: 999px;
+    animation: app-spin 800ms linear infinite;
+}
+
+@keyframes app-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 1ms !important;
+    }
 }
 
 ::selection {

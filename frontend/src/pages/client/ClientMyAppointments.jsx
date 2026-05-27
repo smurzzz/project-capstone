@@ -44,7 +44,6 @@ export default function ClientMyAppointments() {
 
   useEffect(() => {
     if (user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchMyAppointments();
     }
   }, [user]);

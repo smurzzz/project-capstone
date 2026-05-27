@@ -23,7 +23,6 @@ export default function Settings() {
 
   useEffect(() => {
     // Keep the editable form in sync when a different account signs in.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData({
       name: user?.name || "",
       email: user?.email || "",
