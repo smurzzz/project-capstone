@@ -156,8 +156,8 @@ npm run dev
 - `GET /api/customers` - Get all customers
 - `POST /api/customers` - Create customer
 - `GET /api/customers/:id` - Get customer by ID
-- `PUT /api/customers/:id` - Update customer
-- `DELETE /api/customers/:id` - Delete customer
+    - `PUT /api/customers/:id` - Update customer
+    - `DELETE /api/customers/:id` - Delete customer
 
 ### Appointments
 - `GET /api/appointments` - Get all appointments

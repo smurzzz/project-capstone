@@ -2,11 +2,27 @@ import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import Staff from "../models/Staff.js";
 import Customer from "../models/Customer.js";
+import MembershipHistory from "../models/MembershipHistory.js";
 import { signAuthToken } from "../middleware/auth.js";
 import { cleanString, isStrongPassword, normalizeEmail } from "../utils/validation.js";
 import { verifyGoogleIdToken } from "../utils/googleAuth.js";
 
 const SALT_ROUNDS = 12;
+
+const buildDefaultMembership = ({ status = "Pending", tier = "Silver" } = {}) => {
+    const expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+    return {
+        status,
+        tier,
+        pointsBalance: 0,
+        joinedAt: new Date(),
+        approvedAt: status === "Active" ? new Date() : null,
+        expiresAt,
+        renewalCount: 0,
+    };
+};
 
 const buildCustomerPayload = (user, customer) => ({
     id: user._id,
@@ -18,6 +34,7 @@ const buildCustomerPayload = (user, customer) => ({
     profileImageUrl: user.profileImageUrl || customer?.profileImageUrl || "",
     role: user.role,
     memberRole: customer?.role || "Member",
+    membership: customer?.membership || buildDefaultMembership(),
     type: "customer",
 });
 
@@ -54,6 +71,7 @@ const getOrCreateMemberCustomer = async ({ name, email, phone, address }) => {
         existingCustomer.contactInfo.phone = phone || existingCustomer.contactInfo.phone;
         existingCustomer.contactInfo.address = address || existingCustomer.contactInfo.address;
         existingCustomer.role = "Member";
+        existingCustomer.membership = existingCustomer.membership || buildDefaultMembership();
         existingCustomer.updatedAt = new Date();
         await existingCustomer.save();
         return existingCustomer;
@@ -67,6 +85,7 @@ const getOrCreateMemberCustomer = async ({ name, email, phone, address }) => {
             address,
         },
         role: "Member",
+        membership: buildDefaultMembership(),
     });
 };
 
@@ -312,6 +331,16 @@ export const registerCustomer = async (req, res) => {
             customerId: customer._id,
         });
 
+        await MembershipHistory.create({
+            customerId: customer._id,
+            action: "registered",
+            newStatus: customer.membership?.status || "Pending",
+            newTier: customer.membership?.tier || "Silver",
+            actorType: "customer",
+            actorId: newUser._id,
+            notes: "Customer registered for membership approval",
+        });
+
         const session = await issueCustomerSession(newUser);
 
         return res.status(201).json({
@@ -382,6 +411,16 @@ export const googleCustomerAuth = async (req, res) => {
                 authProvider: "google",
                 googleId: googleProfile.googleId,
                 emailVerified: true,
+            });
+
+            await MembershipHistory.create({
+                customerId: customer._id,
+                action: "registered",
+                newStatus: customer.membership?.status || "Pending",
+                newTier: customer.membership?.tier || "Silver",
+                actorType: "customer",
+                actorId: user._id,
+                notes: "Customer registered with Google for membership approval",
             });
         } else {
             if (user.googleId && user.googleId !== googleProfile.googleId) {

@@ -9,7 +9,9 @@ import {
     createCustomer,
     updateCustomer,
     deleteCustomer,
-    getCustomerStats
+    getCustomerStats,
+    updateMembership,
+    getMembershipHistory
 } from "../controllers/customerController.js";
 
 const router = express.Router();
@@ -25,6 +27,8 @@ router.get("/", verifyToken, verifyStaff, getAllCustomers);
 router.get("/stats", verifyToken, verifyStaff, getCustomerStats);
 router.get("/:id", verifyToken, verifyStaff, getCustomerById);
 router.put("/:id", verifyToken, verifyStaff, updateCustomer);
+router.put("/:id/membership", verifyToken, verifyStaff, updateMembership);
+router.get("/:id/membership/history", verifyToken, verifyStaff, getMembershipHistory);
 router.delete("/:id", verifyToken, verifyStaff, deleteCustomer);
 
 export default router;

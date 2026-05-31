@@ -1,6 +1,46 @@
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const GET_CACHE_TTL_MS = 30_000;
+const getCache = new Map();
+
+const buildQueryString = (params = {}) => {
+    const query = new URLSearchParams();
+
+    Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+            query.set(key, String(value));
+        }
+    });
+
+    const value = query.toString();
+    return value ? `?${value}` : "";
+};
+
+const cachedGet = (url, config) => {
+    const cacheKey = `${url}:${JSON.stringify(config || {})}`;
+    const cached = getCache.get(cacheKey);
+
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.promise;
+    }
+
+    const promise = api.get(url, config).catch((error) => {
+        getCache.delete(cacheKey);
+        throw error;
+    });
+
+    getCache.set(cacheKey, {
+        expiresAt: Date.now() + GET_CACHE_TTL_MS,
+        promise,
+    });
+
+    return promise;
+};
+
+const clearApiCache = () => {
+    getCache.clear();
+};
 
 // Create axios instance with default config
 const api = axios.create({
@@ -45,13 +85,15 @@ export const authAPI = {
 
 // PRODUCTS APIs
 export const productsAPI = {
-    getAll: () => api.get("/products"),
-    getById: (id) => api.get(`/products/${id}`),
-    create: (productData) => api.post("/products", productData),
-    update: (id, productData) => api.put(`/products/${id}`, productData),
-    delete: (id) => api.delete(`/products/${id}`),
-    getLowStock: (threshold = 10) => api.get(`/products/low-stock?threshold=${threshold}`),
-    updateStock: (productId, quantity) => api.post("/products/update-stock", { productId, quantity })
+    getAll: (params) => cachedGet(`/products${buildQueryString(params)}`),
+    getById: (id) => cachedGet(`/products/${id}`),
+    create: (productData) => api.post("/products", productData).finally(clearApiCache),
+    update: (id, productData) => api.put(`/products/${id}`, productData).finally(clearApiCache),
+    delete: (id) => api.delete(`/products/${id}`).finally(clearApiCache),
+    getLowStock: (threshold = 10) => cachedGet(`/products/low-stock?threshold=${threshold}`),
+    updateStock: (productId, quantity, reason = "") =>
+        api.post("/products/update-stock", { productId, quantity, reason }).finally(clearApiCache),
+    getMovements: (id, limit = 50) => cachedGet(`/products/${id}/movements?limit=${limit}`)
 };
 
 // PACKAGE DEAL APIs
@@ -64,6 +106,16 @@ export const packagesAPI = {
     delete: (id) => api.delete(`/packages/${id}`)
 };
 
+// PROMOTIONS APIs
+export const promotionsAPI = {
+    getAll: (includeInactive = false) =>
+        api.get(`/promotions${includeInactive ? "?includeInactive=true" : ""}`),
+    create: (promotionData) => api.post("/promotions", promotionData),
+    update: (id, promotionData) => api.put(`/promotions/${id}`, promotionData),
+    delete: (id) => api.delete(`/promotions/${id}`),
+    getStats: () => api.get("/promotions/stats")
+};
+
 // CUSTOMERS APIs
 export const customersAPI = {
     getMe: () => api.get("/customers/me"),
@@ -74,7 +126,10 @@ export const customersAPI = {
     create: (customerData) => api.post("/customers", customerData),
     update: (id, customerData) => api.put(`/customers/${id}`, customerData),
     delete: (id) => api.delete(`/customers/${id}`),
-    getStats: () => api.get("/customers/stats")
+    getStats: () => api.get("/customers/stats"),
+    updateMembership: (id, membershipData) => api.put(`/customers/${id}/membership`, membershipData),
+    getMembershipHistory: (id, limit = 50) =>
+        api.get(`/customers/${id}/membership/history?limit=${limit}`)
 };
 
 // ORDERS APIs

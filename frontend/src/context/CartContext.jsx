@@ -4,6 +4,9 @@ import { useAuth } from "./AuthContext.jsx";
 
 const CartContext = createContext();
 
+const getProductStock = (product) => Number(product?.stockLevel ?? product?.stock ?? 0);
+const getProductPrice = (product) => Number(product?.srp ?? product?.price ?? 0);
+
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const [cart, setCart] = useState([]);
@@ -18,24 +21,41 @@ export const CartProvider = ({ children }) => {
   }, [user]);
 
   const addToCart = (product, quantity = 1) => {
-    const price = product.srp ?? product.price ?? 0;
+    const stock = getProductStock(product);
+    const safeQuantity = Math.max(1, Number(quantity) || 1);
+
+    if (stock <= 0) {
+      return false;
+    }
+
+    const existingCartItem = cart.find((item) => item._id === product._id);
+
+    if (existingCartItem && existingCartItem.quantity >= stock) {
+      return false;
+    }
+
+    const price = getProductPrice(product);
     const cartItem = {
       ...product,
       name: product.productName || product.name,
       price,
-      quantity,
-      subtotal: price * quantity
+      stockLevel: stock,
+      quantity: Math.min(safeQuantity, stock),
+      subtotal: price * Math.min(safeQuantity, stock)
     };
     
     setCart(prev => {
       const existingItem = prev.find(item => item._id === product._id);
       if (existingItem) {
+        const nextQuantity = Math.min(existingItem.quantity + safeQuantity, stock);
+
         return prev.map(item => 
           item._id === product._id 
-            ? { ...item, quantity: item.quantity + quantity, subtotal: (item.quantity + quantity) * price }
+            ? { ...item, stockLevel: stock, quantity: nextQuantity, subtotal: nextQuantity * price }
             : item
         );
       }
+
       return [...prev, cartItem];
     });
     
@@ -44,9 +64,22 @@ export const CartProvider = ({ children }) => {
   };
 
   const updateQuantity = (productId, change) => {
+    const cartItem = cart.find((item) => item._id === productId);
+    const maxStock = Math.max(1, getProductStock(cartItem));
+
     setQuantities(prev => ({
       ...prev,
-      [productId]: Math.max(1, (prev[productId] || 1) + change)
+      [productId]: Math.min(maxStock, Math.max(1, (prev[productId] || 1) + change))
+    }));
+
+    setCart(prev => prev.map((item) => {
+      if (item._id !== productId) return item;
+      const nextQuantity = Math.min(Math.max(1, getProductStock(item)), Math.max(1, item.quantity + change));
+      return {
+        ...item,
+        quantity: nextQuantity,
+        subtotal: nextQuantity * item.price,
+      };
     }));
   };
 

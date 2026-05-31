@@ -2,12 +2,13 @@ import React, { useState, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext.jsx";
 import { authAPI } from "../../utils/api.js";
 import { useNavigate, Link } from "react-router-dom";
-import { UserCircle } from 'lucide-react';;
+import { LogIn, Eye, EyeOff } from 'lucide-react';
 import GoogleAuthButton from "../../components/auth/GoogleAuthButton.jsx";
 
 export default function Login({ mode = "customer" }) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
@@ -59,140 +60,101 @@ export default function Login({ mode = "customer" }) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-            <div className="w-full max-w-md lg:max-w-lg bg-white rounded-2xl border border-gray-300 p-8 shadow-sm">
-                <div className="flex items-center justify-center mb-4">
-                    <div className="rounded-full bg-blue-100 p-3">
-                    <UserCircle className="h-6 w-6 text-blue-600" />
-                    </div>
-                </div>
-                <h1 className="text-xl font-semibold text-center" >
-                    {isStaffLogin ? "Admin Login" : "Welcome Back"}
-                </h1>
-                <p className="text-sm text-gray-500 text-center mt-1 mb-6">
-                    {isStaffLogin ? "Authorized administrators only" : "Sign in to your JBM Electro Ventures account"}
-                </p>
-
-                {error && <div style={styles.error}>{error}</div>}
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div style={styles.formGroup}>
-                        <label className="text-sm font-medium">Email</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            disabled={loading}
-                            className="mt-1 w-full px-4 py-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
-                            placeholder="you@example.com"
-                        />
-                    </div>
-
-                    <div style={styles.formGroup}>
-                        <label className="text-sm font-medium">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            disabled={loading}
-                            className="mt-1 w-full px-4 py-2 rounded-lg bg-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            placeholder="*******"
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-2.5 rounded-lg cursor-pointer bg-black text-white font-medium hover:opacity-90 transition"
-                    >
-                        {loading ? "Logging in..." : "Login"}
-                    </button>
-                </form>
-
-                {!isStaffLogin && (
-                    <div className="mt-5 space-y-4">
-                        <div className="flex items-center gap-3 text-xs text-gray-400">
-                            <span className="h-px flex-1 bg-gray-200" />
-                            <span>or</span>
-                            <span className="h-px flex-1 bg-gray-200" />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-4">
+            <div className="w-full max-w-md">
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <div className="flex items-center justify-center mb-6">
+                        <div className="rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 p-3">
+                            <LogIn className="h-6 w-6 text-white" />
                         </div>
-                        <GoogleAuthButton
-                            disabled={loading || googleLoading}
-                            onError={setError}
-                            onSuccess={handleGoogleCredential}
-                            text="signin_with"
-                        />
                     </div>
-                )}
 
-                {!isStaffLogin && (
-                    <div style={styles.signupSection}>
-                        <p>
-                            Don't have an account?{" "}
-                            <Link to="/signup" style={styles.signupLink}>
-                                Sign up here
-                            </Link>
-                        </p>
-                    </div>
-                )}
+                    <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">
+                        {isStaffLogin ? "Admin Login" : "Welcome Back"}
+                    </h1>
+                    <p className="text-sm text-gray-500 text-center mb-8">
+                        {isStaffLogin ? "Authorized administrators only" : "Sign in to your JBM Electro Ventures account"}
+                    </p>
+
+                    {error && (
+                        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-700">{error}</p>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                                disabled={loading}
+                                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                placeholder="you@example.com"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    disabled={loading}
+                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors pr-10"
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                >
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium hover:shadow-lg hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all"
+                        >
+                            {loading ? "Signing in..." : "Sign In"}
+                        </button>
+                    </form>
+
+                    {!isStaffLogin && (
+                        <div className="mt-6 space-y-4">
+                            <div className="flex items-center gap-3">
+                                <span className="h-px flex-1 bg-gray-200" />
+                                <span className="text-xs text-gray-500 font-medium">or</span>
+                                <span className="h-px flex-1 bg-gray-200" />
+                            </div>
+                            <GoogleAuthButton
+                                disabled={loading || googleLoading}
+                                onError={setError}
+                                onSuccess={handleGoogleCredential}
+                                text="signin_with"
+                            />
+                        </div>
+                    )}
+
+                    {!isStaffLogin && (
+                        <div className="mt-6 text-center">
+                            <p className="text-sm text-gray-600">
+                                Don't have an account?{" "}
+                                <Link to="/signup" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                                    Sign up
+                                </Link>
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
 }
-
-const styles = {
-    container: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f5f5f5"
-    },
-    card: {
-        backgroundColor: "white",
-        padding: "40px",
-        borderRadius: "8px",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-        width: "100%",
-        maxWidth: "400px"
-    },
-    title: {
-        textAlign: "center",
-        marginBottom: "30px",
-        color: "#333"
-    },
-    error: {
-        backgroundColor: "#fee",
-        color: "#c33",
-        padding: "10px",
-        borderRadius: "4px",
-        marginBottom: "20px",
-        textAlign: "center"
-    },
-    formGroup: {
-        marginBottom: "15px"
-    },
-    button: {
-        width: "100%",
-        padding: "10px",
-        backgroundColor: "#007bff",
-        color: "white",
-        border: "none",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontSize: "16px",
-        marginTop: "10px"
-    },
-    signupSection: {
-        textAlign: "center",
-        marginTop: "20px",
-        fontSize: "14px"
-    },
-    signupLink: {
-        color: "#28a745",
-        textDecoration: "none",
-        fontWeight: "bold"
-    }
-};

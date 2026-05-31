@@ -1,9 +1,11 @@
 import Order from "../models/Order.js";
 import OrderItem from "../models/OrderItem.js";
 import Product from "../models/Product.js";
+import InventoryMovement from "../models/InventoryMovement.js";
 import PackageDeal from "../models/PackageDeal.js";
 import Customer from "../models/Customer.js";
 import User from "../models/User.js";
+import MembershipHistory from "../models/MembershipHistory.js";
 import {
     cleanString,
     isValidEmail,
@@ -18,6 +20,14 @@ import {
     sendOrderStatusEmail,
 } from "../utils/notifications.js";
 import { createPaymentCheckout } from "../utils/payments.js";
+import {
+    calculateMembershipPoints,
+    getActiveMembership,
+} from "../utils/membership.js";
+import {
+    calculatePromotions,
+    recordPromotionRedemptions,
+} from "../utils/promotionEngine.js";
 
 const MEMBER_DISCOUNT_RATE = Number(process.env.MEMBER_DISCOUNT_RATE || 0.1);
 
@@ -99,14 +109,35 @@ const assertOrderAccess = async (req, order) => {
 };
 
 const restoreStockForOrder = async (orderId) => {
-    const orderItems = await OrderItem.find({ orderId });
+    const [order, orderItems] = await Promise.all([
+        Order.findById(orderId),
+        OrderItem.find({ orderId }),
+    ]);
 
-    await Promise.all(orderItems.map((item) =>
-        Product.findByIdAndUpdate(item.productId, {
-            $inc: { stockLevel: item.quantity },
-            $set: { updatedAt: new Date() },
-        })
-    ));
+    await Promise.all(orderItems.map(async (item) => {
+        const product = await Product.findById(item.productId);
+        if (!product) {
+            return null;
+        }
+
+        const stockBefore = product.stockLevel;
+        product.stockLevel += item.quantity;
+        product.updatedAt = new Date();
+        await product.save();
+
+        return InventoryMovement.create({
+            productId: product._id,
+            productName: product.productName,
+            type: "order_cancellation",
+            quantityChange: item.quantity,
+            stockBefore,
+            stockAfter: product.stockLevel,
+            orderId,
+            referenceNumber: order?.referenceNumber || "",
+            actorType: "staff",
+            reason: "Order cancelled; stock restored",
+        });
+    }));
 };
 
 /**
@@ -235,6 +266,7 @@ export const createOrder = async (req, res) => {
         const address = cleanString(req.body.address, 500);
         const paymentMethod = cleanString(req.body.paymentMethod, 60);
         const referenceNumber = cleanString(req.body.referenceNumber, 120) || buildReferenceNumber();
+        const promotionCode = cleanString(req.body.promotionCode, 80).toUpperCase();
         const notes = cleanString(req.body.notes, 1000);
         const packageId = cleanString(req.body.packageId, 80);
         let items = Array.isArray(req.body.items) ? req.body.items : [];
@@ -296,7 +328,7 @@ export const createOrder = async (req, res) => {
 
         const customer = await getAuthenticatedCustomer(req.user);
         const orderCustomerId = customer?._id || null;
-        const isMember = customer?.role === "Member";
+        const activeMembership = getActiveMembership(customer);
 
         const requestedItems = new Map();
         for (const item of items) {
@@ -346,9 +378,20 @@ export const createOrder = async (req, res) => {
         subtotal = roundMoney(subtotal);
         const packageBaseTotal = packageDeal ? roundMoney(packageDeal.price) : subtotal;
         const packageDiscount = packageDeal ? Math.max(0, roundMoney(subtotal - packageBaseTotal)) : 0;
-        const memberDiscount = isMember ? roundMoney(packageBaseTotal * MEMBER_DISCOUNT_RATE) : 0;
-        const discountAmount = roundMoney(packageDiscount + memberDiscount);
-        const total = roundMoney(packageBaseTotal - memberDiscount);
+        const memberDiscountRate = activeMembership
+            ? activeMembership.discountRate
+            : customer?.role === "Member" && !customer?.membership ? MEMBER_DISCOUNT_RATE : 0;
+        const memberDiscount = memberDiscountRate ? roundMoney(packageBaseTotal * memberDiscountRate) : 0;
+        const promotionBaseTotal = roundMoney(packageBaseTotal - memberDiscount);
+        const promotionResult = await calculatePromotions({
+            promoCode: promotionCode,
+            customer,
+            lines: orderLines,
+            orderSubtotal: promotionBaseTotal,
+        });
+        const promotionDiscount = roundMoney(promotionResult.discountAmount);
+        const discountAmount = roundMoney(packageDiscount + memberDiscount + promotionDiscount);
+        const total = roundMoney(Math.max(0, promotionBaseTotal - promotionDiscount));
         const payment = await createPaymentCheckout({
             paymentMethod,
             amount: total,
@@ -377,6 +420,10 @@ export const createOrder = async (req, res) => {
             referenceNumber,
             total,
             discountAmount,
+            membershipDiscountAmount: memberDiscount,
+            promotionDiscountAmount: promotionDiscount,
+            promotionCode,
+            appliedPromotions: promotionResult.appliedPromotions,
             notes: packageDeal ? `${notes ? `${notes} | ` : ""}Package: ${packageDeal.name}` : notes,
             status: "Pending",
         });
@@ -400,6 +447,20 @@ export const createOrder = async (req, res) => {
 
             stockDebits.push({ productId: line.productId, quantity: line.quantity });
 
+            await InventoryMovement.create({
+                productId: line.productId,
+                productName: line.product.productName,
+                type: "order_deduction",
+                quantityChange: -line.quantity,
+                stockBefore: updatedProduct.stockLevel + line.quantity,
+                stockAfter: updatedProduct.stockLevel,
+                orderId: newOrder._id,
+                referenceNumber,
+                actorType: req.user?.type || "customer",
+                actorId: req.user?.id || null,
+                reason: "Order checkout stock deduction",
+            });
+
             const orderItem = await OrderItem.create({
                 orderId: newOrder._id,
                 productId: line.productId,
@@ -411,6 +472,13 @@ export const createOrder = async (req, res) => {
 
             createdItems.push(orderItem);
         }
+
+        await recordPromotionRedemptions({
+            order: newOrder,
+            customerId: orderCustomerId,
+            appliedPromotions: promotionResult.appliedPromotions,
+            orderTotalBeforeDiscount: promotionBaseTotal,
+        });
 
         await sendOrderCreatedEmail({
             ...newOrder.toObject(),
@@ -437,6 +505,7 @@ export const createOrder = async (req, res) => {
         if (newOrder) {
             await Promise.all([
                 OrderItem.deleteMany({ orderId: newOrder._id }),
+                InventoryMovement.deleteMany({ orderId: newOrder._id }),
                 Order.findByIdAndDelete(newOrder._id),
             ]);
         }
@@ -501,6 +570,28 @@ export const updateOrderStatus = async (req, res) => {
         order.status = status;
         order.updatedAt = new Date();
         await order.save();
+
+        if (status === "Completed" && previousStatus !== "Completed" && order.customerId) {
+            const customer = await Customer.findById(order.customerId);
+            const earnedPoints = calculateMembershipPoints({ customer, amount: order.total });
+
+            if (earnedPoints > 0) {
+                customer.membership.pointsBalance = (customer.membership.pointsBalance || 0) + earnedPoints;
+                customer.updatedAt = new Date();
+                await customer.save();
+
+                await MembershipHistory.create({
+                    customerId: customer._id,
+                    action: "points_earned",
+                    newStatus: customer.membership.status,
+                    newTier: customer.membership.tier,
+                    pointsChange: earnedPoints,
+                    actorType: req.user?.type || "staff",
+                    actorId: req.user?.id || null,
+                    notes: `Points earned from completed order ${order.referenceNumber}`,
+                });
+            }
+        }
 
         const populatedOrder = await Order.findById(order._id)
             .populate("customerId", "name contactInfo role");

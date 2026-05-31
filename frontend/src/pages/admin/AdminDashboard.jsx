@@ -51,7 +51,7 @@ export default function AdminDashboard() {
         }
       } finally {
         if (active) setLoading(false);
-      }
+      } 
     };
 
     fetchDashboardData();
@@ -123,13 +123,13 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-6 p-6 md:p-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl mb-2">Dashboard Overview</h1>
-          <p className="text-gray-500">Live database snapshot for {report?.period?.label || "this week"}.</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
+          <p className="text-gray-600">Live database snapshot for {report?.period?.label || "this week"}.</p>
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 font-medium">
           {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : "Waiting for first update"}
         </p>
       </div>

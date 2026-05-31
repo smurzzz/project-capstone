@@ -1,18 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
 :root {
     color-scheme: light;
-    --brand-ink: #12211b;
-    --brand-primary: #0f766e;
-    --brand-primary-dark: #115e59;
-    --brand-accent: #f4b942;
-    --brand-surface: #f7faf8;
+    --brand-ink: #0f172a;
+    --brand-primary: #2563eb;
+    --brand-primary-dark: #1e40af;
+    --brand-primary-light: #dbeafe;
+    --brand-accent: #06b6d4;
+    --brand-surface: #f8fafc;
+    --brand-success: #10b981;
+    --brand-warning: #f59e0b;
+    --brand-error: #ef4444;
 }
 
 * {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', sans-serif;
     box-sizing: border-box;
 }
 
@@ -24,6 +28,7 @@ body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
 }
 
 html {
@@ -35,11 +40,11 @@ a,
 input,
 select,
 textarea {
-    transition: border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, background-color 160ms ease, opacity 160ms ease, transform 160ms ease;
+    transition: all 200ms ease;
 }
 
 button:active {
-    transform: translateY(1px);
+    transform: scale(0.98);
 }
 
 img,
@@ -47,10 +52,11 @@ svg,
 video,
 canvas {
     max-width: 100%;
+    display: block;
 }
 
 :focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--brand-primary), white 35%);
+    outline: 2px solid var(--brand-primary);
     outline-offset: 2px;
 }
 
@@ -58,8 +64,8 @@ canvas {
     display: grid;
     min-height: 100vh;
     place-content: center;
-    gap: 0.875rem;
-    color: var(--brand-primary-dark);
+    gap: 1rem;
+    color: var(--brand-primary);
     font-weight: 600;
 }
 
@@ -67,7 +73,7 @@ canvas {
     width: 2.5rem;
     height: 2.5rem;
     justify-self: center;
-    border: 3px solid color-mix(in srgb, var(--brand-primary), transparent 75%);
+    border: 3px solid rgba(37, 99, 235, 0.2);
     border-top-color: var(--brand-primary);
     border-radius: 999px;
     animation: app-spin 800ms linear infinite;
@@ -95,6 +101,6 @@ canvas {
 }
 
 ::selection {
-    background: var(--brand-accent);
-    color: var(--brand-ink);
+    background: var(--brand-primary);
+    color: white;
 }

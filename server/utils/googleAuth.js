@@ -2,6 +2,7 @@ import { createPublicKey, createVerify } from "crypto";
 
 const GOOGLE_CERTS_URL = "https://www.googleapis.com/oauth2/v3/certs";
 const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
+const GOOGLE_FETCH_TIMEOUT_MS = Number(process.env.GOOGLE_FETCH_TIMEOUT_MS || 10_000);
 
 let cachedKeys = {
     expiresAt: 0,
@@ -38,7 +39,20 @@ const fetchGoogleKeys = async () => {
         });
     }
 
-    const response = await fetch(GOOGLE_CERTS_URL);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), GOOGLE_FETCH_TIMEOUT_MS);
+
+    let response;
+    try {
+        response = await fetch(GOOGLE_CERTS_URL, { signal: controller.signal });
+    } catch (error) {
+        throw Object.assign(new Error("Unable to verify Google credential right now"), {
+            statusCode: 503,
+        });
+    } finally {
+        clearTimeout(timeout);
+    }
+
     if (!response.ok) {
         throw Object.assign(new Error("Unable to verify Google credential right now"), {
             statusCode: 503,

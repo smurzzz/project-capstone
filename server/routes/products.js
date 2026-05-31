@@ -7,7 +7,8 @@ import {
     updateProduct,
     deleteProduct,
     updateStock,
-    getLowStockProducts
+    getLowStockProducts,
+    getInventoryMovements
 } from "../controllers/productController.js";
 
 const router = express.Router();
@@ -15,6 +16,7 @@ const router = express.Router();
 // Public routes
 router.get("/", getAllProducts);
 router.get("/low-stock", verifyToken, verifyStaff, getLowStockProducts);
+router.get("/:id/movements", verifyToken, verifyStaff, getInventoryMovements);
 router.get("/:id", getProductById);
 
 // Admin routes

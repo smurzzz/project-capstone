@@ -49,40 +49,48 @@ export default function ClientHome() {
   }, [user]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold">Welcome to JBM Electro Ventures</h2>
-        <p className="text-gray-600">Your trusted e-commerce portal for electrical solutions</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Welcome to JBM Electro Ventures</h1>
+        <p className="text-lg text-gray-600">Your trusted e-commerce portal for electrical solutions</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Stat title="My Orders" value={stats.orders} note="All purchases" icon={TrendingUp} color="text-blue-600" />
-        <Stat title="Appointments" value={stats.appointments} note="Active bookings" icon={Award} color="text-green-600" />
-        <Stat title="Total Spent" value={`PHP ${stats.spent.toLocaleString()}`} note="Account lifetime" icon={Target} color="text-purple-600" />
-        <Stat title="Pending Orders" value={stats.pending} note="Awaiting confirmation" icon={Package} color="text-orange-600" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Stat title="My Orders" value={stats.orders} note="All purchases" icon={TrendingUp} color="from-blue-500 to-blue-600" />
+        <Stat title="Appointments" value={stats.appointments} note="Active bookings" icon={Award} color="from-green-500 to-emerald-600" />
+        <Stat title="Total Spent" value={`PHP ${stats.spent.toLocaleString()}`} note="Account lifetime" icon={Target} color="from-purple-500 to-pink-600" />
+        <Stat title="Pending Orders" value={stats.pending} note="Awaiting confirmation" icon={Package} color="from-orange-500 to-red-600" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <Card>
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader>
-            <Target className="h-10 w-10 text-blue-600 mb-4" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <Target className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
             <CardTitle>Our Mission</CardTitle>
           </CardHeader>
           <CardContent>
-            <CardDescription className="text-base text-gray-700">
+            <CardDescription className="text-base text-gray-700 leading-relaxed">
               To provide high-quality electrical products and services with reliable ordering,
               secure checkout, inventory accuracy, and responsive customer support.
             </CardDescription>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader>
-            <Users className="h-10 w-10 text-purple-600 mb-4" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-purple-100 rounded-lg">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
             <CardTitle>Member Benefits</CardTitle>
           </CardHeader>
           <CardContent>
-            <CardDescription className="text-base text-gray-700">
+            <CardDescription className="text-base text-gray-700 leading-relaxed">
               Members receive automatic order discounts, saved profile details, and private
               tracking for orders and service appointments.
             </CardDescription>
@@ -96,15 +104,19 @@ export default function ClientHome() {
 function Stat({ title, value, note, icon, color }) {
   const Icon = icon;
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className={`h-4 w-4 ${color}`} />
+    <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle className="text-sm font-medium text-gray-600 mb-2">{title}</CardTitle>
+            <div className="text-3xl font-bold text-gray-900 tracking-tight">{value}</div>
+            <p className="text-xs text-gray-500 mt-2">{note}</p>
+          </div>
+          <div className={`p-3 bg-gradient-to-br ${color} rounded-lg flex-shrink-0`}>
+            <Icon className="h-5 w-5 text-white" />
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-gray-600">{note}</p>
-      </CardContent>
     </Card>
   );
 }

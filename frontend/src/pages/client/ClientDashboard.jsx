@@ -209,21 +209,23 @@ export default function ClientDashboard() {
 
   const Sidebar = ({ isMobile = false }) => (
     <div
-      className={`${isMobile ? "w-full" : "w-64"} bg-blue-900 text-white ${
+      className={`${isMobile ? "w-full" : "w-64"} bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white ${
         isMobile ? "min-h-screen" : "h-screen sticky top-0"
       } flex flex-col`}
     >
-      <div className="p-6 border-b border-blue-800">
-        <div className="flex items-center gap-2">
-          <Zap className="h-6 w-6" />
+      <div className="p-6 border-b border-slate-700">
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg p-1.5">
+            <Zap className="h-5 w-5 text-white" />
+          </div>
           <div>
-            <h1 className="text-lg font-bold">JBM Electro</h1>
-            <p className="text-xs text-blue-300">Client Portal</p>
+            <h1 className="text-base font-bold">JBM Electro</h1>
+            <p className="text-xs text-slate-400">Client Portal</p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -234,56 +236,58 @@ export default function ClientDashboard() {
                 setActiveTab(item.id);
                 if (isMobile) setMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
                 activeTab === item.id
-                  ? "bg-blue-600 text-white"
-                  : "text-blue-100 hover:bg-blue-800"
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                  : "text-slate-300 hover:bg-slate-700 hover:text-white"
               }`}
             >
-              <Icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <Icon className="h-5 w-5 flex-shrink-0" />
+              <span className="text-sm font-medium">{item.label}</span>
             </button>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-blue-800">
+      <div className="p-4 border-t border-slate-700 space-y-3">
         <button
           type="button"
           onClick={() => setAccountMenuOpen((open) => !open)}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-800 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"
         >
-          <User className="h-5 w-5" />
-          <span>Account Info</span>
+          <User className="h-5 w-5 flex-shrink-0" />
+          <span className="text-sm font-medium flex-1 text-left">Account</span>
           <ChevronDown
-            className={`h-4 w-4 ml-auto transition-transform ${
+            className={`h-4 w-4 transition-transform flex-shrink-0 ${
               accountMenuOpen ? "rotate-180" : ""
             }`}
           />
         </button>
 
         {accountMenuOpen && (
-          <div className="mt-2 p-4 bg-blue-800 rounded-lg space-y-3">
-            <div className="text-sm">
-              <div className="h-12 w-12 rounded-full bg-blue-600 overflow-hidden flex items-center justify-center mb-3">
+          <div className="p-4 bg-slate-700/50 rounded-lg space-y-3 border border-slate-600">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 overflow-hidden flex items-center justify-center flex-shrink-0">
                 {user?.profileImageUrl ? (
                   <img src={user.profileImageUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="font-semibold">{user?.name?.[0]?.toUpperCase() || "C"}</span>
+                  <span className="font-semibold text-white">{user?.name?.[0]?.toUpperCase() || "C"}</span>
                 )}
               </div>
-              <p className="text-blue-300 text-xs">Logged in as</p>
-              <p className="font-semibold">{user?.name || "Customer"}</p>
-              <p className="text-blue-300 text-xs">{user?.email || "customer@example.com"}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-slate-400">Logged in as</p>
+                <p className="text-sm font-semibold text-white truncate">{user?.name || "Customer"}</p>
+                <p className="text-xs text-slate-400 truncate">{user?.email || "customer@example.com"}</p>
+              </div>
             </div>
-            <div className="h-px bg-blue-700" />
+            <div className="h-px bg-slate-600" />
             <button
               type="button"
               onClick={() => {
                 setAccountMenuOpen(false);
                 setActiveTab("settings");
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-blue-100 hover:bg-blue-700 rounded transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-600 rounded transition-all duration-200"
             >
               <Settings className="h-4 w-4" />
               Settings
@@ -291,7 +295,7 @@ export default function ClientDashboard() {
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-300 hover:bg-red-900/30 rounded transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-300 hover:bg-red-600/20 rounded transition-all duration-200"
             >
               <LogOut className="h-4 w-4" />
               Logout
@@ -323,7 +327,7 @@ export default function ClientDashboard() {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="bg-white border-b px-6 py-4 flex items-center justify-between gap-4">
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between gap-4 shadow-sm">
           <Button
             variant="outline"
             size="icon"
@@ -333,13 +337,13 @@ export default function ClientDashboard() {
             <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-4">
             <button
               type="button"
               onClick={openSettings}
-              className="flex items-center gap-3 rounded-xl bg-white px-3 py-2 text-left transition hover:border-blue-200 hover:bg-blue-50 min-w-0"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50 min-w-0 group"
             >
-              <div className="h-10 w-10 rounded-full overflow-hidden bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-cyan-500 text-blue-700 flex items-center justify-center shrink-0">
                 {user?.profileImageUrl ? (
                   <img
                     src={user.profileImageUrl}
@@ -347,13 +351,13 @@ export default function ClientDashboard() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="text-sm font-semibold">
+                  <span className="text-sm font-semibold text-white">
                     {user?.name?.[0]?.toUpperCase() || "C"}
                   </span>
                 )}
               </div>
               <div className="min-w-0 hidden sm:block">
-                <p className="text-sm font-semibold text-gray-900 truncate">
+                <p className="text-sm font-medium text-gray-900 truncate">
                   {user?.name || "Customer"}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
@@ -371,22 +375,22 @@ export default function ClientDashboard() {
               >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-600 text-white text-xs">
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-red-600 text-white text-xs font-semibold rounded-full">
                     {unreadCount}
                   </Badge>
                 )}
               </Button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-md border bg-white p-4 shadow-lg z-30">
+                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-gray-200 bg-white p-4 shadow-lg z-30">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">Notifications</h3>
+                      <h3 className="font-semibold text-gray-900">Notifications</h3>
                       <div className="flex items-center gap-2">
                         {unreadCount > 0 && (
                           <button
                             onClick={markAllAsRead}
-                            className="text-xs text-blue-600 hover:text-blue-800"
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
                           >
                             Mark all as read
                           </button>
@@ -395,32 +399,33 @@ export default function ClientDashboard() {
                       </div>
                     </div>
                     <div className="h-px bg-gray-200" />
-                    <div className="space-y-3 max-h-96 overflow-auto">
+                    <div className="space-y-2 max-h-96 overflow-auto">
                       {notifications.map((notification) => (
                         <button
                           key={notification.id}
                           onClick={() => handleNotificationClick(notification)}
-                          className={`w-full text-left p-3 rounded-lg border transition-colors hover:bg-gray-100 ${
+                          className={`w-full text-left p-3 rounded-lg border transition-all duration-200 hover:bg-gray-50 ${
                             notification.unread
                               ? "bg-blue-50 border-blue-200"
-                              : "bg-gray-50"
+                              : "bg-white border-gray-100"
                           }`}
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <p className="font-semibold text-sm">{notification.title}</p>
-                              <p className="text-sm text-gray-600">{notification.message}</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-gray-900">{notification.title}</p>
+                              <p className="text-sm text-gray-600 line-clamp-2">{notification.message}</p>
                               <p className="text-xs text-gray-400 mt-1">{notification.time}</p>
                             </div>
                             {notification.unread && (
-                              <div className="h-2 w-2 bg-blue-600 rounded-full mt-1 flex-shrink-0" />
+                              <div className="h-2.5 w-2.5 bg-blue-600 rounded-full mt-1 flex-shrink-0" />
                             )}
                           </div>
                         </button>
                       ))}
                       {notifications.length === 0 && (
-                        <div className="text-center py-4 text-gray-500">
-                          No notifications
+                        <div className="text-center py-6 text-gray-500">
+                          <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                          <p>No notifications</p>
                         </div>
                       )}
                     </div>

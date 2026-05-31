@@ -69,5 +69,15 @@ productSchema.pre("validate", function normalizeProductPrice() {
     }
 });
 
+productSchema.index({ category: 1, productName: 1 });
+productSchema.index({ stockLevel: 1, minStock: 1 });
+productSchema.index({
+    productName: "text",
+    sku: "text",
+    category: "text",
+    supplier: "text",
+    description: "text",
+});
+
 const Product = mongoose.model("Product", productSchema);
 export default Product;

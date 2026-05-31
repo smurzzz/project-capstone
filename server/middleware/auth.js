@@ -19,19 +19,29 @@ export const getJwtSecret = () => {
 
 export const signAuthToken = (payload) =>
     jwt.sign(payload, getJwtSecret(), {
+        algorithm: "HS256",
         expiresIn: process.env.JWT_EXPIRES_IN || "2d",
+        issuer: process.env.JWT_ISSUER || undefined,
+        audience: process.env.JWT_AUDIENCE || undefined,
     });
 
 const getBearerToken = (req) => {
     const header = req.headers.authorization || "";
     const [scheme, token] = header.split(" ");
 
-    if (scheme !== "Bearer" || !token) {
+    if (scheme !== "Bearer" || !token || token.length > 4096) {
         return null;
     }
 
     return token;
 };
+
+const verifyAuthToken = (token) =>
+    jwt.verify(token, getJwtSecret(), {
+        algorithms: ["HS256"],
+        issuer: process.env.JWT_ISSUER || undefined,
+        audience: process.env.JWT_AUDIENCE || undefined,
+    });
 
 export const optionalAuth = (req, res, next) => {
     try {
@@ -41,7 +51,7 @@ export const optionalAuth = (req, res, next) => {
             return next();
         }
 
-        req.user = jwt.verify(token, getJwtSecret());
+        req.user = verifyAuthToken(token);
         next();
     } catch (error) {
         res.status(401).json({
@@ -65,7 +75,7 @@ export const verifyToken = (req, res, next) => {
             });
         }
 
-        req.user = jwt.verify(token, getJwtSecret());
+        req.user = verifyAuthToken(token);
         next();
     } catch (error) {
         res.status(401).json({

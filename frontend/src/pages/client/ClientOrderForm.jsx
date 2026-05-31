@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -43,28 +43,63 @@ const paymentMethodMap = {
 const onlinePaymentMethods = new Set(["gcash", "maya", "bank"]);
 
 const isBackendProductId = (id) => !String(id).startsWith("fallback-");
+const getCartItemStock = (item) => Number(item?.stockLevel ?? item?.stock ?? 0);
 
 export default function ClientOrderForm({ selectedPackage }) {
   const { user } = useAuth();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
+  const [selectedIds, setSelectedIds] = useState(() => cart.map((item) => item._id));
   const [name, setName] = useState(user?.name || "");
   const [address, setAddress] = useState(user?.address || "");
   const [contact, setContact] = useState(user?.phone || "");
   const [email, setEmail] = useState(user?.email || "");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
+  const [promotionCode, setPromotionCode] = useState("");
   const [proofOfPayment, setProofOfPayment] = useState(null);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const selectedCartItems = cart.filter((item) => selectedIds.includes(item._id));
+  const allSelected = cart.length > 0 && selectedCartItems.length === cart.length;
+
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const currentIds = new Set(cart.map((item) => item._id));
+      const selectedCurrentIds = prev.filter((id) => currentIds.has(id));
+      const newlyAddedIds = cart
+        .map((item) => item._id)
+        .filter((id) => !prev.includes(id));
+
+      return [...selectedCurrentIds, ...newlyAddedIds];
+    });
+  }, [cart]);
 
   const calculateTotal = () => {
     if (selectedPackage) {
       return selectedPackage.price || 0;
     }
 
-    return cart.reduce((total, item) => {
+    return selectedCartItems.reduce((total, item) => {
       return total + (item.price || 0) * item.quantity;
     }, 0);
+  };
+
+  const handleToggleSelect = (productId) => {
+    setSelectedIds((prev) =>
+      prev.includes(productId)
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  const handleToggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds([]);
+      return;
+    }
+
+    setSelectedIds(cart.map((item) => item._id));
   };
 
   const handleFileChange = (event) => {
@@ -81,6 +116,7 @@ export default function ClientOrderForm({ selectedPackage }) {
     setEmail(user?.email || "");
     setPaymentMethod("");
     setReferenceNumber("");
+    setPromotionCode("");
     setProofOfPayment(null);
     setSpecialInstructions("");
   };
@@ -88,8 +124,8 @@ export default function ClientOrderForm({ selectedPackage }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!selectedPackage && cart.length === 0) {
-      toast.error("Please add at least one item to your order");
+    if (!selectedPackage && selectedCartItems.length === 0) {
+      toast.error("Please select at least one item to place your order");
       return;
     }
     if (!name || !address || !contact || !email) {
@@ -119,7 +155,7 @@ export default function ClientOrderForm({ selectedPackage }) {
 
     setSubmitting(true);
     try {
-      const orderItemsForAPI = cart.map(item => ({
+      const orderItemsForAPI = selectedCartItems.map(item => ({
         productId: item._id,
         quantity: item.quantity
       }));
@@ -132,6 +168,7 @@ export default function ClientOrderForm({ selectedPackage }) {
         address,
         paymentMethod: paymentMethodMap[paymentMethod],
         referenceNumber,
+        promotionCode,
         packageId: selectedPackage?._id,
         items: selectedPackage ? [] : orderItemsForAPI,
         notes: specialInstructions,
@@ -193,53 +230,114 @@ export default function ClientOrderForm({ selectedPackage }) {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <CardTitle>Order Items</CardTitle>
-                  <CardDescription>Items from your cart</CardDescription>
+                  <CardDescription>Select the items you want to purchase</CardDescription>
                 </div>
                 <Badge variant="secondary">
                   {cart.length} items
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 overflow-x-auto">
               {cart.length === 0 ? (
                 <div className="py-8 text-center text-gray-500">
                   <ShoppingCart className="h-12 w-12 mx-auto mb-2 opacity-50" />
                   <p>No items in cart. Browse products to add items.</p>
                 </div>
               ) : (
-                cart.map((item) => {
-                  const subtotal = (item.price || 0) * item.quantity;
+                <div className="rounded-3xl border border-gray-200 bg-white shadow-sm">
+                  <table className="w-full min-w-[640px] border-collapse text-left">
+                    <thead>
+                      <tr className="border-b bg-gray-50 text-sm font-semibold text-gray-700">
+                        <th className="px-4 py-3">
+                          <label className="inline-flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                              checked={allSelected}
+                              onChange={handleToggleSelectAll}
+                            />
+                            Select All
+                          </label>
+                        </th>
+                        <th className="px-4 py-3">Product</th>
+                        <th className="px-4 py-3">Price</th>
+                        <th className="px-4 py-3">Quantity</th>
+                        <th className="px-4 py-3">Subtotal</th>
+                        <th className="px-4 py-3">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cart.map((item) => {
+                        const subtotal = (item.price || 0) * item.quantity;
+                        const isSelected = selectedIds.includes(item._id);
+                        const stockLevel = getCartItemStock(item);
 
-                  return (
-                    <div
-                      key={item._id}
-                      className="flex flex-col md:flex-row gap-4 p-4 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex-1 space-y-2">
-                        <Label>Product</Label>
-                        <div className="font-medium">
-                          {item.name || item.productName}
-                        </div>
-                      </div>
-
-                      <div className="w-full md:w-32 space-y-2">
-                        <Label>Quantity</Label>
-                        <div className="text-xl font-semibold text-center">
-                          {item.quantity}
-                        </div>
-                      </div>
-
-                      <div className="w-full md:w-32 flex items-end">
-                        <div className="w-full">
-                          <Label>Subtotal</Label>
-                          <div className="text-xl font-semibold">
-                            PHP {subtotal.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+                        return (
+                          <tr key={item._id} className="border-b last:border-b-0">
+                            <td className="px-4 py-4 align-middle">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                checked={isSelected}
+                                onChange={() => handleToggleSelect(item._id)}
+                              />
+                            </td>
+                            <td className="px-4 py-4 align-middle">
+                              <div className="font-medium text-gray-900">
+                                {item.name || item.productName}
+                              </div>
+                              {item.category && (
+                                <div className="text-xs text-gray-500">{item.category}</div>
+                              )}
+                              {stockLevel > 0 && (
+                                <div className="text-xs text-gray-500">{stockLevel} in stock</div>
+                              )}
+                            </td>
+                            <td className="px-4 py-4 align-middle text-gray-900">
+                              PHP {Number(item.price || 0).toLocaleString()}
+                            </td>
+                            <td className="px-4 py-4 align-middle">
+                              <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
+                                <button
+                                  type="button"
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm hover:bg-gray-100"
+                                  onClick={() => updateQuantity(item._id, -1)}
+                                  disabled={item.quantity <= 1}
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </button>
+                                <span className="w-10 text-center text-sm font-semibold">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm hover:bg-gray-100"
+                                  onClick={() => updateQuantity(item._id, 1)}
+                                  disabled={stockLevel > 0 && item.quantity >= stockLevel}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 align-middle font-semibold text-blue-600">
+                              PHP {subtotal.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-4 align-middle text-right">
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100"
+                                onClick={() => removeFromCart(item._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Remove
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -346,6 +444,16 @@ export default function ClientOrderForm({ selectedPackage }) {
                 value={referenceNumber}
                 onChange={(event) => setReferenceNumber(event.target.value)}
                 required={onlinePaymentMethods.has(paymentMethod)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="promotionCode">Promo Code (Optional)</Label>
+              <Input
+                id="promotionCode"
+                placeholder="Enter promo code"
+                value={promotionCode}
+                onChange={(event) => setPromotionCode(event.target.value.toUpperCase())}
               />
             </div>
 

@@ -13,6 +13,7 @@ import appointmentsRoutes from "./routes/appointments.js"
 import staffRoutes from "./routes/staff.js"
 import packageDealsRoutes from "./routes/packageDeals.js"
 import reportsRoutes from "./routes/reports.js"
+import promotionsRoutes from "./routes/promotions.js"
 
 dotenv.config()
 dotenv.config({ path: ".env.local", override: true })
@@ -47,14 +48,19 @@ app.use(express.json({ limit: "6mb" }))
 app.use(sanitizeInput)
 app.use(createRateLimiter())
 
-// Auth routes (public)
-app.use('/api/auth', authRoutes)
+// Auth routes (public). Keep auth attempts on a tighter limiter than normal API traffic.
+app.use('/api/auth', createRateLimiter({
+    windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+    max: Number(process.env.AUTH_RATE_LIMIT_MAX || 30),
+    keyPrefix: "auth-rate-limit",
+}), authRoutes)
 
 // Route-level authorization is applied inside each route module.
 app.use('/api/appointments', appointmentsRoutes)
 app.use('/api/staff', staffRoutes)
 app.use('/api/products', productsRoutes)
 app.use('/api/packages', packageDealsRoutes)
+app.use('/api/promotions', promotionsRoutes)
 app.use('/api/customers', customersRoutes)
 app.use('/api/orders', ordersRoutes)
 app.use('/api/reports', reportsRoutes)

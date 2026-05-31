@@ -73,6 +73,51 @@ const orderSchema = new mongoose.Schema({
         default: 0,
         min: 0
     },
+    membershipDiscountAmount: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    promotionDiscountAmount: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    promotionCode: {
+        type: String,
+        trim: true,
+        uppercase: true,
+        default: ""
+    },
+    appliedPromotions: [{
+        promotionId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Promotion",
+        },
+        name: {
+            type: String,
+            trim: true,
+        },
+        code: {
+            type: String,
+            trim: true,
+            uppercase: true,
+            default: "",
+        },
+        type: {
+            type: String,
+            trim: true,
+        },
+        value: {
+            type: Number,
+            default: 0,
+        },
+        discountAmount: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+    }],
     notes: {
         type: String,
         trim: true

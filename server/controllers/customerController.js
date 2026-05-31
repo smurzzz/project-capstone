@@ -1,14 +1,35 @@
 import Customer from "../models/Customer.js";
 import User from "../models/User.js";
+import MembershipHistory from "../models/MembershipHistory.js";
 import {
     cleanString,
     cleanProfileImage,
     isValidObjectId,
     normalizeEmail,
 } from "../utils/validation.js";
+import { MEMBERSHIP_STATUSES, MEMBERSHIP_TIERS } from "../utils/membership.js";
+
+const defaultMembership = ({ status = "Active", tier = "Silver" } = {}) => {
+    const expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+    return {
+        status,
+        tier,
+        pointsBalance: 0,
+        joinedAt: new Date(),
+        approvedAt: status === "Active" ? new Date() : null,
+        expiresAt,
+        renewalCount: 0,
+    };
+};
 
 const mapCustomerInput = (body) => {
     const contactInfo = body.contactInfo || {};
+    const tier = MEMBERSHIP_TIERS[body.membership?.tier] ? body.membership.tier : "Silver";
+    const status = MEMBERSHIP_STATUSES.includes(body.membership?.status)
+        ? body.membership.status
+        : body.role === "Guest" ? "Pending" : "Active";
 
     return {
         name: cleanString(body.name, 120),
@@ -18,9 +39,12 @@ const mapCustomerInput = (body) => {
             address: cleanString(contactInfo.address, 500),
         },
         role: ["Guest", "Member"].includes(body.role) ? body.role : "Member",
+        membership: defaultMembership({ status, tier }),
         profileImageUrl: cleanProfileImage(body.profileImageUrl),
     };
 };
+
+const recordMembershipHistory = (payload) => MembershipHistory.create(payload);
 
 /**
  * Get all customers (Staff/Admin only)
@@ -130,14 +154,25 @@ export const updateCurrentCustomer = async (req, res) => {
                 },
                 profileImageUrl,
                 role: "Member",
+                membership: defaultMembership(),
             });
             user.customerId = customer._id;
+            await recordMembershipHistory({
+                customerId: customer._id,
+                action: "registered",
+                newStatus: customer.membership.status,
+                newTier: customer.membership.tier,
+                actorType: "customer",
+                actorId: user._id,
+                notes: "Customer profile created from account settings",
+            });
         } else {
             customer.name = name;
             customer.contactInfo.phone = phone;
             customer.contactInfo.address = address;
             customer.profileImageUrl = profileImageUrl;
             customer.role = "Member";
+            customer.membership = customer.membership || defaultMembership();
             customer.updatedAt = new Date();
             await customer.save();
         }
@@ -253,6 +288,16 @@ export const createCustomer = async (req, res) => {
         }
 
         const newCustomer = await Customer.create(payload);
+        await recordMembershipHistory({
+            customerId: newCustomer._id,
+            action: "registered",
+            newStatus: newCustomer.membership.status,
+            newTier: newCustomer.membership.tier,
+            actorType: req.user?.type || "staff",
+            actorId: req.user?.id || null,
+            notes: "Customer record created by staff",
+        });
+
         res.status(201).json({
             success: true,
             message: "Customer created successfully",
@@ -266,6 +311,119 @@ export const createCustomer = async (req, res) => {
             });
         }
 
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
+/**
+ * Update customer membership status, tier, expiration, and points
+ */
+export const updateMembership = async (req, res) => {
+    try {
+        if (!isValidObjectId(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid customer ID",
+            });
+        }
+
+        const customer = await Customer.findById(req.params.id);
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                message: "Customer not found",
+            });
+        }
+
+        const status = MEMBERSHIP_STATUSES.includes(req.body.status)
+            ? req.body.status
+            : customer.membership?.status || "Active";
+        const tier = MEMBERSHIP_TIERS[req.body.tier]
+            ? req.body.tier
+            : customer.membership?.tier || "Silver";
+        const pointsAdjustment = Number(req.body.pointsAdjustment || 0);
+        const notes = cleanString(req.body.notes, 500);
+        const expiresAt = req.body.expiresAt ? new Date(req.body.expiresAt) : customer.membership?.expiresAt;
+
+        if (req.body.expiresAt && Number.isNaN(expiresAt.getTime())) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid expiration date",
+            });
+        }
+
+        const previousStatus = customer.membership?.status || "";
+        const previousTier = customer.membership?.tier || "";
+        const previousPoints = customer.membership?.pointsBalance || 0;
+        const nextPoints = Math.max(0, previousPoints + pointsAdjustment);
+        const isApproval = previousStatus !== "Active" && status === "Active";
+
+        customer.role = "Member";
+        customer.membership = {
+            ...(customer.membership?.toObject ? customer.membership.toObject() : customer.membership || defaultMembership()),
+            status,
+            tier,
+            pointsBalance: nextPoints,
+            approvedAt: isApproval ? new Date() : customer.membership?.approvedAt,
+            expiresAt,
+            renewalCount: req.body.renew === true
+                ? (customer.membership?.renewalCount || 0) + 1
+                : customer.membership?.renewalCount || 0,
+        };
+        customer.updatedAt = new Date();
+        await customer.save();
+
+        await recordMembershipHistory({
+            customerId: customer._id,
+            action: isApproval ? "approved" : req.body.renew === true ? "renewed" : "updated",
+            previousStatus,
+            newStatus: status,
+            previousTier,
+            newTier: tier,
+            pointsChange: nextPoints - previousPoints,
+            actorType: req.user?.type || "staff",
+            actorId: req.user?.id || null,
+            notes,
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Membership updated successfully",
+            data: customer,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
+/**
+ * Get customer membership history
+ */
+export const getMembershipHistory = async (req, res) => {
+    try {
+        if (!isValidObjectId(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid customer ID",
+            });
+        }
+
+        const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+        const history = await MembershipHistory.find({ customerId: req.params.id })
+            .sort({ createdAt: -1 })
+            .limit(limit);
+
+        res.status(200).json({
+            success: true,
+            data: history,
+        });
+    } catch (error) {
         res.status(500).json({
             success: false,
             message: "Internal server error",
@@ -373,6 +531,19 @@ export const getCustomerStats = async (req, res) => {
             Customer.countDocuments({ role: "Member" }),
             Customer.countDocuments({ role: "Guest" }),
         ]);
+        const membershipByTier = await Customer.aggregate([
+            { $match: { role: "Member" } },
+            {
+                $group: {
+                    _id: {
+                        tier: "$membership.tier",
+                        status: "$membership.status",
+                    },
+                    count: { $sum: 1 },
+                    points: { $sum: "$membership.pointsBalance" },
+                },
+            },
+        ]);
 
         res.status(200).json({
             success: true,
@@ -380,6 +551,7 @@ export const getCustomerStats = async (req, res) => {
                 totalCustomers,
                 members,
                 guests,
+                membershipByTier,
             },
         });
     } catch (error) {

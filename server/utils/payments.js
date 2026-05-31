@@ -1,4 +1,5 @@
 const PAYMENT_METHODS_REQUIRING_CHECKOUT = new Set(["GCash", "Maya", "Credit Card", "Debit Card"]);
+const PAYMENT_FETCH_TIMEOUT_MS = Number(process.env.PAYMENT_FETCH_TIMEOUT_MS || 15_000);
 
 const roundMoney = (amount) => Math.round(Number(amount || 0) * 100) / 100;
 
@@ -37,14 +38,27 @@ const createPayMongoCheckout = async ({ amount, referenceNumber, customer, items
         },
     };
 
-    const response = await fetch("https://api.paymongo.com/v1/checkout_sessions", {
-        method: "POST",
-        headers: {
-            Authorization: `Basic ${Buffer.from(`${secretKey}:`).toString("base64")}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PAYMENT_FETCH_TIMEOUT_MS);
+
+    let response;
+    try {
+        response = await fetch("https://api.paymongo.com/v1/checkout_sessions", {
+            method: "POST",
+            headers: {
+                Authorization: `Basic ${Buffer.from(`${secretKey}:`).toString("base64")}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+        });
+    } catch (error) {
+        throw Object.assign(new Error("Payment gateway is unavailable. Please try again later."), {
+            statusCode: 503,
+        });
+    } finally {
+        clearTimeout(timeout);
+    }
 
     if (!response.ok) {
         const text = await response.text();

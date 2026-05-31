@@ -105,7 +105,7 @@ const styles = {
   mainContent: {
     flex: 1,
     overflow: "auto",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "var(--brand-surface)",
   },
 };
 
