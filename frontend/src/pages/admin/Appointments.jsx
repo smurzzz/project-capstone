@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Mail, MapPin, Phone, UserRound, Wrench } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import { Calendar } from "../../components/ui/calendar.jsx";
@@ -99,7 +99,7 @@ export default function Appointments() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1 border-0 shadow-sm">
+        <Card className="lg:col-span-1 border border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle>Calendar</CardTitle>
           </CardHeader>
@@ -108,7 +108,7 @@ export default function Appointments() {
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="mx-auto border-gray-100 text-center"
+              className="mx-auto rounded-2xl border border-gray-300 bg-gray-2cd00 text-center"
             />
           </CardContent>
         </Card>
@@ -123,7 +123,7 @@ export default function Appointments() {
                 <button
                   key={appointment._id}
                   type="button"
-                  className="w-full text-left border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  className="w-full rounded-2xl border border-gray-300 bg-white p-4 text-left transition-colors hover:bg-gray-50"
                   onClick={() => {
                     setSelectedAppointment(appointment);
                     setNewStatus(appointment.status || "Scheduled");
@@ -167,45 +167,89 @@ export default function Appointments() {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Appointment Details</DialogTitle>
+        <DialogContent className="max-h-[92vh] overflow-y-auto bg-white p-0 sm:max-w-5xl">
+          <DialogHeader className="border-b border-slate-200 px-6 py-5">
+            <DialogTitle className="flex items-center gap-3 text-2xl">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                <CalendarIcon className="h-5 w-5" />
+              </span>
+              Appointment Details
+            </DialogTitle>
           </DialogHeader>
           {selectedAppointment && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <Info label="Appointment ID" value={getAppointmentId(selectedAppointment)} />
-                <div>
-                  <p className="text-sm text-gray-500">Status</p>
-                  <Badge className={statusColors[selectedAppointment.status] || "bg-gray-100 text-gray-700"}>
-                    {selectedAppointment.status || "Unknown"}
-                  </Badge>
+            <div className="grid gap-0 lg:grid-cols-[340px_1fr]">
+              <div className="border-b border-slate-200 bg-slate-50 p-6 lg:border-b-0 lg:border-r">
+                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="mb-5 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Appointment</p>
+                      <p className="mt-1 text-2xl font-bold text-slate-950">{getAppointmentId(selectedAppointment)}</p>
+                    </div>
+                    <Badge className={`${statusColors[selectedAppointment.status] || "bg-gray-100 text-gray-700"} rounded-full px-3 py-1`}>
+                      {selectedAppointment.status || "Unknown"}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-3">
+                    <SummaryItem icon={<UserRound className="h-4 w-4" />} label="Customer" value={getCustomerName(selectedAppointment)} />
+                    <SummaryItem icon={<CalendarIcon className="h-4 w-4" />} label="Date" value={getDisplayDate(selectedAppointment)} />
+                    <SummaryItem icon={<Clock className="h-4 w-4" />} label="Time" value={getDisplayTime(selectedAppointment)} />
+                  </div>
                 </div>
-                <Info label="Customer" value={getCustomerName(selectedAppointment)} />
-                <Info label="Email" value={getCustomerEmail(selectedAppointment)} />
-                <Info label="Phone" value={getPhone(selectedAppointment)} />
-                <Info label="Service" value={getService(selectedAppointment)} />
-                <Info label="Date" value={getDisplayDate(selectedAppointment)} />
-                <Info label="Time" value={getDisplayTime(selectedAppointment)} />
+
+                <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Update Status</p>
+                  <div className="mt-4 space-y-3">
+                    <Select value={newStatus} onValueChange={setNewStatus}>
+                      <SelectTrigger className="h-11 rounded-2xl border-gray-300 bg-gray-2cd00">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Scheduled">Scheduled</SelectItem>
+                        <SelectItem value="Confirmed">Confirmed</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button className="h-11 w-full rounded-full bg-slate-950 text-white hover:bg-slate-800" onClick={handleUpdateStatus}>
+                      Update Status
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <Info label="Location" value={getLocation(selectedAppointment)} />
-              <div>
-                <p className="text-sm text-gray-500">Notes</p>
-                <p className="bg-gray-50 p-3 rounded-lg">{selectedAppointment.notes || "No notes provided"}</p>
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Select value={newStatus} onValueChange={setNewStatus}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Scheduled">Scheduled</SelectItem>
-                    <SelectItem value="Confirmed">Confirmed</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button onClick={handleUpdateStatus}>Update Status</Button>
+
+              <div className="space-y-6 p-6">
+                <div className="rounded-3xl border border-slate-200 p-5">
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-slate-950">Customer Details</h3>
+                    <p className="text-sm text-slate-500">Contact information connected to this appointment.</p>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Info icon={<UserRound className="h-4 w-4" />} label="Customer" value={getCustomerName(selectedAppointment)} />
+                    <Info icon={<Mail className="h-4 w-4" />} label="Email" value={getCustomerEmail(selectedAppointment)} />
+                    <Info icon={<Phone className="h-4 w-4" />} label="Phone" value={getPhone(selectedAppointment)} />
+                    <Info icon={<MapPin className="h-4 w-4" />} label="Location" value={getLocation(selectedAppointment)} />
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 p-5">
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-slate-950">Service Schedule</h3>
+                    <p className="text-sm text-slate-500">Requested service type and booked time slot.</p>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <Info icon={<Wrench className="h-4 w-4" />} label="Service" value={getService(selectedAppointment)} />
+                    <Info icon={<CalendarIcon className="h-4 w-4" />} label="Date" value={getDisplayDate(selectedAppointment)} />
+                    <Info icon={<Clock className="h-4 w-4" />} label="Time" value={getDisplayTime(selectedAppointment)} />
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200 p-5">
+                  <h3 className="font-semibold text-slate-950">Notes</h3>
+                  <p className="mt-3 min-h-28 rounded-2xl border border-gray-300 bg-gray-2cd00 p-4 text-sm leading-6 text-slate-700">
+                    {selectedAppointment.notes || "No notes provided"}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -226,11 +270,28 @@ function Stat({ title, value }) {
   );
 }
 
-function Info({ label, value }) {
+function Info({ icon, label, value }) {
   return (
-    <div>
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="truncate">{value}</p>
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+        {icon}
+        {label}
+      </p>
+      <p className="mt-2 truncate font-semibold text-slate-900">{value}</p>
+    </div>
+  );
+}
+
+function SummaryItem({ icon, label, value }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-medium text-slate-500">{label}</p>
+        <p className="truncate text-sm font-semibold text-slate-950">{value}</p>
+      </div>
     </div>
   );
 }

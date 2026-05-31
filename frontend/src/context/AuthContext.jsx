@@ -4,6 +4,8 @@ import { authAPI } from "../utils/api.js";
 
 const AuthContext = createContext();
 
+const isAuthFailure = (error) => [401, 403].includes(error?.response?.status);
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
         try {
@@ -34,12 +36,14 @@ export const AuthProvider = ({ children }) => {
                 const sessionUser = response.data.user;
                 setUser(sessionUser);
                 localStorage.setItem("pos-user", JSON.stringify(sessionUser));
-            } catch {
+            } catch (error) {
                 if (!mounted) return;
 
-                setUser(null);
-                localStorage.removeItem("pos-user");
-                localStorage.removeItem("pos-token");
+                if (isAuthFailure(error)) {
+                    setUser(null);
+                    localStorage.removeItem("pos-user");
+                    localStorage.removeItem("pos-token");
+                }
             } finally {
                 if (mounted) {
                     setLoading(false);

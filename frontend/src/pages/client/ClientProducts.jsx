@@ -174,12 +174,12 @@ export default function ClientProducts() {
                   </span>
                 </div>
 
-                <div className="mx-auto mt-6 flex h-48 w-full items-center justify-center rounded-[2rem] bg-slate-100 p-6 shadow-sm">
+                <div className="mx-auto mt-6 flex aspect-square w-full items-center justify-center overflow-hidden rounded-[2rem] bg-slate-100 shadow-sm">
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
                       alt={product.productName || product.name}
-                      className="h-full w-full object-contain"
+                      className="h-full w-full rounded-[2rem] object-contain p-4"
                     />
                   ) : (
                     <ImageIcon className="h-14 w-14 text-slate-400" />
@@ -232,12 +232,12 @@ export default function ClientProducts() {
         {selectedProduct && (
           <DialogContent className="max-w-[960px] overflow-hidden bg-white p-0 shadow-2xl">
             <div className="grid gap-6 lg:grid-cols-[360px_1fr] p-6">
-              <div className="overflow-hidden rounded-[2rem] bg-slate-100 p-6">
+              <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[2rem] bg-slate-100 lg:aspect-auto lg:min-h-[360px]">
                 {selectedProduct.imageUrl ? (
                   <img
                     src={selectedProduct.imageUrl}
                     alt={selectedProduct.productName || selectedProduct.name}
-                    className="h-full w-full object-contain"
+                    className="h-full w-full rounded-[2rem] object-contain p-4"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center">

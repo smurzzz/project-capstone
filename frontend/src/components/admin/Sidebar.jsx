@@ -52,7 +52,7 @@ const Sidebar = () => {
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white transform transition-transform duration-300
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0 lg:static h-screen flex flex-col`}
+        lg:translate-x-0 lg:sticky lg:top-0 lg:self-start h-screen flex flex-col`}
       >
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <div className="flex items-center gap-3">

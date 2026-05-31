@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowRight, Zap, Lightbulb, Wrench, Gauge, Heart, Flame, Package, Percent, ImageIcon, ShoppingBag } from 'lucide-react';
+import { ArrowRight, Zap, Lightbulb, Wrench, Gauge, Heart, Flame, Package, Percent, ImageIcon, ShoppingBag, Mail, MapPin, Phone, Clock } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import {
@@ -215,17 +215,77 @@ export default function ClientHomepage() {
         </div>
       </section>
 
-      <footer className="bg-slate-900 text-white py-12 px-4 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto text-center space-y-4">
-          <div className="flex items-center justify-center gap-2">
-            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg p-1.5">
-              <Zap className="h-5 w-5 text-white" />
+      <footer className="bg-gradient-to-r from-[#021b47] to-[#032a68] pt-10 text-white">
+        <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-10 px-5 pb-10">
+          <div className="min-w-[250px] flex-1">
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 p-2">
+                <Zap className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <p className="text-xl font-bold leading-tight">JBM Electro</p>
+                <p className="text-sm text-blue-100">Ventures</p>
+              </div>
             </div>
-            <span className="text-lg font-bold">JBM Electro Ventures</span>
+            <div className="mt-5 flex gap-4">
+              <a
+                href="https://www.facebook.com/JBMPH"
+                aria-label="JBM Electro Ventures Facebook"
+                className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-400 text-white transition hover:bg-blue-500"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span className="text-xl font-bold leading-none">f</span>
+              </a>
+              <a
+                href="mailto:support@jbm.com.ph"
+                aria-label="Email JBM Electro Ventures"
+                className="flex h-12 w-12 items-center justify-center rounded-xl border border-blue-400 text-white transition hover:bg-blue-500"
+              >
+                <Mail className="h-5 w-5" />
+              </a>
+            </div>
           </div>
-          <p className="text-gray-400 text-sm">
-            © 2026 JBM Electro Ventures. All rights reserved.
-          </p>
+
+          <div className="min-w-[250px] flex-1">
+            <h3 className="mb-5 text-lg font-bold text-blue-400">SUPPORT</h3>
+            <ul className="space-y-4">
+              <li><Link to="/faq" className="transition hover:text-blue-400">FAQs</Link></li>
+              <li><a href="mailto:support@jbm.com.ph" className="transition hover:text-blue-400">Contact Us</a></li>
+              <li><Link to="/warranty-returns" className="transition hover:text-blue-400">Warranty & Returns</Link></li>
+              <li><Link to="/terms" className="transition hover:text-blue-400">Terms & Conditions</Link></li>
+              <li><Link to="/privacy" className="transition hover:text-blue-400">Privacy Policy</Link></li>
+            </ul>
+          </div>
+
+          <div className="min-w-[250px] flex-1">
+            <h3 className="mb-5 text-lg font-bold text-blue-400">GET IN TOUCH</h3>
+            <div className="space-y-4 leading-relaxed">
+              <p className="flex items-start gap-3">
+                <MapPin className="mt-1 h-5 w-5 shrink-0 text-blue-400" />
+                <span>
+                  JBM Electro Ventures <br />
+                  Brgy. Disud, Sindangan, Zamboanga del Norte, Philippines.
+                </span>
+              </p>
+              <p className="flex items-start gap-3">
+                <Phone className="mt-1 h-5 w-5 shrink-0 text-blue-400" />
+                <a href="tel:+639538223950" className="transition hover:text-blue-400">+63 953 822 3950</a>
+              </p>
+              <p className="flex items-start gap-3">
+                <Mail className="mt-1 h-5 w-5 shrink-0 text-blue-400" />
+                <a href="mailto:support@jbm.com.ph" className="transition hover:text-blue-400">support@jbm.com.ph</a>
+              </p>
+              <p className="flex items-start gap-3">
+                <Clock className="mt-1 h-5 w-5 shrink-0 text-blue-400" />
+                <span>Mon - Sat &nbsp; - &nbsp; 8:00 AM - 5:00 PM</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-white/10 bg-black/20 px-4 py-5 text-center text-base">
+          <p>© 2026 JBM Electro Ventures. All rights reserved.</p>
         </div>
       </footer>
     </div>

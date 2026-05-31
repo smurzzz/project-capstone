@@ -1,5 +1,6 @@
 import express from "express"
 import cors from "cors"
+import dns from "dns"
 import connectDb from "./db/connect.js"
 import dotenv from "dotenv"
 import { createRateLimiter, sanitizeInput, securityHeaders } from "./middleware/security.js"
@@ -18,6 +19,15 @@ import membershipsRoutes from "./routes/memberships.js"
 
 dotenv.config()
 dotenv.config({ path: ".env.local", override: true })
+
+const dnsServers = (process.env.DNS_SERVERS || "")
+    .split(",")
+    .map((server) => server.trim())
+    .filter(Boolean)
+
+if (dnsServers.length > 0) {
+    dns.setServers(dnsServers)
+}
 
 const app = express()
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,http://127.0.0.1:5173")
