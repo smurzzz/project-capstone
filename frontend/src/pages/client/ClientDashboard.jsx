@@ -18,6 +18,7 @@ import {
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import logoSrc from "../../assets/logo (1).webp";
 import ClientAppointments from "./ClientAppointments.jsx";
 import ClientHome from "./ClientHome.jsx";
 import ClientOrderForm from "./ClientOrderForm.jsx";
@@ -221,9 +222,11 @@ export default function ClientDashboard() {
     >
       <div className="p-6 border-b border-slate-700">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg p-1.5">
-            <Zap className="h-5 w-5 text-white" />
-          </div>
+          <img
+            src={logoSrc}
+            alt="JBM Electro logo"
+            className="h-14 w-[64px] rounded-xl bg-white/10 p-2 object-contain border border-white/10"
+          />
           <div>
             <h1 className="text-base font-bold">JBM Electro</h1>
             <p className="text-xs text-slate-400">Client Portal</p>

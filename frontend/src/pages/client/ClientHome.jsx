@@ -99,23 +99,6 @@ export default function ClientHome({ onNavigateTab }) {
         <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader>
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Target className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-            <CardTitle>Our Mission</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="text-base text-gray-700 leading-relaxed">
-              To provide high-quality electrical products and services with reliable ordering,
-              secure checkout, inventory accuracy, and responsive customer support.
-            </CardDescription>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-          <CardHeader>
-            <div className="flex items-center gap-3 mb-3">
               <div className="p-3 bg-purple-100 rounded-lg">
                 <Users className="h-6 w-6 text-purple-600" />
               </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import logoSrc from '../../assets/logo (1).webp';
 import { ArrowRight, Zap, Lightbulb, Wrench, Gauge, Heart, Flame, Package, Percent, ImageIcon, ShoppingBag, Mail, MapPin, Phone, Clock } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -45,9 +46,11 @@ export default function ClientHomepage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 gap-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-lg p-1.5">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
+              <img
+                src={logoSrc}
+                alt="JBM Electro logo"
+                className="h-10 w-10 rounded-xl bg-white p-1 object-contain"
+              />
               <span className="text-lg font-bold text-gray-900 truncate">
                 JBM Electro Ventures
               </span>
@@ -219,9 +222,11 @@ export default function ClientHomepage() {
         <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-10 px-5 pb-10">
           <div className="min-w-[250px] flex-1">
             <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 p-2">
-                <Zap className="h-8 w-8 text-white" />
-              </div>
+              <img
+                src={logoSrc}
+                alt="JBM Electro logo"
+                className="h-12 w-12 rounded-xl bg-white p-2 object-contain"
+              />
               <div>
                 <p className="text-xl font-bold leading-tight">JBM Electro</p>
                 <p className="text-sm text-blue-100">Ventures</p>

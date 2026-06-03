@@ -12,10 +12,10 @@ import {
   ShoppingCart,
   UsersRound,
   X,
-  Zap,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import logoSrc from "../../assets/logo (1).webp";
 
 const menuItems = [
   { name: "Dashboard", path: "/admin/dashboard", icon: <Home className="h-5 w-5" />, isParent: true },
@@ -56,9 +56,11 @@ const Sidebar = () => {
       >
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg p-1.5">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
+            <img
+              src={logoSrc}
+              alt="JBM Electro logo"
+              className="h-14 w-[64px] rounded-xl bg-white/10 p-2 object-contain border border-white/10"
+            />
             <div>
               <h1 className="font-bold text-base">JBM ELECTRO</h1>
               <p className="text-xs text-slate-400">Admin Panel</p>
