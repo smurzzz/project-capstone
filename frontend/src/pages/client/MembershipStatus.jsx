@@ -7,8 +7,8 @@ import ApplicationStatusCard from '../../components/membership/ApplicationStatus
 import MemberBadge from '../../components/membership/MemberBadge';
 import BenefitsDisplay from '../../components/membership/BenefitsDisplay';
 import { membershipAPI, customersAPI } from '../../utils/api';
-import { getTierDetails, getDaysUntilExpiration, isMembershipActive, formatMembershipInfo } from '../../utils/membership';
-import { toast } from 'sonner';
+import { getTierDetails, getDaysUntilExpiration, isMembershipActive } from '../../utils/membership';
+
 import { ArrowRight, Gift, Zap, TrendingUp, Calendar } from 'lucide-react';
 
 export default function MembershipStatus() {
@@ -47,7 +47,7 @@ export default function MembershipStatus() {
                 if (customerRes.data.data?.customer?.membership) {
                     setMembership(customerRes.data.data.customer.membership);
                 }
-            } catch (err) {
+            } catch {
                 setError('Failed to load membership information');
             }
         } finally {
@@ -84,7 +84,6 @@ export default function MembershipStatus() {
 
     const isMembershipStatusActive = isMembershipActive(membership);
     const tierDetails = getTierDetails(membership?.tier);
-    const membershipInfo = formatMembershipInfo(membership);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-8 px-4 sm:px-6 lg:px-8">

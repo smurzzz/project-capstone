@@ -13,7 +13,6 @@ export default function MembershipApplication() {
     const [step, setStep] = useState('benefits'); // benefits or form
     const [selectedTier, setSelectedTier] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [showBenefits, setShowBenefits] = useState(true);
 
     const handleSelectTier = (tier) => {
         setSelectedTier(tier);
@@ -34,7 +33,7 @@ export default function MembershipApplication() {
                 membershipType: selectedTier
             };
 
-            const response = await membershipAPI.applyForMembership(applicationData);
+            await membershipAPI.applyForMembership(applicationData);
             
             toast.success('Application submitted successfully!', {
                 description: 'You will receive an email notification when your application is reviewed.'

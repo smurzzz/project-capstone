@@ -32,7 +32,7 @@ export default function ClientProducts() {
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [productDialogTab, setProductDialogTab] = useState("specifications");
   const [modalQuantity, setModalQuantity] = useState(1);
-  const { quantities, addToCart, updateQuantity, getTotalItems } = useCart();
+  const { addToCart, getTotalItems } = useCart();
   const navigate = useNavigate();
 
   async function fetchProducts() {

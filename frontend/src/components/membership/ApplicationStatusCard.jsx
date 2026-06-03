@@ -1,7 +1,7 @@
 import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { getTierDetails, getStatusBadgeInfo, getDaysUntilExpiration, isMembershipExpired } from '../../utils/membership';
+import { getTierDetails, getDaysUntilExpiration, isMembershipExpired } from '../../utils/membership';
 
 const STATUS_ICONS = {
     Pending: Clock,
@@ -25,7 +25,6 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
         );
     }
 
-    const statusInfo = getStatusBadgeInfo(membership.status);
     const tierDetails = getTierDetails(membership.tier);
     const StatusIcon = STATUS_ICONS[membership.status] || AlertCircle;
     const isExpired = isMembershipExpired(membership);

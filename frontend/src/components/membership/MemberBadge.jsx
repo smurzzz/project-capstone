@@ -1,4 +1,4 @@
-import { getTierDetails, getStatusBadgeInfo, isMembershipActive } from '../../utils/membership';
+import { getTierDetails, isMembershipActive } from '../../utils/membership';
 
 export default function MemberBadge({ membership, size = 'md' }) {
     if (!membership || !isMembershipActive(membership)) {

@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 import {
     ChevronDown,
     ChevronUp,
@@ -42,7 +41,6 @@ const STATUS_COLORS = {
 };
 
 export default function AdminMemberships() {
-    const navigate = useNavigate();
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -55,11 +53,7 @@ export default function AdminMemberships() {
     const [actionReason, setActionReason] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
-    useEffect(() => {
-        fetchApplications();
-    }, [filters]);
-
-    const fetchApplications = async () => {
+    const fetchApplications = useCallback(async () => {
         try {
             setLoading(true);
             const response = await membershipAPI.getAllApplications({
@@ -74,7 +68,11 @@ export default function AdminMemberships() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters]);
+
+    useEffect(() => {
+        fetchApplications();
+    }, [fetchApplications]);
 
     const handleApprove = async () => {
         if (!selectedApp) return;
