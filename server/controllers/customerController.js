@@ -561,3 +561,109 @@ export const getCustomerStats = async (req, res) => {
         });
     }
 };
+
+/**
+ * Get email preferences for authenticated customer
+ */
+export const getEmailPreferences = async (req, res) => {
+    try {
+        if (req.user?.type !== "customer") {
+            return res.status(403).json({
+                success: false,
+                message: "Customer account required",
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Customer not found",
+            });
+        }
+
+        const customer = user.customerId
+            ? await Customer.findById(user.customerId)
+            : await Customer.findOne({ "contactInfo.email": user.email });
+
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                message: "Customer profile not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                enabled: customer.emailPreferences?.enabled ?? true,
+                appointments: customer.emailPreferences?.appointments ?? true,
+                orders: customer.emailPreferences?.orders ?? true,
+                receipts: customer.emailPreferences?.receipts ?? true,
+                membership: customer.emailPreferences?.membership ?? true,
+            },
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
+/**
+ * Update email preferences for authenticated customer
+ */
+export const updateEmailPreferences = async (req, res) => {
+    try {
+        if (req.user?.type !== "customer") {
+            return res.status(403).json({
+                success: false,
+                message: "Customer account required",
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Customer not found",
+            });
+        }
+
+        let customer = user.customerId
+            ? await Customer.findById(user.customerId)
+            : await Customer.findOne({ "contactInfo.email": user.email });
+
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                message: "Customer profile not found",
+            });
+        }
+
+        customer.emailPreferences = {
+            enabled: req.body.enabled !== false,
+            appointments: req.body.appointments !== false,
+            orders: req.body.orders !== false,
+            receipts: req.body.receipts !== false,
+            membership: req.body.membership !== false,
+        };
+
+        user.emailNotificationsEnabled = req.body.enabled !== false;
+
+        await Promise.all([customer.save(), user.save()]);
+
+        res.status(200).json({
+            success: true,
+            message: "Email preferences updated successfully",
+            data: customer.emailPreferences,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+

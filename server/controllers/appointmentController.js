@@ -332,10 +332,10 @@ export const createAppointment = async (req, res) => {
             status: "Scheduled",
         });
 
-        await sendAppointmentCreatedEmail({
-            ...newAppointment.toObject(),
-            customerId: customer,
-        });
+        await sendAppointmentCreatedEmail(
+            { ...newAppointment.toObject(), customerId: customer },
+            customer
+        );
 
         return res.status(201).json({
             success: true,
@@ -396,10 +396,10 @@ export const updateAppointment = async (req, res) => {
         const appointment = await Appointment.findByIdAndUpdate(req.params.id, update, {
             new: true,
             runValidators: true,
-        }).populate("customerId", "name contactInfo role");
+        }).populate("customerId", "name contactInfo emailPreferences role");
 
         if (status && existingAppointment.status !== status) {
-            await sendAppointmentStatusEmail(appointment);
+            await sendAppointmentStatusEmail(appointment, appointment.customerId);
         }
 
         res.status(200).json({
@@ -451,10 +451,10 @@ export const updateAppointmentStatus = async (req, res) => {
                 updatedAt: new Date(),
             },
             { new: true, runValidators: true }
-        ).populate("customerId", "name contactInfo role");
+        ).populate("customerId", "name contactInfo emailPreferences");
 
         if (existingAppointment.status !== status) {
-            await sendAppointmentStatusEmail(appointment);
+            await sendAppointmentStatusEmail(appointment, appointment.customerId);
         }
 
         res.status(200).json({

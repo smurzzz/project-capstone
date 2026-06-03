@@ -335,6 +335,7 @@ export const registerCustomer = async (req, res) => {
         const phone = cleanString(req.body.phone, 30);
         const address = cleanString(req.body.address, 500);
         const { password } = req.body;
+        const emailNotificationsEnabled = req.body.emailNotificationsEnabled !== false;
 
         if (!name || !email || !phone || !address || !password) {
             return res.status(400).json({
@@ -373,7 +374,19 @@ export const registerCustomer = async (req, res) => {
             password: hashedPassword,
             role: "customer",
             customerId: customer._id,
+            emailNotificationsEnabled,
         });
+
+        if (!customer.emailPreferences) {
+            customer.emailPreferences = {
+                enabled: emailNotificationsEnabled,
+                appointments: emailNotificationsEnabled,
+                orders: emailNotificationsEnabled,
+                receipts: emailNotificationsEnabled,
+                membership: emailNotificationsEnabled,
+            };
+            await customer.save();
+        }
 
         const session = await issueCustomerSession(newUser);
         const verificationEmailSent = await sendRegistrationOtp(newUser);

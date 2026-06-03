@@ -478,7 +478,7 @@ export const createOrder = async (req, res) => {
             ...newOrder.toObject(),
             customerId: customer || null,
             items: createdItems,
-        });
+        }, customer);
 
         res.status(201).json({
             success: true,
@@ -596,10 +596,10 @@ export const updateOrderStatus = async (req, res) => {
         }
 
         const populatedOrder = await Order.findById(order._id)
-            .populate("customerId", "name contactInfo role");
+            .populate("customerId", "name contactInfo role emailPreferences");
 
         if (previousStatus !== status) {
-            await sendOrderStatusEmail(populatedOrder);
+            await sendOrderStatusEmail(populatedOrder, populatedOrder.customerId);
         }
 
         res.status(200).json({

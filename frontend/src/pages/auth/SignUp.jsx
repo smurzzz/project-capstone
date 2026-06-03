@@ -12,7 +12,8 @@ export default function SignUp() {
         phone: "",
         password: "",
         confirmPassword: "",
-        address: ""
+        address: "",
+        emailNotificationsEnabled: true
     });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -79,7 +80,8 @@ export default function SignUp() {
                 email: formData.email,
                 phone: formData.phone,
                 address: formData.address,
-                password: formData.password
+                password: formData.password,
+                emailNotificationsEnabled: formData.emailNotificationsEnabled
             });
 
             if (response.data.success) {
@@ -296,6 +298,21 @@ export default function SignUp() {
                                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="emailNotifications"
+                                name="emailNotificationsEnabled"
+                                checked={formData.emailNotificationsEnabled}
+                                onChange={(e) => setFormData({ ...formData, emailNotificationsEnabled: e.target.checked })}
+                                disabled={loading}
+                                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                            <label htmlFor="emailNotifications" className="text-sm text-gray-700">
+                                Send me order confirmations, appointment updates, and receipts via email
+                            </label>
                         </div>
 
                         <button

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, ImageIcon, ShieldCheck, UserRound } from "lucide-react";
+import { Camera, ImageIcon, ShieldCheck, UserRound, Mail, CheckCircle } from "lucide-react";
 import { Button } from "../../components/ui/button.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
 import { Input } from "../../components/ui/input.jsx";
@@ -20,6 +20,15 @@ export default function Settings() {
     profileImageUrl: user?.profileImageUrl || "",
   });
   const [saving, setSaving] = useState(false);
+  const [emailPreferences, setEmailPreferences] = useState({
+    enabled: true,
+    appointments: true,
+    orders: true,
+    receipts: true,
+    membership: true,
+  });
+  const [loadingPreferences, setLoadingPreferences] = useState(false);
+  const [savingPreferences, setSavingPreferences] = useState(false);
 
   useEffect(() => {
     // Keep the editable form in sync when a different account signs in.
@@ -30,7 +39,26 @@ export default function Settings() {
       address: user?.address || "",
       profileImageUrl: user?.profileImageUrl || "",
     });
+
+    // Load email preferences for customers
+    if (user?.type === "customer") {
+      loadEmailPreferences();
+    }
   }, [user]);
+
+  const loadEmailPreferences = async () => {
+    try {
+      setLoadingPreferences(true);
+      const response = await customersAPI.getEmailPreferences();
+      if (response.data.success) {
+        setEmailPreferences(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error loading email preferences:", error);
+    } finally {
+      setLoadingPreferences(false);
+    }
+  };
 
   const isCustomer = user?.type === "customer";
   const isStaff = user?.type === "staff";
@@ -85,6 +113,21 @@ export default function Settings() {
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveEmailPreferences = async () => {
+    setSavingPreferences(true);
+    try {
+      const response = await customersAPI.updateEmailPreferences(emailPreferences);
+      if (response.data.success) {
+        toast.success("Email preferences saved");
+      }
+    } catch (error) {
+      console.error("Error saving email preferences:", error);
+      toast.error(error.response?.data?.message || "Failed to save email preferences");
+    } finally {
+      setSavingPreferences(false);
     }
   };
 
@@ -227,6 +270,130 @@ export default function Settings() {
               </form>
             </CardContent>
           </Card>
+
+          {isCustomer && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Email Notifications
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {loadingPreferences ? (
+                  <p className="text-sm text-gray-500">Loading preferences...</p>
+                ) : (
+                  <>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border">
+                        <div>
+                          <Label htmlFor="emailNotificationsEnabled" className="font-medium">
+                            Email Notifications
+                          </Label>
+                          <p className="text-xs text-gray-500 mt-1">Receive all transactional emails</p>
+                        </div>
+                        <input
+                          id="emailNotificationsEnabled"
+                          type="checkbox"
+                          checked={emailPreferences.enabled}
+                          onChange={(e) =>
+                            setEmailPreferences({ ...emailPreferences, enabled: e.target.checked })
+                          }
+                          className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                        />
+                      </div>
+
+                      {emailPreferences.enabled && (
+                        <>
+                          <div className="space-y-3 pl-3 border-l-2 border-green-200">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label className="font-medium text-sm">Appointment Updates</Label>
+                                <p className="text-xs text-gray-500">When your appointments are confirmed or updated</p>
+                              </div>
+                              <input
+                                type="checkbox"
+                                checked={emailPreferences.appointments}
+                                onChange={(e) =>
+                                  setEmailPreferences({
+                                    ...emailPreferences,
+                                    appointments: e.target.checked,
+                                  })
+                                }
+                                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                              />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label className="font-medium text-sm">Order Confirmations</Label>
+                                <p className="text-xs text-gray-500">When your orders are created and updated</p>
+                              </div>
+                              <input
+                                type="checkbox"
+                                checked={emailPreferences.orders}
+                                onChange={(e) =>
+                                  setEmailPreferences({
+                                    ...emailPreferences,
+                                    orders: e.target.checked,
+                                  })
+                                }
+                                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                              />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label className="font-medium text-sm">Receipts</Label>
+                                <p className="text-xs text-gray-500">When you receive order receipts and invoices</p>
+                              </div>
+                              <input
+                                type="checkbox"
+                                checked={emailPreferences.receipts}
+                                onChange={(e) =>
+                                  setEmailPreferences({
+                                    ...emailPreferences,
+                                    receipts: e.target.checked,
+                                  })
+                                }
+                                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                              />
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label className="font-medium text-sm">Membership Updates</Label>
+                                <p className="text-xs text-gray-500">For membership approvals and changes</p>
+                              </div>
+                              <input
+                                type="checkbox"
+                                checked={emailPreferences.membership}
+                                onChange={(e) =>
+                                  setEmailPreferences({
+                                    ...emailPreferences,
+                                    membership: e.target.checked,
+                                  })
+                                }
+                                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={handleSaveEmailPreferences}
+                      disabled={savingPreferences}
+                      className="w-full"
+                    >
+                      {savingPreferences ? "Saving..." : "Save Email Preferences"}
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

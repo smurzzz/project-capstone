@@ -11,7 +11,9 @@ import {
     deleteCustomer,
     getCustomerStats,
     updateMembership,
-    getMembershipHistory
+    getMembershipHistory,
+    getEmailPreferences,
+    updateEmailPreferences
 } from "../controllers/customerController.js";
 
 const router = express.Router();
@@ -19,6 +21,8 @@ const router = express.Router();
 // Authenticated customer route
 router.get("/me", verifyToken, getCurrentCustomer);
 router.put("/me", verifyToken, updateCurrentCustomer);
+router.get("/me/email-preferences", verifyToken, getEmailPreferences);
+router.put("/me/email-preferences", verifyToken, updateEmailPreferences);
 
 // Staff/Admin routes
 router.post("/", verifyToken, verifyStaff, createCustomer);

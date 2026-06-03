@@ -72,6 +72,28 @@ const customerSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    emailPreferences: {
+        enabled: {
+            type: Boolean,
+            default: true
+        },
+        appointments: {
+            type: Boolean,
+            default: true
+        },
+        orders: {
+            type: Boolean,
+            default: true
+        },
+        receipts: {
+            type: Boolean,
+            default: true
+        },
+        membership: {
+            type: Boolean,
+            default: true
+        }
+    },
     createdAt: {
         type: Date,
         default: Date.now
