@@ -78,7 +78,11 @@ export default function ClientHome({ onNavigateTab }) {
         <p className="text-lg text-gray-600">Your trusted e-commerce portal for electrical solutions</p>
       </div>
 
-      <MembershipCard membership={membership} onOpen={() => navigate("/membership/status")} onApply={() => navigate("/membership/apply")} />
+      <MembershipCard
+        membership={membership}
+        onApply={() => navigate("/membership/apply")}
+        onViewStatus={() => navigate("/membership/status")}
+      />
 
       <DealsSection
         flashDeals={flashDeals}
@@ -248,7 +252,7 @@ function DealsSection({ flashDeals, packageDeals, onOpenPackages }) {
   );
 }
 
-function MembershipCard({ membership, onOpen, onApply }) {
+function MembershipCard({ membership, onApply, onViewStatus }) {
   const active = isMembershipActive(membership);
   const hasApplied = membership && membership.status && membership.status !== "None";
   const tierDetails = getTierDetails(membership?.tier);
@@ -262,8 +266,12 @@ function MembershipCard({ membership, onOpen, onApply }) {
         : "Join the membership program when you are ready.";
 
   const Icon = active ? ShieldCheck : hasApplied ? Clock : Award;
-  const action = active || hasApplied ? onOpen : onApply;
-  const actionLabel = active ? "View Membership" : hasApplied ? "View Status" : "Apply for Membership";
+  const action = hasApplied && membership.status !== "Rejected" ? onViewStatus : onApply;
+  const actionLabel = active
+    ? "View Status"
+    : hasApplied && membership.status === "Pending"
+      ? "View Status"
+      : "Apply for Membership";
 
   return (
     <Card className="border-blue-100 bg-blue-50/70 shadow-sm">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, Check, ImageIcon, PackageCheck, Percent, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Check, ImageIcon, PackageCheck, Sparkles, Star } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import {
@@ -85,11 +85,6 @@ export default function ClientPackages({ onSelectPackage }) {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {packages.map((pkg) => {
-          const hasDiscount = Number(pkg.originalPrice) > Number(pkg.price);
-          const savingsPercent = hasDiscount
-            ? Math.round(((pkg.originalPrice - pkg.price) / pkg.originalPrice) * 100)
-            : 0;
-
           return (
             <Card
               key={pkg._id}
@@ -115,12 +110,6 @@ export default function ClientPackages({ onSelectPackage }) {
                       Popular
                     </Badge>
                   )}
-                  {hasDiscount && (
-                    <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-bold text-slate-950 shadow-lg">
-                      <Percent className="h-4 w-4 text-blue-600" />
-                      Save {savingsPercent}%
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex flex-col">
@@ -145,11 +134,6 @@ export default function ClientPackages({ onSelectPackage }) {
                         <span className="text-3xl font-bold tracking-tight text-slate-950">
                           PHP {Number(pkg.price || 0).toLocaleString()}
                         </span>
-                        {hasDiscount && (
-                          <span className="pb-1 text-base font-semibold text-slate-400 line-through">
-                            PHP {Number(pkg.originalPrice).toLocaleString()}
-                          </span>
-                        )}
                       </div>
                     </div>
 

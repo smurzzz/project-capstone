@@ -1,77 +1,123 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import BenefitsDisplay from '../../components/membership/BenefitsDisplay';
-import ApplicationForm from '../../components/membership/ApplicationForm';
-import { membershipAPI } from '../../utils/api';
 import { toast } from 'sonner';
+import logoSrc from '../../assets/logo (1).webp';
+import { membershipAPI, packagesAPI } from '../../utils/api';
+
+const MEMBERSHIP_PACKAGES = [
+    {
+        name: 'Prime Package',
+        description: 'Basic starter package with essential product value',
+        price: 250,
+        borderColor: '#22C55E' // Green
+    },
+    {
+        name: 'Starter Package',
+        description: 'Entry-level package with added savings',
+        price: 999,
+        borderColor: '#3B82F6' // Blue
+    },
+    {
+        name: 'Bronze Easy Plan',
+        description: 'Installment option for the Bronze Package',
+        price: 1888,
+        borderColor: '#06B6D4' // Cyan
+    },
+    {
+        name: 'Bronze Package',
+        description: 'Mid-range package with increased product value',
+        price: 4498,
+        borderColor: '#FB923C' // Orange
+    },
+    {
+        name: 'Silver Package',
+        description: 'Larger package with higher discount allocation',
+        price: 7998,
+        borderColor: '#D1D5DB' // Gray
+    },
+    {
+        name: 'Gold Package',
+        description: 'High-value package designed for bigger savings',
+        price: 15996,
+        borderColor: '#FBBF24' // Yellow
+    },
+    {
+        name: 'Platinum Package',
+        description: 'Maximum-value package with the highest savings potential',
+        price: 35000,
+        borderColor: '#A78BFA' // Purple
+    }
+];
 
 export default function MembershipApplication() {
     const navigate = useNavigate();
-    const [step, setStep] = useState('benefits'); // benefits or form
     const [selectedTier, setSelectedTier] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [existingMembership, setExistingMembership] = useState(null);
+    const [packageDeals, setPackageDeals] = useState([]);
+
+    useEffect(() => {
+        const fetchMembershipData = async () => {
+            try {
+                const [membershipResponse, packagesResponse] = await Promise.all([
+                    membershipAPI.getMyMembership().catch(() => ({ data: { data: { membership: null } } })),
+                    packagesAPI.getAll().catch(() => ({ data: { data: [] } })),
+                ]);
+
+                setExistingMembership(membershipResponse.data.data?.membership || null);
+                setPackageDeals(packagesResponse.data.data || []);
+            } catch (error) {
+                console.error('Error loading membership packages:', error);
+            }
+        };
+
+        fetchMembershipData();
+    }, []);
 
     const handleSelectTier = (tier) => {
         setSelectedTier(tier);
-        setTimeout(() => setStep('form'), 300);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleSubmitApplication = async (formData) => {
-        if (!selectedTier) {
-            toast.error('Please select a membership tier');
+    const handlePurchase = () => {
+        if (existingMembership?.status && existingMembership.status !== 'None' && existingMembership.status !== 'Rejected') {
+            navigate('/membership/status');
             return;
         }
 
-        try {
-            setIsLoading(true);
-            const applicationData = {
-                ...formData,
-                membershipType: selectedTier
-            };
-
-            await membershipAPI.applyForMembership(applicationData);
-            
-            toast.success('Application submitted successfully!', {
-                description: 'You will receive an email notification when your application is reviewed.'
-            });
-
-            // Redirect to membership status page after 2 seconds
-            setTimeout(() => {
-                navigate('/membership/status');
-            }, 2000);
-        } catch (error) {
-            console.error('Error submitting application:', error);
-            toast.error(error.response?.data?.message || 'Failed to submit application. Please try again.');
-        } finally {
-            setIsLoading(false);
+        if (!selectedTier) {
+            toast.error('Please select a membership package');
+            return;
         }
-    };
 
-    const handleBackToBenefits = () => {
-        setSelectedTier(null);
-        setStep('benefits');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const selectedPackageDeal = packageDeals.find((pkg) => pkg.name === selectedTier);
+        if (!selectedPackageDeal) {
+            toast.error('This package deal is not available right now');
+            return;
+        }
+
+        navigate('/dashboard', { state: { activeTab: 'order', membershipPackage: selectedPackageDeal } });
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             {/* Navigation Bar */}
-            <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm mb-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm mb-8">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-3">
+                            <img
+                                src={logoSrc}
+                                alt="JBM Electro Ventures logo"
+                                className="h-10 w-10 rounded-xl bg-white p-1 object-contain"
+                            />
                             <h1 className="text-lg font-bold text-gray-900">
-                                🏢 JBM Electro Ventures
+                                JBM Electro Ventures
                             </h1>
                         </div>
                         <div className="flex gap-3">
                             <Button
                                 variant="outline"
-                                onClick={() => navigate('/')}
+                                onClick={() => navigate('/dashboard')}
                             >
                                 Back Home
                             </Button>
@@ -80,123 +126,73 @@ export default function MembershipApplication() {
                 </div>
             </nav>
 
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-12">
-                    <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-                        Become a Member
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                        JBM Electro Ventures
                     </h1>
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Join our exclusive membership program and unlock special benefits, discounts, and rewards
+                    <p className="text-lg text-gray-600">
+                        Select your Package
                     </p>
                 </div>
 
-                {/* Progress Steps */}
-                <div className="mb-12">
-                    <div className="flex items-center justify-center gap-2 sm:gap-4">
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                            step === 'benefits' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                            <span className="font-semibold">1</span>
-                            <span className="hidden sm:inline">View Benefits</span>
+                {/* Package List */}
+                <div className="space-y-3 mb-8">
+                    {MEMBERSHIP_PACKAGES.map((pkg, idx) => (
+                        <div
+                            key={idx}
+                            onClick={() => handleSelectTier(pkg.name)}
+                            className={`flex items-center gap-4 p-4 bg-white border-l-4 rounded-lg cursor-pointer transition-all ${
+                                selectedTier === pkg.name
+                                    ? 'shadow-md'
+                                    : 'hover:shadow-sm'
+                            }`}
+                            style={{
+                                borderLeftColor: pkg.borderColor
+                            }}
+                        >
+                            {/* Radio Button */}
+                            <div className="flex-shrink-0">
+                                <div
+                                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                        selectedTier === pkg.name
+                                            ? 'border-blue-600 bg-blue-600'
+                                            : 'border-gray-300 bg-white'
+                                    }`}
+                                >
+                                    {selectedTier === pkg.name && (
+                                        <div className="w-2 h-2 bg-white rounded-full" />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Package Details */}
+                            <div className="flex-grow">
+                                <h3 className="font-bold text-gray-900">{pkg.name}</h3>
+                                <p className="text-sm text-gray-600">{pkg.description}</p>
+                            </div>
+
+                            {/* Price */}
+                            <div className="text-right flex-shrink-0">
+                                <p className="text-lg font-bold text-gray-900">
+                                    ₱{pkg.price.toLocaleString()}
+                                </p>
+                            </div>
                         </div>
-                        <div className="hidden sm:block w-8 h-0.5 bg-gray-300" />
-                        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                            step === 'form' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                            <span className="font-semibold">2</span>
-                            <span className="hidden sm:inline">Complete Application</span>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Main Content */}
-                {step === 'benefits' ? (
-                    <div className="space-y-8">
-                        <BenefitsDisplay
-                            onSelectTier={handleSelectTier}
-                            selectedTier={selectedTier}
-                        />
-
-                        {/* FAQ Section */}
-                        <Card className="mt-12">
-                            <CardHeader>
-                                <CardTitle>Frequently Asked Questions</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <details className="group cursor-pointer">
-                                    <summary className="flex items-center justify-between py-4 px-4 hover:bg-gray-50 rounded-lg">
-                                        <span className="font-semibold text-gray-900">
-                                            How much does membership cost?
-                                        </span>
-                                        <ChevronDown className="h-5 w-5 group-open:hidden" />
-                                        <ChevronUp className="h-5 w-5 hidden group-open:block" />
-                                    </summary>
-                                    <div className="px-4 pb-4 text-gray-700">
-                                        Silver membership is completely free. Gold and Platinum memberships have annual fees that give you access to more exclusive benefits and higher discounts.
-                                    </div>
-                                </details>
-
-                                <details className="group cursor-pointer">
-                                    <summary className="flex items-center justify-between py-4 px-4 hover:bg-gray-50 rounded-lg">
-                                        <span className="font-semibold text-gray-900">
-                                            When will my application be reviewed?
-                                        </span>
-                                        <ChevronDown className="h-5 w-5 group-open:hidden" />
-                                        <ChevronUp className="h-5 w-5 hidden group-open:block" />
-                                    </summary>
-                                    <div className="px-4 pb-4 text-gray-700">
-                                        Your application will be reviewed within 24-48 hours. You'll receive an email notification about your application status.
-                                    </div>
-                                </details>
-
-                                <details className="group cursor-pointer">
-                                    <summary className="flex items-center justify-between py-4 px-4 hover:bg-gray-50 rounded-lg">
-                                        <span className="font-semibold text-gray-900">
-                                            What ID documents are accepted?
-                                        </span>
-                                        <ChevronDown className="h-5 w-5 group-open:hidden" />
-                                        <ChevronUp className="h-5 w-5 hidden group-open:block" />
-                                    </summary>
-                                    <div className="px-4 pb-4 text-gray-700">
-                                        We accept government-issued IDs including Passport, Driver's License, Voter ID, SSS ID, or TIN. Please ensure the document is clear and valid.
-                                    </div>
-                                </details>
-
-                                <details className="group cursor-pointer">
-                                    <summary className="flex items-center justify-between py-4 px-4 hover:bg-gray-50 rounded-lg">
-                                        <span className="font-semibold text-gray-900">
-                                            Can I change my membership tier later?
-                                        </span>
-                                        <ChevronDown className="h-5 w-5 group-open:hidden" />
-                                        <ChevronUp className="h-5 w-5 hidden group-open:block" />
-                                    </summary>
-                                    <div className="px-4 pb-4 text-gray-700">
-                                        Yes! You can upgrade or downgrade your membership tier at any time. Contact our support team or log in to your account to make changes.
-                                    </div>
-                                </details>
-                            </CardContent>
-                        </Card>
-                    </div>
-                ) : (
-                    <div className="space-y-6">
-                        {/* Back Button */}
-                        <Button
-                            variant="ghost"
-                            onClick={handleBackToBenefits}
-                            className="mb-6"
-                        >
-                            ← Back to Benefits
-                        </Button>
-
-                        {/* Form */}
-                        <ApplicationForm
-                            selectedTier={selectedTier}
-                            onSubmit={handleSubmitApplication}
-                            isLoading={isLoading}
-                        />
-                    </div>
-                )}
+                {/* Purchase Button */}
+                <Button
+                    onClick={handlePurchase}
+                    className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-semibold"
+                    size="lg"
+                >
+                    {existingMembership?.status && existingMembership.status !== 'None' && existingMembership.status !== 'Rejected'
+                        ? 'View Status'
+                        : 'Purchase'}
+                </Button>
             </div>
         </div>
     );

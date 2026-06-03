@@ -33,7 +33,7 @@ const toPackageForm = (packageDeal) => ({
   name: packageDeal.name || "",
   description: packageDeal.description || "",
   price: packageDeal.price || "",
-  originalPrice: packageDeal.originalPrice || "",
+  originalPrice: packageDeal.price || "",
   imageUrl: packageDeal.imageUrl || "",
   isPopular: Boolean(packageDeal.isPopular),
   isActive: Boolean(packageDeal.isActive),
@@ -128,8 +128,7 @@ export default function AdminPackages() {
 
     const payload = {
       ...formData,
-      price: Number(formData.price),
-      originalPrice: Number(formData.originalPrice || formData.price),
+      price: Number(formData.originalPrice),
       items: formData.items
         .filter((item) => item.name || item.productId)
         .map((item) => ({
@@ -229,11 +228,6 @@ export default function AdminPackages() {
                     <div className="text-2xl font-bold text-blue-600">
                       PHP {Number(packageDeal.price || 0).toLocaleString()}
                     </div>
-                    {packageDeal.originalPrice > packageDeal.price && (
-                      <div className="text-sm text-gray-500 line-through">
-                        PHP {Number(packageDeal.originalPrice).toLocaleString()}
-                      </div>
-                    )}
                   </div>
 
                   <div className="text-sm text-gray-600">
@@ -311,19 +305,7 @@ export default function AdminPackages() {
 
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="package-price">Sale Price</Label>
-                <Input
-                  id="package-price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(event) => setFormData({ ...formData, price: event.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="package-original-price">Original Price</Label>
+                <Label htmlFor="package-original-price">Price</Label>
                 <Input
                   id="package-original-price"
                   type="number"
@@ -331,6 +313,7 @@ export default function AdminPackages() {
                   step="0.01"
                   value={formData.originalPrice}
                   onChange={(event) => setFormData({ ...formData, originalPrice: event.target.value })}
+                  required
                 />
               </div>
               <div>

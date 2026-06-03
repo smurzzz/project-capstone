@@ -44,6 +44,12 @@ const onlinePaymentMethods = new Set(["gcash", "maya", "bank"]);
 
 const isBackendProductId = (id) => !String(id).startsWith("fallback-");
 const getCartItemStock = (item) => Number(item?.stockLevel ?? item?.stock ?? 0);
+const getPackageProduct = (item) => (
+  item?.productId && typeof item.productId === "object" ? item.productId : null
+);
+const getPackageItemName = (item) => getPackageProduct(item)?.productName || item?.name || "Package item";
+const getPackageItemPrice = (item) => Number(getPackageProduct(item)?.srp ?? getPackageProduct(item)?.price ?? 0);
+const getPackageItemStock = (item) => Number(getPackageProduct(item)?.stockLevel ?? 0);
 
 export default function ClientOrderForm({ selectedPackage }) {
   const { user } = useAuth();
@@ -62,6 +68,7 @@ export default function ClientOrderForm({ selectedPackage }) {
 
   const selectedCartItems = cart.filter((item) => selectedIds.includes(item._id));
   const allSelected = cart.length > 0 && selectedCartItems.length === cart.length;
+  const selectedPackageItems = Array.isArray(selectedPackage?.items) ? selectedPackage.items : [];
 
   useEffect(() => {
     setSelectedIds((prev) => {
@@ -141,7 +148,7 @@ export default function ClientOrderForm({ selectedPackage }) {
       return;
     }
     if (selectedPackage) {
-      const hasInventoryItems = selectedPackage.items?.some((item) => item.productId);
+      const hasInventoryItems = selectedPackageItems.some((item) => item.productId);
       if (!hasInventoryItems) {
         toast.error("This package is not linked to inventory yet. Please contact the store.");
         return;
@@ -213,11 +220,51 @@ export default function ClientOrderForm({ selectedPackage }) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
+              <div className="space-y-5">
                 <h3 className="text-xl font-bold text-blue-900">{selectedPackage.name}</h3>
                 <p className="text-gray-700">{selectedPackage.description}</p>
                 <div className="text-2xl font-bold text-blue-600">
                   PHP {(selectedPackage.price || 0).toLocaleString()}
+                </div>
+
+                <div className="rounded-2xl border border-blue-100 bg-white p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <h4 className="font-semibold text-slate-900">Products in this package</h4>
+                    <Badge variant="secondary">{selectedPackageItems.length} items</Badge>
+                  </div>
+
+                  {selectedPackageItems.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedPackageItems.map((item, index) => {
+                        const product = getPackageProduct(item);
+                        const itemName = getPackageItemName(item);
+                        const itemPrice = getPackageItemPrice(item);
+                        const quantity = Number(item.quantity || 1);
+                        const stockLevel = getPackageItemStock(item);
+
+                        return (
+                          <div
+                            key={`${product?._id || itemName}-${index}`}
+                            className="grid gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:grid-cols-[1fr_auto]"
+                          >
+                            <div>
+                              <p className="font-semibold text-slate-900">{itemName}</p>
+                              <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-500">
+                                <span>Quantity: {quantity}</span>
+                                {itemPrice > 0 && <span>Unit price: PHP {itemPrice.toLocaleString()}</span>}
+                                {stockLevel > 0 && <span>{stockLevel} in stock</span>}
+                              </div>
+                            </div>
+                            <div className="text-left font-semibold text-blue-700 sm:text-right">
+                              x{quantity}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">No products are listed for this package yet.</p>
+                  )}
                 </div>
               </div>
             </CardContent>

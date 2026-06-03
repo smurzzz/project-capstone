@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/static-components */
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Bell,
   Calendar,
@@ -73,22 +73,30 @@ export default function ClientDashboard() {
   const [notifications, setNotifications] = useState([]);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Handle hash navigation for setting active tab
+  // Handle hash navigation for setting active tab and location state
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash === '#order') {
-      setActiveTab('order');
-      // Clear the hash after processing
-      window.history.replaceState(null, null, window.location.pathname);
-    } else if (hash === '#packages') {
-      setActiveTab('packages');
-      window.history.replaceState(null, null, window.location.pathname);
-    } else if (hash === '#products') {
-      setActiveTab('products');
-      window.history.replaceState(null, null, window.location.pathname);
+    // Check if coming from navigation with state
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+      setSelectedPackage(location.state.membershipPackage || null);
+    } else {
+      // Fallback to hash navigation
+      const hash = window.location.hash;
+      if (hash === '#order') {
+        setActiveTab('order');
+        // Clear the hash after processing
+        window.history.replaceState(null, null, window.location.pathname);
+      } else if (hash === '#packages') {
+        setActiveTab('packages');
+        window.history.replaceState(null, null, window.location.pathname);
+      } else if (hash === '#products') {
+        setActiveTab('products');
+        window.history.replaceState(null, null, window.location.pathname);
+      }
     }
-  }, []);
+  }, [location]);
 
   // Generate user-specific notifications from real order and appointment statuses.
   useEffect(() => {
