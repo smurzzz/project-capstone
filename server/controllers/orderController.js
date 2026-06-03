@@ -591,6 +591,13 @@ export const updateOrderStatus = async (req, res) => {
                     notes: `Points earned from completed order ${order.referenceNumber}`,
                 });
             }
+
+            await activateMembershipForCompletedPackageOrder({
+                customer,
+                order,
+                actorType: req.user?.type || "staff",
+                actorId: req.user?.id || null,
+            });
         }
 
         const populatedOrder = await Order.findById(order._id)
