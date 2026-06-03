@@ -1,13 +1,17 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import User from "../models/User.js";
 import Staff from "../models/Staff.js";
 import Customer from "../models/Customer.js";
 import MembershipHistory from "../models/MembershipHistory.js";
+import EmailToken from "../models/EmailToken.js";
 import { signAuthToken } from "../middleware/auth.js";
 import { cleanString, isStrongPassword, normalizeEmail } from "../utils/validation.js";
 import { verifyGoogleIdToken } from "../utils/googleAuth.js";
+import { sendOtpVerificationEmail } from "../utils/emailService.js";
 
 const SALT_ROUNDS = 12;
+const OTP_TTL_MINUTES = Number(process.env.EMAIL_OTP_TTL_MINUTES || 10);
 
 const buildDefaultMembership = ({ status = "Pending", tier = "Silver" } = {}) => {
     const expiresAt = new Date();
@@ -45,8 +49,35 @@ const buildCustomerPayload = (user, customer) => ({
     role: user.role,
     memberRole: customer?.role || "Member",
     membership: customer?.membership || buildDefaultMembership(),
+    emailVerified: Boolean(user.emailVerified),
     type: "customer",
 });
+
+const hashToken = (token) =>
+    crypto.createHash("sha256").update(String(token)).digest("hex");
+
+const sendRegistrationOtp = async (user) => {
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    await EmailToken.updateMany(
+        { email: user.email, purpose: "otp_verification", usedAt: null },
+        { $set: { usedAt: new Date() } }
+    );
+
+    await EmailToken.create({
+        email: user.email,
+        purpose: "otp_verification",
+        tokenHash: hashToken(otp),
+        expiresAt: new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000),
+    });
+
+    return sendOtpVerificationEmail({
+        to: user.email,
+        name: user.name,
+        otp,
+        expiresInMinutes: OTP_TTL_MINUTES,
+    });
+};
 
 const buildStaffPayload = (user) => ({
     id: user._id,
@@ -345,10 +376,14 @@ export const registerCustomer = async (req, res) => {
         });
 
         const session = await issueCustomerSession(newUser);
+        const verificationEmailSent = await sendRegistrationOtp(newUser);
 
         return res.status(201).json({
             success: true,
-            message: "Registration successful",
+            message: verificationEmailSent
+                ? "Registration successful. Verification code sent to your email."
+                : "Registration successful, but verification email could not be sent.",
+            verificationEmailSent,
             ...session,
         });
     } catch (error) {

@@ -19,6 +19,9 @@ export default function SignUp() {
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
+    const [notice, setNotice] = useState("");
+    const [otp, setOtp] = useState("");
+    const [pendingSession, setPendingSession] = useState(null);
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -50,6 +53,7 @@ export default function SignUp() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setNotice("");
 
         // Validation
         if (!formData.name || !formData.email || !formData.phone || !formData.password || !formData.address) {
@@ -79,11 +83,53 @@ export default function SignUp() {
             });
 
             if (response.data.success) {
-                login(response.data.user, response.data.token);
-                navigate("/dashboard");
+                setPendingSession({
+                    user: response.data.user,
+                    token: response.data.token,
+                    email: response.data.user?.email || formData.email,
+                });
+                setNotice(response.data.message || "Verification code sent to your email.");
             }
         } catch (err) {
             setError(err.response?.data?.message || "Registration failed");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerifyOtp = async (event) => {
+        event.preventDefault();
+        setError("");
+        setNotice("");
+
+        if (!pendingSession?.email || !otp.trim()) {
+            setError("Enter the verification code sent to your email");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await authAPI.verifyOtp(pendingSession.email, otp.trim());
+            login({ ...pendingSession.user, emailVerified: true }, pendingSession.token);
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err.response?.data?.message || "Invalid or expired verification code");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (!pendingSession?.email) return;
+
+        setError("");
+        setNotice("");
+        setLoading(true);
+        try {
+            await authAPI.requestOtp(pendingSession.email);
+            setNotice("A new verification code was sent to your email.");
+        } catch (err) {
+            setError(err.response?.data?.message || "Failed to resend verification code");
         } finally {
             setLoading(false);
         }
@@ -107,6 +153,47 @@ export default function SignUp() {
                             <p className="text-sm text-red-700">{error}</p>
                         </div>
                     )}
+
+                    {notice && (
+                        <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-sm text-green-700">{notice}</p>
+                        </div>
+                    )}
+
+                    {pendingSession ? (
+                        <form onSubmit={handleVerifyOtp} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Verification Code</label>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={otp}
+                                    onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                                    required
+                                    disabled={loading}
+                                    placeholder="Enter 6-digit code"
+                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-2.5 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium hover:shadow-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all"
+                            >
+                                {loading ? "Verifying..." : "Verify Email"}
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={loading}
+                                onClick={handleResendOtp}
+                                className="w-full py-2.5 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            >
+                                Resend Code
+                            </button>
+                        </form>
+                    ) : (
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
@@ -219,7 +306,9 @@ export default function SignUp() {
                             {loading ? "Creating Account..." : "Create Account"}
                         </button>
                     </form>
+                    )}
 
+                    {!pendingSession && (
                     <div className="mt-6 space-y-4">
                         <div className="flex items-center gap-3">
                             <span className="h-px flex-1 bg-gray-200" />
@@ -233,6 +322,7 @@ export default function SignUp() {
                             text="signup_with"
                         />
                     </div>
+                    )}
 
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-600">

@@ -154,7 +154,7 @@ export default function Orders() {
                   <th className="text-left py-3 px-4">Customer</th>
                   <th className="text-left py-3 px-4 hidden md:table-cell">Date</th>
                   <th className="text-left py-3 px-4">Amount</th>
-                  <th className="text-left py-3 px-4 hidden xl:table-cell">Payment</th>
+                  <th className="text-left py-3 px-4">Payment</th>
                   <th className="text-left py-3 px-4">Status</th>
                   <th className="text-left py-3 px-4">Actions</th>
                 </tr>
@@ -175,7 +175,7 @@ export default function Orders() {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4">PHP {Number(order.total || 0).toLocaleString()}</td>
-                    <td className="py-3 px-4 hidden xl:table-cell">
+                    <td className="py-3 px-4">
                       <div className="flex flex-col gap-1">
                         <Badge variant="outline">{order.paymentMethod}</Badge>
                         <Badge className={paymentStatusColors[order.paymentStatus] || "bg-gray-100 text-gray-700"}>

@@ -1,4 +1,4 @@
-const PAYMENT_METHODS_REQUIRING_CHECKOUT = new Set(["GCash", "Maya", "Credit Card", "Debit Card"]);
+const PAYMENT_METHODS_REQUIRING_CHECKOUT = new Set(["GCash"]);
 const PAYMENT_FETCH_TIMEOUT_MS = Number(process.env.PAYMENT_FETCH_TIMEOUT_MS || 15_000);
 
 const roundMoney = (amount) => Math.round(Number(amount || 0) * 100) / 100;
@@ -27,7 +27,7 @@ const createPayMongoCheckout = async ({ amount, referenceNumber, customer, items
                     amount: Math.round(item.unitPrice * 100),
                     currency: "PHP",
                 })),
-                payment_method_types: ["gcash", "paymaya", "card"],
+                payment_method_types: ["gcash"],
                 description: `Order ${referenceNumber}`,
                 reference_number: referenceNumber,
                 customer_email: customer.email,

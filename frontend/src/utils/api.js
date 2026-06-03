@@ -78,6 +78,14 @@ export const authAPI = {
         api.post("/auth/customer/register", customerData),
     googleCustomer: (credential) =>
         api.post("/auth/google/customer", { credential }),
+    requestOtp: (email) =>
+        api.post("/auth/otp/request", { email }),
+    verifyOtp: (email, otp) =>
+        api.post("/auth/otp/verify", { email, otp }),
+    requestPasswordReset: (email) =>
+        api.post("/auth/password/forgot", { email }),
+    resetPassword: ({ email, token, password }) =>
+        api.post("/auth/password/reset", { email, token, password }),
     loginStaff: (email, password) =>
         api.post("/auth/staff/login", { email, password }),
     getSession: () => api.get("/auth/session")
@@ -178,6 +186,14 @@ export const ordersAPI = {
     updateStatus: (id, status) => api.put(`/orders/${id}/status`, { status }),
     cancel: (id) => api.put(`/orders/${id}/cancel`, {}),
     getStats: () => api.get("/orders/stats")
+};
+
+// EMAIL APIs
+export const mailAPI = {
+    sendAdminNotification: ({ to, subject, title, message, details }) =>
+        api.post("/mail/admin-notification", { to, subject, title, message, details }),
+    sendOrderReceipt: (orderId, to) =>
+        api.post(`/mail/orders/${orderId}/receipt`, { to })
 };
 
 // APPOINTMENTS APIs

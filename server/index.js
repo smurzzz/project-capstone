@@ -1,6 +1,8 @@
 import express from "express"
 import cors from "cors"
 import dns from "dns"
+import path from "path"
+import { fileURLToPath } from "url"
 import connectDb from "./db/connect.js"
 import dotenv from "dotenv"
 import { createRateLimiter, sanitizeInput, securityHeaders } from "./middleware/security.js"
@@ -16,9 +18,15 @@ import packageDealsRoutes from "./routes/packageDeals.js"
 import reportsRoutes from "./routes/reports.js"
 import promotionsRoutes from "./routes/promotions.js"
 import membershipsRoutes from "./routes/memberships.js"
+import mailRoutes from "./routes/mail.js"
 
-dotenv.config()
-dotenv.config({ path: ".env.local", override: true })
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const projectRoot = path.resolve(__dirname, "..")
+
+dotenv.config({ path: path.join(projectRoot, ".env") })
+dotenv.config({ path: path.join(__dirname, ".env") })
+dotenv.config({ path: path.join(__dirname, ".env.local"), override: true })
 
 const dnsServers = (process.env.DNS_SERVERS || "")
     .split(",")
@@ -76,6 +84,7 @@ app.use('/api/customers', customersRoutes)
 app.use('/api/orders', ordersRoutes)
 app.use('/api/reports', reportsRoutes)
 app.use('/api/memberships', membershipsRoutes)
+app.use('/api/mail', mailRoutes)
 
 // Health check route
 app.get('/api/health', (req, res) => {

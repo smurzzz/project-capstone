@@ -7,6 +7,12 @@ import {
     registerCustomer,
     Login,
 } from "../controllers/authController.js";
+import {
+    requestOtpVerification,
+    requestPasswordReset,
+    resetPassword,
+    verifyOtp,
+} from "../controllers/mailController.js";
 import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -15,6 +21,10 @@ const router = express.Router();
 router.post("/customer/login", loginCustomer);
 router.post("/customer/register", registerCustomer);
 router.post("/google/customer", googleCustomerAuth);
+router.post("/otp/request", requestOtpVerification);
+router.post("/otp/verify", verifyOtp);
+router.post("/password/forgot", requestPasswordReset);
+router.post("/password/reset", resetPassword);
 
 // Staff auth routes
 router.post("/staff/login", loginStaff);

@@ -9,12 +9,11 @@ const parseNumber = (value, fallback) => {
 let transporterPromise = null;
 let missingConfigLogged = false;
 
+const getMailUser = () => process.env.EMAIL_USER || process.env.SMTP_USER;
+const getMailPass = () => process.env.EMAIL_PASS || process.env.SMTP_PASS;
+
 const hasMailerConfig = () =>
-    Boolean(process.env.SMTP_USER && process.env.SMTP_PASS) &&
-    Boolean(
-        process.env.SMTP_SERVICE ||
-        (process.env.SMTP_HOST && process.env.SMTP_PORT)
-    );
+    Boolean(getMailUser() && getMailPass());
 
 const createTransporter = async () => {
     if (!hasMailerConfig()) {
@@ -26,15 +25,19 @@ const createTransporter = async () => {
         return null;
     }
 
-    if (process.env.SMTP_SERVICE) {
+    const mailUser = getMailUser();
+    const mailPass = getMailPass();
+    const service = process.env.EMAIL_SERVICE || process.env.SMTP_SERVICE || "gmail";
+
+    if (service) {
         return nodemailer.createTransport({
-            service: process.env.SMTP_SERVICE,
+            service,
             connectionTimeout: parseNumber(process.env.SMTP_CONNECTION_TIMEOUT_MS, 10_000),
             greetingTimeout: parseNumber(process.env.SMTP_GREETING_TIMEOUT_MS, 10_000),
             socketTimeout: parseNumber(process.env.SMTP_SOCKET_TIMEOUT_MS, 20_000),
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                user: mailUser,
+                pass: mailPass,
             },
         });
     }
@@ -49,8 +52,8 @@ const createTransporter = async () => {
         greetingTimeout: parseNumber(process.env.SMTP_GREETING_TIMEOUT_MS, 10_000),
         socketTimeout: parseNumber(process.env.SMTP_SOCKET_TIMEOUT_MS, 20_000),
         auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
+            user: mailUser,
+            pass: mailPass,
         },
     });
 };
@@ -77,7 +80,7 @@ export const sendEmail = async ({ to, subject, text, html }) => {
         return false;
     }
 
-    const from = process.env.MAIL_FROM || process.env.SMTP_USER;
+    const from = process.env.MAIL_FROM || process.env.EMAIL_FROM || getMailUser();
 
     await transporter.sendMail({
         from,

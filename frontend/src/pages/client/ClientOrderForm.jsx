@@ -35,12 +35,8 @@ import { ordersAPI } from "../../utils/api.js";
 
 const paymentMethodMap = {
   gcash: "GCash",
-  maya: "Maya",
-  bank: "Bank Transfer",
   cod: "Cash on Delivery",
 };
-
-const onlinePaymentMethods = new Set(["gcash", "maya", "bank"]);
 
 const isBackendProductId = (id) => !String(id).startsWith("fallback-");
 const getCartItemStock = (item) => Number(item?.stockLevel ?? item?.stock ?? 0);
@@ -141,10 +137,6 @@ export default function ClientOrderForm({ selectedPackage }) {
     }
     if (!paymentMethod) {
       toast.error("Please select a payment method");
-      return;
-    }
-    if (onlinePaymentMethods.has(paymentMethod) && !referenceNumber) {
-      toast.error("Please enter a reference number");
       return;
     }
     if (selectedPackage) {
@@ -461,7 +453,7 @@ export default function ClientOrderForm({ selectedPackage }) {
         <Card>
           <CardHeader>
             <CardTitle>Payment Information</CardTitle>
-            <CardDescription>Select your payment method and enter the reference when needed</CardDescription>
+            <CardDescription>Select your payment method</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -471,9 +463,7 @@ export default function ClientOrderForm({ selectedPackage }) {
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gcash">GCash - 09394948484</SelectItem>
-                  <SelectItem value="maya">Maya - 09974642626</SelectItem>
-                  <SelectItem value="bank">Bank Account</SelectItem>
+                  <SelectItem value="gcash">GCash</SelectItem>
                   <SelectItem value="cod">Cash on Delivery</SelectItem>
                 </SelectContent>
               </Select>
@@ -481,16 +471,15 @@ export default function ClientOrderForm({ selectedPackage }) {
 
             <div className="space-y-2">
               <Label htmlFor="referenceNumber">
-                Reference Number {onlinePaymentMethods.has(paymentMethod) ? "*" : "(Optional)"}
+                Reference Number (Optional)
               </Label>
               <Input
                 id="referenceNumber"
-                placeholder={onlinePaymentMethods.has(paymentMethod)
-                  ? "Enter transaction reference number"
+                placeholder={paymentMethod === "gcash"
+                  ? "PayMongo will generate the checkout reference"
                   : "Leave blank for cash on delivery"}
                 value={referenceNumber}
                 onChange={(event) => setReferenceNumber(event.target.value)}
-                required={onlinePaymentMethods.has(paymentMethod)}
               />
             </div>
 

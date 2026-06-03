@@ -32,14 +32,8 @@ import {
 const MEMBER_DISCOUNT_RATE = Number(process.env.MEMBER_DISCOUNT_RATE || 0.1);
 
 const paymentMethods = new Set([
-    "Credit Card",
-    "Debit Card",
-    "Cash",
     "Cash on Delivery",
-    "Online Transfer",
     "GCash",
-    "Maya",
-    "Bank Transfer",
 ]);
 
 const buildReferenceNumber = () =>
@@ -483,6 +477,7 @@ export const createOrder = async (req, res) => {
         await sendOrderCreatedEmail({
             ...newOrder.toObject(),
             customerId: customer || null,
+            items: createdItems,
         });
 
         res.status(201).json({

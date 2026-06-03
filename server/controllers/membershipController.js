@@ -2,6 +2,7 @@ import Customer from "../models/Customer.js";
 import MembershipHistory from "../models/MembershipHistory.js";
 import User from "../models/User.js";
 import { cleanString, isValidObjectId } from "../utils/validation.js";
+import { sendMembershipApprovalEmail } from "../utils/emailService.js";
 
 const getAuthenticatedAccount = async (tokenUser) => {
     const account = await User.findById(tokenUser?.id || tokenUser?._id);
@@ -328,7 +329,12 @@ export const approveApplication = async (req, res) => {
             notes: notes || `Membership approved to ${customer.membership.tier} tier`
         });
 
-        // TODO: Send email notification to customer
+        await sendMembershipApprovalEmail({
+            to: customer.contactInfo?.email,
+            name: customer.name,
+            tier: customer.membership.tier,
+            expiresAt: customer.membership.expiresAt,
+        });
 
         res.status(200).json({
             success: true,
