@@ -126,13 +126,13 @@ function ProductsPreview({ products, onOpenProducts }) {
             <div key={product._id} className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="flex h-28 items-center justify-center rounded-lg bg-slate-100">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.productName} className="h-full w-full object-contain p-3" />
+                  <img src={product.imageUrl} alt={product.productName} className="h-full w-full rounded-lg object-cover" />
                 ) : (
                   <ImageIcon className="h-8 w-8 text-slate-400" />
                 )}
               </div>
               <p className="mt-3 line-clamp-2 font-semibold text-gray-900">{product.productName}</p>
-              <p className="mt-1 text-sm text-gray-600">{product.category || "Electrical product"}</p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{product.category || "Electrical product"}</p>
               <div className="mt-3 flex items-center justify-between gap-3">
                 <span className="font-bold text-slate-900">PHP {Number(product.srp ?? product.price ?? 0).toLocaleString()}</span>
                 <span className="text-xs text-gray-500">{Number(product.stockLevel || 0)} left</span>

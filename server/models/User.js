@@ -59,6 +59,25 @@ const userSchema = new mongoose.Schema({
     emailNotificationsEnabled: {
         type: Boolean,
         default: true
+    },
+    membershipStatus: {
+        type: String,
+        enum: ["inactive", "pending", "active"],
+        default: "inactive"
+    },
+    membershipPackage: {
+        type: String,
+        trim: true,
+        default: ""
+    },
+    membershipTier: {
+        type: String,
+        trim: true,
+        default: ""
+    },
+    membershipActivatedAt: {
+        type: Date,
+        default: null
     }
 }, { timestamps: true })
 

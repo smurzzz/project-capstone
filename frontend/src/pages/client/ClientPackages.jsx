@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, Check, ImageIcon, PackageCheck, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Check, ImageIcon, Lock, PackageCheck, Sparkles, Star } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import {
@@ -10,17 +10,29 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card.jsx";
-import { packagesAPI } from "../../utils/api.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { membershipAPI, packagesAPI } from "../../utils/api.js";
+import { isMembershipActive } from "../../utils/membership.js";
 
 export default function ClientPackages({ onSelectPackage }) {
+  const { user } = useAuth();
   const [packages, setPackages] = useState([]);
+  const [membership, setMembership] = useState(user?.membership || null);
   const [loading, setLoading] = useState(true);
+  const canSelectPackages = isMembershipActive(membership);
 
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await packagesAPI.getAll();
-        setPackages(response.data.data || []);
+        const [packagesResponse, membershipResponse] = await Promise.all([
+          packagesAPI.getAll(),
+          user
+            ? membershipAPI.getMyMembership().catch(() => ({ data: { data: { membership: user?.membership || null } } }))
+            : Promise.resolve({ data: { data: { membership: null } } }),
+        ]);
+
+        setPackages(packagesResponse.data.data || []);
+        setMembership(membershipResponse.data.data?.membership || null);
       } catch (error) {
         console.error("Error loading packages:", error);
         toast.error("Failed to load package deals");
@@ -30,7 +42,7 @@ export default function ClientPackages({ onSelectPackage }) {
     };
 
     fetchPackages();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (
@@ -69,6 +81,12 @@ export default function ClientPackages({ onSelectPackage }) {
             <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100 md:text-base">
               Bundle-ready electrical essentials with cleaner pricing, faster ordering, and better value for common projects.
             </p>
+            {!canSelectPackages && (
+              <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm font-semibold text-blue-50">
+                <Lock className="h-4 w-4" />
+                Members Only
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3 sm:flex">
             <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
@@ -158,12 +176,28 @@ export default function ClientPackages({ onSelectPackage }) {
                     </div>
 
                     <Button
-                      className="mt-auto h-12 w-full justify-center gap-2 rounded-full bg-slate-950 text-white hover:bg-slate-800"
+                      className="mt-auto h-12 w-full justify-center gap-2 rounded-full bg-slate-950 text-white hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-500"
                       size="lg"
-                      onClick={() => onSelectPackage?.(pkg)}
+                      onClick={() => {
+                        if (!canSelectPackages) {
+                          toast.error("Package deals are available to active members only.");
+                          return;
+                        }
+                        onSelectPackage?.(pkg);
+                      }}
+                      disabled={!canSelectPackages}
                     >
-                      Select Package
-                      <ArrowRight className="h-4 w-4" />
+                      {canSelectPackages ? (
+                        <>
+                          Add to Cart
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="h-4 w-4" />
+                          Members Only
+                        </>
+                      )}
                     </Button>
                   </CardContent>
                 </div>

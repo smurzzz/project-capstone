@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "../../components/ui/select.jsx";
 import { productsAPI } from "../../utils/api.js";
+import { mergeProductDetails, mergeProductsDetails } from "../../utils/productDetailsStore.js";
 import { toast } from "sonner";
 import { useCart } from "../../context/CartContext.jsx";
 import { useNavigate } from "react-router-dom";
@@ -27,6 +28,7 @@ const normalizeFeatures = (features) => {
   const raw = String(features || "").trim();
   return raw ? raw.split(/\r?\n/).map((line) => line.trim()).filter(Boolean) : [];
 };
+const hasText = (value) => String(value || "").trim().length > 0;
 
 export default function ClientProducts() {
   const [products, setProducts] = useState([]);
@@ -43,7 +45,7 @@ export default function ClientProducts() {
   async function fetchProducts() {
     try {
       const response = await productsAPI.getAll();
-      setProducts(response.data.data || []);
+      setProducts(mergeProductsDetails(response.data.data || []));
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products");
@@ -96,11 +98,22 @@ export default function ClientProducts() {
     }
   };
 
-  const openProductDetails = (product) => {
-    setSelectedProduct(product);
+  const openProductDetails = async (product) => {
+    setSelectedProduct(mergeProductDetails(product));
     setProductDialogTab("specifications");
     setModalQuantity(1);
     setProductDialogOpen(true);
+
+    if (!product?._id) return;
+
+    try {
+      const response = await productsAPI.getById(product._id);
+      setSelectedProduct((current) => (
+        current?._id === product._id ? mergeProductDetails({ ...current, ...(response.data.data || {}) }) : current
+      ));
+    } catch (error) {
+      console.error("Error loading product details:", error);
+    }
   };
 
   if (loading) {
@@ -163,7 +176,6 @@ export default function ClientProducts() {
           const priceLabel = Number(product.srp ?? product.price).toLocaleString();
           const stockLabel = getProductStock(product);
           const tagLabel = product.category || "Saver";
-          const productSubtitle = product.description ? product.description.split(".")[0] + "." : "Premium performance and protection.";
           const lowStock = stockLabel > 0 && stockLabel <= 3;
 
           return (
@@ -173,19 +185,12 @@ export default function ClientProducts() {
               onClick={() => openProductDetails(product)}
             >
               <CardContent className="px-6 py-7">
-                <div className="flex items-center justify-between gap-3">
-                  <Badge className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-amber-700">
-                    <Star className="h-3 w-3" />
-                    {tagLabel}
-                  </Badge>
-                </div>
-
-                <div className="mx-auto mt-6 flex aspect-square w-full items-center justify-center overflow-hidden rounded-[2rem] bg-slate-100 shadow-sm">
+                <div className="mx-auto flex aspect-square w-full items-center justify-center overflow-hidden rounded-[2rem] bg-slate-100 shadow-sm">
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
                       alt={product.productName || product.name}
-                      className="h-full w-full rounded-[2rem] object-contain p-4"
+                      className="h-full w-full rounded-[2rem] object-cover"
                     />
                   ) : (
                     <ImageIcon className="h-14 w-14 text-slate-400" />
@@ -194,7 +199,10 @@ export default function ClientProducts() {
 
                 <div className="mt-6 space-y-3">
                   <div className="text-xl font-semibold text-slate-900">{product.productName || product.name}</div>
-                  <p className="text-sm text-slate-500">{productSubtitle}</p>
+                  <Badge className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-amber-700">
+                    <Star className="h-3 w-3" />
+                    {tagLabel}
+                  </Badge>
                 </div>
 
                 <div className="mt-6 flex items-end justify-between gap-4">
@@ -236,14 +244,14 @@ export default function ClientProducts() {
         }}
       >
         {selectedProduct && (
-          <DialogContent className="max-w-[960px] overflow-hidden bg-white p-0 shadow-2xl">
-            <div className="grid gap-6 lg:grid-cols-[360px_1fr] p-6">
-              <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[2rem] bg-slate-100 lg:aspect-auto lg:min-h-[360px]">
+          <DialogContent className="w-[calc(100vw-2rem)] max-w-[960px] overflow-hidden bg-white p-0 shadow-2xl">
+            <div className="grid max-h-[88vh] gap-5 overflow-y-auto p-5 lg:grid-cols-[340px_1fr]">
+              <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[2rem] bg-slate-100 lg:aspect-auto lg:min-h-[320px]">
                 {selectedProduct.imageUrl ? (
                   <img
                     src={selectedProduct.imageUrl}
                     alt={selectedProduct.productName || selectedProduct.name}
-                    className="h-full w-full rounded-[2rem] object-contain p-4"
+                    className="h-full w-full rounded-[2rem] object-cover"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center">
@@ -252,27 +260,37 @@ export default function ClientProducts() {
                 )}
               </div>
 
-              <div className="space-y-6">
-                <div className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-3">
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
                     <Star className="h-3 w-3" />
                     {selectedProduct.category || "Appliance Protection"}
                   </span>
-                  <div className="text-4xl font-semibold leading-tight tracking-tight text-slate-950">
+                  <div className="text-3xl font-semibold leading-tight tracking-tight text-slate-950">
                     {selectedProduct.productName || selectedProduct.name}
                   </div>
-                  <div className="text-sm leading-6 text-slate-600">
-                    {selectedProduct.description || "The best product for reliable performance and long-term durability."}
-                  </div>
-                  <div className="mt-4 flex items-end justify-between gap-4">
+                  <div className="flex items-end justify-between gap-4">
                     <div>
-                      <div className="text-4xl font-bold text-slate-900">
+                      <div className="text-3xl font-bold text-slate-900">
                         PHP {Number(selectedProduct.srp ?? selectedProduct.price).toLocaleString()}
                       </div>
-                      <div className={`mt-1 text-xs ${getProductStock(selectedProduct) <= 3 ? "text-rose-600" : "text-slate-500"}`}>
-                        {getProductStock(selectedProduct) <= 0 ? "Out of stock" : getProductStock(selectedProduct) <= 3 ? `Only ${getProductStock(selectedProduct)} left` : "In stock"}
+                      <div className={`mt-1 text-xs ${
+                        getProductStock(selectedProduct) <= 0
+                          ? "text-rose-600"
+                          : getProductStock(selectedProduct) <= 3
+                            ? "text-rose-600"
+                            : "text-emerald-600"
+                      }`}>
+                        {getProductStock(selectedProduct) <= 0
+                          ? "Out of stock"
+                          : getProductStock(selectedProduct) <= 3
+                            ? `Only ${getProductStock(selectedProduct)} left`
+                            : `${getProductStock(selectedProduct)} in stock`}
                       </div>
                     </div>
+                  </div>
+                  <div className="max-h-20 overflow-y-auto pr-2 text-sm leading-6 text-slate-600">
+                    {selectedProduct.description || "The best product for reliable performance and long-term durability."}
                   </div>
                 </div>
 
@@ -284,57 +302,43 @@ export default function ClientProducts() {
                     <TabsTrigger value="warranty">Warranty</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="specifications" className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Product Name</div>
-                        <div className="mt-2 text-sm font-semibold text-slate-900">{selectedProduct.productName || selectedProduct.name}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Brand</div>
-                        <div className="mt-2 text-sm font-semibold text-slate-900">{selectedProduct.brand || "JBM"}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Type</div>
-                        <div className="mt-2 text-sm font-semibold text-slate-900">{selectedProduct.type || selectedProduct.category || "General"}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Technology</div>
-                        <div className="mt-2 text-sm font-semibold text-slate-900">{selectedProduct.technology || "Automatic voltage protection"}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Application</div>
-                        <div className="mt-2 text-sm font-semibold text-slate-900">{selectedProduct.application || "Refrigerators"}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Power</div>
-                        <div className="mt-2 text-sm font-semibold text-slate-900">{selectedProduct.power || "220V / 60Hz"}</div>
-                      </div>
+                  <TabsContent value="specifications" className="h-44 overflow-y-auto rounded-[2rem] border border-slate-200 bg-slate-50 p-5 sm:h-40">
+                    <div className="whitespace-pre-line text-sm leading-7 text-slate-700">
+                      {hasText(selectedProduct.specifications)
+                        ? selectedProduct.specifications
+                        : "No specifications have been added for this product yet."}
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="features" className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
-                    <ul className="space-y-3 text-sm leading-7 text-slate-700">
-                      {(normalizeFeatures(selectedProduct.features).length > 0 ? normalizeFeatures(selectedProduct.features) : [
-                        "Protects against voltage surges and spikes.",
-                        "Compact, easy-to-install design.",
-                        "Compatible with most household appliances.",
-                      ]).map((feature, index) => (
-                        <li key={index} className="flex gap-3">
-                          <span className="mt-1 h-2.5 w-2.5 rounded-full bg-blue-600"></span>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  <TabsContent value="features" className="h-44 overflow-y-auto rounded-[2rem] border border-slate-200 bg-slate-50 p-5 sm:h-40">
+                    {normalizeFeatures(selectedProduct.features).length > 0 ? (
+                      <ul className="space-y-3 text-sm leading-7 text-slate-700">
+                        {normalizeFeatures(selectedProduct.features).map((feature, index) => (
+                          <li key={index} className="flex gap-3">
+                            <span className="mt-1 h-2.5 w-2.5 rounded-full bg-blue-600"></span>
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm leading-7 text-slate-700">No features have been added for this product yet.</p>
+                    )}
                   </TabsContent>
 
-                  <TabsContent value="compatibility" className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 text-sm leading-7 text-slate-700">
-                    {selectedProduct.compatibility || "Works with most household appliances and electrical systems, including refrigerators, air conditioners, and TVs."}
+                  <TabsContent value="compatibility" className="h-44 overflow-y-auto rounded-[2rem] border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700 sm:h-40">
+                    <div className="whitespace-pre-line">
+                      {hasText(selectedProduct.compatibility)
+                        ? selectedProduct.compatibility
+                        : "No compatibility details have been added for this product yet."}
+                    </div>
                   </TabsContent>
 
-                  <TabsContent value="warranty" className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6 text-sm leading-7 text-slate-700 space-y-3">
-                    <p>{selectedProduct.warranty || "1-year limited warranty with free replacement for manufacturing defects."}</p>
-                    <p className="text-slate-500">Warranty terms may vary based on product specifications and purchase location.</p>
+                  <TabsContent value="warranty" className="h-44 overflow-y-auto rounded-[2rem] border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700 space-y-3 sm:h-40">
+                    <div className="whitespace-pre-line">
+                      {hasText(selectedProduct.warranty)
+                        ? selectedProduct.warranty
+                        : "No warranty details have been added for this product yet."}
+                    </div>
                   </TabsContent>
                 </Tabs>
 

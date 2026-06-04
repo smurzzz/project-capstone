@@ -23,6 +23,7 @@ import { Label } from "../../components/ui/label.jsx";
 import { Textarea } from "../../components/ui/textarea.jsx";
 import { productsAPI } from "../../utils/api.js";
 import { imageFileToDataUrl } from "../../utils/imageFile.js";
+import { mergeProductDetails, mergeProductsDetails, saveProductDetails } from "../../utils/productDetailsStore.js";
 
 const emptyForm = {
   productName: "",
@@ -70,7 +71,7 @@ export default function Inventory() {
     try {
       if (showSpinner) setLoading(true);
       const response = await productsAPI.getAll();
-      setProducts(response.data.data || []);
+      setProducts(mergeProductsDetails(response.data.data || []));
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load inventory");
@@ -132,10 +133,18 @@ export default function Inventory() {
       };
 
       if (editingId) {
-        await productsAPI.update(editingId, payload);
+        const response = await productsAPI.update(editingId, payload);
+        const savedProduct = { ...(response.data.data || {}), ...payload, _id: editingId };
+        saveProductDetails(savedProduct);
+        setProducts((current) => current.map((item) => (item._id === editingId ? { ...item, ...savedProduct } : item)));
         toast.success("Product updated");
       } else {
-        await productsAPI.create(payload);
+        const response = await productsAPI.create(payload);
+        const savedProduct = response.data.data ? { ...response.data.data, ...payload, _id: response.data.data._id } : null;
+        if (savedProduct) {
+          saveProductDetails(savedProduct);
+          setProducts((current) => [...current, savedProduct]);
+        }
         toast.success("Product added");
       }
 
@@ -175,6 +184,50 @@ export default function Inventory() {
     imageFileToDataUrl(file)
       .then((imageUrl) => setFormData((current) => ({ ...current, imageUrl })))
       .catch((error) => toast.error(error.message));
+  };
+
+  const openEditDialog = async (item) => {
+    setEditingId(item._id);
+    setFormData({
+      productName: item.productName,
+      sku: item.sku || "",
+      price: item.price,
+      imageUrl: item.imageUrl || "",
+      stockLevel: item.stockLevel,
+      minStock: item.minStock || "",
+      description: item.description || "",
+      category: item.category || "",
+      supplier: item.supplier || "",
+      specifications: item.specifications || "",
+      features: item.features || "",
+      compatibility: item.compatibility || "",
+      warranty: item.warranty || "",
+    });
+    setDialogOpen(true);
+
+    try {
+      const response = await productsAPI.getById(item._id);
+      const product = mergeProductDetails(response.data.data || item);
+      setFormData((current) => ({
+        ...current,
+        productName: product.productName || "",
+        sku: product.sku || "",
+        price: product.price ?? product.srp ?? "",
+        imageUrl: product.imageUrl || "",
+        stockLevel: product.stockLevel ?? "",
+        minStock: product.minStock || "",
+        description: product.description || "",
+        category: product.category || "",
+        supplier: product.supplier || "",
+        specifications: product.specifications || "",
+        features: product.features || "",
+        compatibility: product.compatibility || "",
+        warranty: product.warranty || "",
+      }));
+    } catch (error) {
+      console.error("Error loading product details:", error);
+      toast.error("Could not refresh product details. Showing current inventory data.");
+    }
   };
 
   const filteredInventory = products.filter((item) => {
@@ -414,25 +467,7 @@ export default function Inventory() {
                             variant="outline"
                             size="sm"
                             className="rounded-full"
-                            onClick={() => {
-                              setEditingId(item._id);
-                              setFormData({
-                                productName: item.productName,
-                                sku: item.sku || "",
-                                price: item.price,
-                                imageUrl: item.imageUrl || "",
-                                stockLevel: item.stockLevel,
-                                minStock: item.minStock || "",
-                                description: item.description || "",
-                                category: item.category || "",
-                                supplier: item.supplier || "",
-                                specifications: item.specifications || "",
-                                features: item.features || "",
-                                compatibility: item.compatibility || "",
-                                warranty: item.warranty || "",
-                              });
-                              setDialogOpen(true);
-                            }}
+                            onClick={() => openEditDialog(item)}
                           >
                             <Pencil className="w-3.5 h-3.5 mr-1" />
                             Edit

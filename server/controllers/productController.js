@@ -22,11 +22,22 @@ const mapProductInput = (body) => {
         srp,
         price: srp,
         description: cleanString(body.description, 1000),
+        specifications: cleanString(body.specifications, 3000),
+        features: cleanString(body.features, 3000),
+        compatibility: cleanString(body.compatibility, 3000),
+        warranty: cleanString(body.warranty, 3000),
         imageUrl: cleanProfileImage(body.imageUrl),
         category: cleanString(body.category, 120),
         supplier: cleanString(body.supplier, 160),
     };
 };
+
+const getProductUpdate = (payload) => ({
+    $set: {
+        ...payload,
+        updatedAt: new Date(),
+    },
+});
 
 const getValidationMessage = (error) => {
     if (error.name !== "ValidationError") {
@@ -81,7 +92,7 @@ export const getAllProducts = async (req, res) => {
             limit > 0 ? Product.countDocuments(queryFilter) : Promise.resolve(undefined),
         ]);
 
-        res.setHeader("Cache-Control", "private, max-age=30");
+        res.setHeader("Cache-Control", "no-store");
         res.status(200).json({
             success: true,
             data: products,
@@ -120,6 +131,7 @@ export const getProductById = async (req, res) => {
             });
         }
 
+        res.setHeader("Cache-Control", "no-store");
         res.status(200).json({
             success: true,
             data: product,
@@ -198,10 +210,7 @@ export const updateProduct = async (req, res) => {
 
         const product = await Product.findByIdAndUpdate(
             req.params.id,
-            {
-                ...payload,
-                updatedAt: new Date(),
-            },
+            getProductUpdate(payload),
             { new: true, runValidators: true }
         );
 

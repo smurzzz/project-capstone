@@ -217,7 +217,6 @@ export default function ClientDashboard() {
     { id: "order", label: "Place Order", icon: ClipboardList },
     { id: "appointments", label: "Book Appointment", icon: Calendar },
     { id: "tracking", label: "Track Status", icon: ClipboardList },
-    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   const unreadCount = notifications.filter((notification) => notification.unread).length;

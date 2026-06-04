@@ -329,14 +329,14 @@ function ProductsPreview({ products, user }) {
             <Card key={product._id} className="overflow-hidden border-slate-200 shadow-sm">
               <div className="flex h-36 items-center justify-center bg-slate-100">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.productName} className="h-full w-full object-contain p-4" />
+                  <img src={product.imageUrl} alt={product.productName} className="h-full w-full object-cover" />
                 ) : (
                   <ImageIcon className="h-10 w-10 text-slate-400" />
                 )}
               </div>
               <CardContent className="p-4">
                 <p className="line-clamp-2 font-semibold text-gray-900">{product.productName}</p>
-                <p className="mt-1 text-sm text-gray-600">{product.category || "Electrical product"}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{product.category || "Electrical product"}</p>
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <span className="font-bold text-slate-900">PHP {Number(product.srp ?? product.price ?? 0).toLocaleString()}</span>
                   <span className="text-xs font-medium text-gray-500">{Number(product.stockLevel || 0)} in stock</span>
