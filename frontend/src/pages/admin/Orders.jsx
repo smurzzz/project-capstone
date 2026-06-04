@@ -27,7 +27,6 @@ const paymentStatusColors = {
   checkout_created: "bg-cyan-100 text-cyan-700",
   paid: "bg-green-100 text-green-700",
   failed: "bg-red-100 text-red-700",
-  cash_on_delivery: "bg-gray-100 text-gray-700",
 };
 
 export default function Orders() {

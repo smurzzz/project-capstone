@@ -35,12 +35,12 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ["Cash on Delivery", "GCash"],
+        enum: ["GCash"],
         required: true
     },
     paymentStatus: {
         type: String,
-        enum: ["pending", "checkout_created", "paid", "failed", "cash_on_delivery"],
+        enum: ["pending", "checkout_created", "paid", "failed"],
         default: "pending"
     },
     paymentGateway: {

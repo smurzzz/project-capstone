@@ -32,7 +32,6 @@ import {
 const MEMBER_DISCOUNT_RATE = Number(process.env.MEMBER_DISCOUNT_RATE || 0.1);
 
 const paymentMethods = new Set([
-    "Cash on Delivery",
     "GCash",
 ]);
 

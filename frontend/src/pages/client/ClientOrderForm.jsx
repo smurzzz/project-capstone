@@ -35,7 +35,6 @@ import { ordersAPI } from "../../utils/api.js";
 
 const paymentMethodMap = {
   gcash: "GCash",
-  cod: "Cash on Delivery",
 };
 
 const isBackendProductId = (id) => !String(id).startsWith("fallback-");
@@ -57,7 +56,6 @@ export default function ClientOrderForm({ selectedPackage }) {
   const [email, setEmail] = useState(user?.email || "");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
-  const [promotionCode, setPromotionCode] = useState("");
   const [proofOfPayment, setProofOfPayment] = useState(null);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -119,7 +117,6 @@ export default function ClientOrderForm({ selectedPackage }) {
     setEmail(user?.email || "");
     setPaymentMethod("");
     setReferenceNumber("");
-    setPromotionCode("");
     setProofOfPayment(null);
     setSpecialInstructions("");
   };
@@ -167,7 +164,6 @@ export default function ClientOrderForm({ selectedPackage }) {
         address,
         paymentMethod: paymentMethodMap[paymentMethod],
         referenceNumber,
-        promotionCode,
         packageId: selectedPackage?._id,
         items: selectedPackage ? [] : orderItemsForAPI,
         notes: specialInstructions,
@@ -464,7 +460,6 @@ export default function ClientOrderForm({ selectedPackage }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="gcash">GCash</SelectItem>
-                  <SelectItem value="cod">Cash on Delivery</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -477,19 +472,9 @@ export default function ClientOrderForm({ selectedPackage }) {
                 id="referenceNumber"
                 placeholder={paymentMethod === "gcash"
                   ? "PayMongo will generate the checkout reference"
-                  : "Leave blank for cash on delivery"}
+                  : "Select GCash to proceed"}
                 value={referenceNumber}
                 onChange={(event) => setReferenceNumber(event.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="promotionCode">Promo Code (Optional)</Label>
-              <Input
-                id="promotionCode"
-                placeholder="Enter promo code"
-                value={promotionCode}
-                onChange={(event) => setPromotionCode(event.target.value.toUpperCase())}
               />
             </div>
 

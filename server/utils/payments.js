@@ -83,7 +83,7 @@ export const createPaymentCheckout = async ({ paymentMethod, amount, referenceNu
     if (!PAYMENT_METHODS_REQUIRING_CHECKOUT.has(paymentMethod)) {
         return {
             provider: "manual",
-            status: paymentMethod === "Cash on Delivery" || paymentMethod === "Cash" ? "cash_on_delivery" : "pending",
+            status: "pending",
             reference: referenceNumber,
             checkoutUrl: "",
             message: "Manual payment selected",
