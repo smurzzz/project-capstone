@@ -68,8 +68,8 @@ export default function ClientHomepage() {
                     <Button>Dashboard</Button>
                   </Link>
                 </>
-            ) : (
-              <>
+              ) : (
+                <>
                   <Link to="/login">
                     <Button variant="outline">Sign In</Button>
                   </Link>
@@ -100,11 +100,11 @@ export default function ClientHomepage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {user ? (
               <>
-                <Link to="/dashboard">
+                <a href="#products">
                   <Button size="lg" className="gap-2 w-full sm:w-auto">
                     Explore Products <ArrowRight className="h-4 w-4" />
                   </Button>
-                </Link>
+                </a>
                 <Link to="/membership/apply">
                   <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
                     <Heart className="h-4 w-4" />
@@ -119,11 +119,11 @@ export default function ClientHomepage() {
                     Contact Us <ArrowRight className="h-4 w-4" />
                   </Button>
                 </a>
-                <Link to="/login">
+                <a href="#products">
                   <Button size="lg" variant="outline" className="w-full sm:w-auto">
                     Explore Products
                   </Button>
-                </Link>
+                </a>
               </>
             )}
           </div>
@@ -132,7 +132,7 @@ export default function ClientHomepage() {
 
       <OfferPreview flashDeals={flashDeals} packageDeals={packageDeals} user={user} />
 
-      <ProductsPreview products={featuredProducts} user={user} />
+      <ProductsPreview products={featuredProducts} />
 
       <section className="py-16 px-4 bg-white border-y border-gray-100">
         <div className="max-w-5xl mx-auto">
@@ -291,13 +291,13 @@ export default function ClientHomepage() {
   );
 }
 
-function ProductsPreview({ products, user }) {
+function ProductsPreview({ products }) {
   if (products.length === 0) {
     return null;
   }
 
   return (
-    <section className="py-16 px-4">
+    <section id="products" className="scroll-mt-20 py-16 px-4">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
@@ -310,9 +310,9 @@ function ProductsPreview({ products, user }) {
               See real inventory, prices, and stock before creating your order.
             </p>
           </div>
-          <Link to={user ? "/dashboard#products" : "/signup"}>
+          <Link to="/login">
             <Button variant="outline" className="w-full gap-2 md:w-auto">
-              {user ? "Browse Products" : "Sign Up to Order"}
+              Sign In to Order
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -320,7 +320,7 @@ function ProductsPreview({ products, user }) {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((product) => (
-            <Card key={product._id} className="overflow-hidden border-slate-200 shadow-sm">
+            <Card key={product._id} className="flex h-full flex-col overflow-hidden border-slate-200 shadow-sm">
               <div className="flex h-36 items-center justify-center bg-slate-100">
                 {product.imageUrl ? (
                   <img src={product.imageUrl} alt={product.productName} className="h-full w-full object-cover" />
@@ -328,13 +328,18 @@ function ProductsPreview({ products, user }) {
                   <ImageIcon className="h-10 w-10 text-slate-400" />
                 )}
               </div>
-              <CardContent className="p-4">
+              <CardContent className="flex flex-1 flex-col p-4">
                 <p className="line-clamp-2 font-semibold text-gray-900">{product.productName}</p>
                 <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500">{product.category || "Electrical product"}</p>
-                <div className="mt-4 flex items-center justify-between gap-3">
+                <div className="mt-auto flex items-center justify-between gap-3 pt-4">
                   <span className="font-bold text-slate-900">PHP {Number(product.srp ?? product.price ?? 0).toLocaleString()}</span>
                   <span className="text-xs font-medium text-gray-500">{Number(product.stockLevel || 0)} in stock</span>
                 </div>
+                <Link to="/login" className="mt-4 block">
+                  <Button className="w-full" variant="outline">
+                    Add to Cart
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           ))}
