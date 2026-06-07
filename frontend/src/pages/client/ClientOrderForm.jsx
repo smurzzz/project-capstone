@@ -35,6 +35,7 @@ import { ordersAPI } from "../../utils/api.js";
 
 const paymentMethodMap = {
   gcash: "GCash",
+  cod: "Cash on Delivery",
 };
 
 const isBackendProductId = (id) => !String(id).startsWith("fallback-");
@@ -136,12 +137,12 @@ export default function ClientOrderForm({ selectedPackage }) {
       toast.error("Please select a payment method");
       return;
     }
-    if (!referenceNumber) {
-      toast.error("Please enter the payment reference number");
+    if (paymentMethod === "gcash" && !referenceNumber) {
+      toast.error("Please enter the payment reference number for GCash");
       return;
     }
-    if (!proofOfPayment) {
-      toast.error("Please upload proof of payment for admin verification");
+    if (paymentMethod === "gcash" && !proofOfPayment) {
+      toast.error("Please upload proof of payment for GCash verification");
       return;
     }
     if (selectedPackage) {
@@ -468,27 +469,32 @@ export default function ClientOrderForm({ selectedPackage }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="gcash">GCash</SelectItem>
+                  <SelectItem value="cod">Cash on Delivery</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="referenceNumber">
-                Reference Number *
+                Reference Number {paymentMethod === "gcash" ? "*" : "(optional)"}
               </Label>
               <Input
                 id="referenceNumber"
                 placeholder={paymentMethod === "gcash"
                   ? "Enter the GCash reference number"
-                  : "Select GCash to proceed"}
+                  : paymentMethod === "cod"
+                  ? "Reference number is optional for COD"
+                  : "Select payment method"}
                 value={referenceNumber}
                 onChange={(event) => setReferenceNumber(event.target.value)}
-                required
+                required={paymentMethod === "gcash"}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="proofOfPayment">Upload Proof of Payment *</Label>
+              <Label htmlFor="proofOfPayment">
+                Upload Proof of Payment {paymentMethod === "gcash" ? "*" : "(optional)"}
+              </Label>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <Input
                   id="proofOfPayment"
@@ -496,7 +502,7 @@ export default function ClientOrderForm({ selectedPackage }) {
                   accept="image/*,.pdf"
                   onChange={handleFileChange}
                   className="cursor-pointer"
-                  required
+                  required={paymentMethod === "gcash"}
                 />
                 {proofOfPayment && (
                   <Badge variant="secondary" className="gap-1 w-fit">

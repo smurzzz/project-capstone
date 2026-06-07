@@ -35,7 +35,7 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ["GCash"],
+        enum: ["GCash", "Cash on Delivery", "COD"],
         required: true
     },
     paymentStatus: {
@@ -63,21 +63,12 @@ const orderSchema = new mongoose.Schema({
         unique: true,
         trim: true
     },
-    paymentProofUrl: {
-        type: String,
-        trim: true,
-        default: ""
-    },
     orderType: {
         type: String,
         enum: ["regular", "membership"],
         default: "regular"
     },
-    membershipTier: {
-        type: String,
-        trim: true,
-        default: ""
-    },
+   
     total: {
         type: Number,
         required: true,

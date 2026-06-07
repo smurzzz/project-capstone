@@ -27,13 +27,14 @@ const customerSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ["Guest", "Member"],
-        default: "Member",
+        default: "Guest",
         required: true
     },
     membership: {
         status: {
             type: String,
-            enum: ["None", "Pending", "Active", "Expired", "Suspended", "Rejected"],
+            enum: ["None", "Pending", "Active"
+            ],
             default: "None",
         },
         tier: {
@@ -48,19 +49,15 @@ const customerSchema = new mongoose.Schema({
         },
         joinedAt: {
             type: Date,
-            default: Date.now,
+            default: null,
         },
         approvedAt: {
             type: Date,
-            default: Date.now,
+            default: null,
         },
         expiresAt: {
             type: Date,
-            default: () => {
-                const date = new Date();
-                date.setFullYear(date.getFullYear() + 1);
-                return date;
-            },
+            default: null,
         },
         renewalCount: {
             type: Number,

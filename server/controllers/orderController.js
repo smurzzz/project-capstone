@@ -31,9 +31,28 @@ import {
 
 const MEMBER_DISCOUNT_RATE = Number(process.env.MEMBER_DISCOUNT_RATE || 0.1);
 
-const paymentMethods = new Set([
-    "GCash",
+const paymentMethodAliases = new Map([
+    ["gcash", "GCash"],
+    ["cod", "Cash on Delivery"],
+    ["cash on delivery", "Cash on Delivery"],
+    ["cash_on_delivery", "Cash on Delivery"],
 ]);
+const paymentMethods = new Set(["GCash", "Cash on Delivery"]);
+
+const normalizePaymentMethod = (value) => {
+    const rawValue = String(value || "").trim();
+    const lookupKey = rawValue.toLowerCase();
+
+    if (paymentMethodAliases.has(lookupKey)) {
+        return paymentMethodAliases.get(lookupKey);
+    }
+
+    if (paymentMethods.has(rawValue)) {
+        return rawValue;
+    }
+
+    return null;
+};
 
 const buildReferenceNumber = () =>
     `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
@@ -257,7 +276,7 @@ export const createOrder = async (req, res) => {
         const contactNumber = cleanString(req.body.contactNumber, 30);
         const email = normalizeEmail(req.body.email);
         const address = cleanString(req.body.address, 500);
-        const paymentMethod = cleanString(req.body.paymentMethod, 60);
+        const paymentMethod = normalizePaymentMethod(req.body.paymentMethod);
         const referenceNumber = cleanString(req.body.referenceNumber, 120) || buildReferenceNumber();
         const promotionCode = cleanString(req.body.promotionCode, 80).toUpperCase();
         const notes = cleanString(req.body.notes, 1000);
@@ -312,7 +331,7 @@ export const createOrder = async (req, res) => {
             });
         }
 
-        if (!paymentMethods.has(paymentMethod)) {
+        if (!paymentMethod) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid payment method",
