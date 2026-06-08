@@ -7,6 +7,7 @@ import {
   Plus,
   ShoppingCart,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { Alert, AlertDescription } from "../../components/ui/alert.jsx";
 import { Badge } from "../../components/ui/badge.jsx";
@@ -20,20 +21,20 @@ import {
 } from "../../components/ui/card.jsx";
 import { Input } from "../../components/ui/input.jsx";
 import { Label } from "../../components/ui/label.jsx";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select.jsx";
 import { Textarea } from "../../components/ui/textarea.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useCart } from "../../context/CartContext.jsx";
 import { ordersAPI } from "../../utils/api.js";
 
+const paymentOptions = [
+  { value: "gcash", label: "GCash" },
+  { value: "bank_transfer", label: "Bank Transfer" },
+  { value: "cod", label: "Cash on Delivery" },
+];
+
 const paymentMethodMap = {
   gcash: "GCash",
+  bank_transfer: "Bank Transfer",
   cod: "Cash on Delivery",
 };
 
@@ -54,10 +55,17 @@ export default function ClientOrderForm({ selectedPackage }) {
   const [address, setAddress] = useState(user?.address || "");
   const [contact, setContact] = useState(user?.phone || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState(paymentOptions[0].value);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const handlePaymentMethodChange = (value) => {
+    setPaymentMethod(value);
+    if (value === "cod") {
+      setReferenceNumber("");
+    }
+  };
 
   const selectedCartItems = cart.filter((item) => selectedIds.includes(item._id));
   const allSelected = cart.length > 0 && selectedCartItems.length === cart.length;
@@ -108,7 +116,7 @@ export default function ClientOrderForm({ selectedPackage }) {
     setAddress(user?.address || "");
     setContact(user?.phone || "");
     setEmail(user?.email || "");
-    setPaymentMethod("");
+    setPaymentMethod(paymentOptions[0].value);
     setReferenceNumber("");
     setSpecialInstructions("");
   };
@@ -128,8 +136,10 @@ export default function ClientOrderForm({ selectedPackage }) {
       toast.error("Please select a payment method");
       return;
     }
-    if (paymentMethod === "gcash" && !referenceNumber) {
-      toast.error("Please enter the payment reference number for GCash");
+    if ((paymentMethod === "gcash" || paymentMethod === "bank_transfer") && !referenceNumber) {
+      toast.error(
+        `Please enter the payment reference number for ${paymentMethod === "gcash" ? "GCash" : "Bank Transfer"}`
+      );
       return;
     }
     if (selectedPackage) {
@@ -450,33 +460,37 @@ export default function ClientOrderForm({ selectedPackage }) {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="paymentMethod">Payment Method *</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                <SelectTrigger id="paymentMethod">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gcash">GCash</SelectItem>
-                  <SelectItem value="cod">Cash on Delivery</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                id="paymentMethod"
+                value={paymentMethod}
+                onChange={(event) => handlePaymentMethodChange(event.target.value)}
+                className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                {paymentOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="referenceNumber">
-                Reference Number {paymentMethod === "gcash" ? "*" : "(optional)"}
-              </Label>
-              <Input
-                id="referenceNumber"
-                placeholder={paymentMethod === "gcash"
-                  ? "Enter the GCash reference number"
-                  : paymentMethod === "cod"
-                  ? "Reference number is optional for COD"
-                  : "Select payment method"}
-                value={referenceNumber}
-                onChange={(event) => setReferenceNumber(event.target.value)}
-                required={paymentMethod === "gcash"}
-              />
-            </div>
+            {(paymentMethod === "gcash" || paymentMethod === "bank_transfer") && (
+              <div className="space-y-2">
+                <Label htmlFor="referenceNumber">
+                  Reference Number *
+                </Label>
+                <Input
+                  id="referenceNumber"
+                  placeholder={paymentMethod === "gcash"
+                    ? "Enter the GCash reference number"
+                    : "Enter the bank transfer reference number"}
+                  value={referenceNumber}
+                  onChange={(event) => setReferenceNumber(event.target.value)}
+                  required
+                />
+              </div>
+            )}
+
 
             <Alert className="bg-amber-50 border-amber-200 flex gap-3">
               <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
