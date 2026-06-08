@@ -190,7 +190,7 @@ export default function StaffManagement() {
     <div className="space-y-6 p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl mb-2">Staff Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Staff Management</h1>
           <p className="text-gray-500">Manage admin and staff accounts</p>
         </div>
         <Button onClick={openCreateDialog}>

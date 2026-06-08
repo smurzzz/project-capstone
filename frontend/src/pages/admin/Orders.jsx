@@ -107,7 +107,7 @@ export default function Orders() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl md:text-3xl mb-2">Orders Management</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Orders Management</h1>
         <p className="text-gray-500">View and manage all customer orders</p>
       </div>
 

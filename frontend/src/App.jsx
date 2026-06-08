@@ -1,10 +1,12 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
-import Sidebar from "./components/admin/Sidebar";
+import { Sidebar } from "./components/admin/Sidebar";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import ProtectedRoutes from "./utils/ProtectedRoutes";
+import { Button } from "./components/ui/button.jsx";
+import { Menu } from "lucide-react";
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const SignUp = lazy(() => import("./pages/auth/SignUp"));
@@ -31,6 +33,68 @@ const PageLoader = () => (
   </div>
 );
 
+const AdminLayout = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close admin menu"
+          />
+          <div className="relative z-50 w-64">
+            <Sidebar isMobile open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4 shadow-sm md:hidden">
+          <Button
+            variant="outline"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div style={styles.mainContent}>
+          <Routes>
+            <Route path="/" element={<AdminDashboard />} />
+            <Route path="/dashboard" element={<AdminDashboard />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/packages" element={<AdminPackages />} />
+            <Route path="/memberships" element={<AdminMemberships />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route
+              path="/staff"
+              element={
+                <ProtectedRoutes requireRole={["Admin"]}>
+                  <StaffManagement />
+                </ProtectedRoutes>
+              }
+            />
+            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const App = () => (
   <AuthProvider>
     <CartProvider>
@@ -45,31 +109,7 @@ const App = () => (
               path="/admin/*"
               element={
                 <ProtectedRoutes requireRole={["Admin", "Staff"]}>
-                  <div style={styles.layoutContainer}>
-                    <Sidebar />
-                    <div style={styles.mainContent}>
-                      <Routes>
-                        <Route path="/" element={<AdminDashboard />} />
-                        <Route path="/dashboard" element={<AdminDashboard />} />
-                        <Route path="/inventory" element={<Inventory />} />
-                        <Route path="/packages" element={<AdminPackages />} />
-                        <Route path="/memberships" element={<AdminMemberships />} />
-                        <Route path="/orders" element={<Orders />} />
-                        <Route path="/customers" element={<Customers />} />
-                        <Route
-                          path="/staff"
-                          element={
-                            <ProtectedRoutes requireRole={["Admin"]}>
-                              <StaffManagement />
-                            </ProtectedRoutes>
-                          }
-                        />
-                        <Route path="/appointments" element={<Appointments />} />
-                        <Route path="/reports" element={<Reports />} />
-                        <Route path="/settings" element={<Settings />} />
-                      </Routes>
-                    </div>
-                  </div>
+                  <AdminLayout />
                 </ProtectedRoutes>
               }
             />
@@ -125,10 +165,6 @@ const App = () => (
 );
 
 const styles = {
-  layoutContainer: {
-    display: "flex",
-    minHeight: "100vh",
-  },
   mainContent: {
     flex: 1,
     overflow: "auto",

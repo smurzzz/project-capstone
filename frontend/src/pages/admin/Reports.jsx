@@ -283,7 +283,7 @@ export default function Reports() {
     <div className="space-y-6 p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl mb-2">Reports & Analytics</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Reports & Analytics</h1>
           <p className="text-gray-500">
             Live reports for {report?.period?.label || "the selected period"}
             {lastUpdated ? `, updated ${lastUpdated.toLocaleTimeString()}` : ""}

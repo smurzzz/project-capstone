@@ -244,134 +244,134 @@ export default function ClientProducts() {
         }}
       >
         {selectedProduct && (
-          <DialogContent className="w-[calc(100vw-2rem)] max-w-[960px] overflow-hidden bg-white p-0 shadow-2xl">
-            <div className="grid max-h-[88vh] gap-5 overflow-y-auto p-5 lg:grid-cols-[340px_1fr]">
-              <div className="flex aspect-square items-center justify-center overflow-hidden rounded-[2rem] bg-slate-100 lg:aspect-auto lg:min-h-[320px]">
-                {selectedProduct.imageUrl ? (
-                  <img
-                    src={selectedProduct.imageUrl}
-                    alt={selectedProduct.productName || selectedProduct.name}
-                    className="h-full w-full rounded-[2rem] object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <ImageIcon className="h-16 w-16 text-slate-400" />
-                  </div>
-                )}
+          <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl overflow-hidden bg-white p-0 shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex flex-col lg:grid lg:grid-cols-[220px_1fr] gap-6 overflow-y-auto flex-1 p-6">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-full max-w-[220px] aspect-square flex items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
+                  {selectedProduct.imageUrl ? (
+                    <img
+                      src={selectedProduct.imageUrl}
+                      alt={selectedProduct.productName || selectedProduct.name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <ImageIcon className="h-12 w-12 text-slate-400" />
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div className="space-y-3">
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
                     <Star className="h-3 w-3" />
-                    {selectedProduct.category || "Appliance Protection"}
+                    {selectedProduct.category || "Product"}
                   </span>
-                  <div className="text-3xl font-semibold leading-tight tracking-tight text-slate-950">
+                  
+                  <h2 className="text-2xl font-bold leading-tight text-slate-950">
                     {selectedProduct.productName || selectedProduct.name}
-                  </div>
-                  <div className="flex items-end justify-between gap-4">
-                    <div>
-                      <div className="text-3xl font-bold text-slate-900">
-                        PHP {Number(selectedProduct.srp ?? selectedProduct.price).toLocaleString()}
-                      </div>
-                      <div className={`mt-1 text-xs ${
-                        getProductStock(selectedProduct) <= 0
-                          ? "text-rose-600"
-                          : getProductStock(selectedProduct) <= 3
-                            ? "text-rose-600"
-                            : "text-emerald-600"
-                      }`}>
-                        {getProductStock(selectedProduct) <= 0
-                          ? "Out of stock"
-                          : getProductStock(selectedProduct) <= 3
-                            ? `Only ${getProductStock(selectedProduct)} left`
-                            : `${getProductStock(selectedProduct)} in stock`}
-                      </div>
+                  </h2>
+
+                  <div className="flex items-baseline gap-3">
+                    <div className="text-2xl font-bold text-slate-900">
+                      PHP {Number(selectedProduct.srp ?? selectedProduct.price).toLocaleString()}
                     </div>
-                  </div>
-                  <div className="max-h-20 overflow-y-auto pr-2 text-sm leading-6 text-slate-600">
-                    {selectedProduct.description || "The best product for reliable performance and long-term durability."}
+                    <div className={`text-sm font-medium ${
+                      getProductStock(selectedProduct) <= 0
+                        ? "text-rose-600"
+                        : getProductStock(selectedProduct) <= 3
+                          ? "text-rose-600"
+                          : "text-emerald-600"
+                    }`}>
+                      {getProductStock(selectedProduct) <= 0
+                        ? "Out of stock"
+                        : getProductStock(selectedProduct) <= 3
+                          ? `Only ${getProductStock(selectedProduct)} left`
+                          : `${getProductStock(selectedProduct)} in stock`}
+                    </div>
                   </div>
                 </div>
 
-                <Tabs value={productDialogTab} onValueChange={setProductDialogTab} className="space-y-4">
-                  <TabsList>
-                    <TabsTrigger value="specifications">Specifications</TabsTrigger>
-                    <TabsTrigger value="features">Features</TabsTrigger>
-                    <TabsTrigger value="compatibility">Compatibility</TabsTrigger>
-                    <TabsTrigger value="warranty">Warranty</TabsTrigger>
+                <div className="border-t border-slate-200 pt-4">
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-slate-900">Description</h3>
+                    <p className="text-sm leading-6 text-slate-600">
+                      {selectedProduct.description || "The best product for reliable performance and long-term durability."}
+                    </p>
+                  </div>
+                </div>
+
+                <Tabs value={productDialogTab} onValueChange={setProductDialogTab} className="space-y-5 border-t border-slate-200 pt-4">
+                  <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-5">
+                    <TabsTrigger value="specifications" className="text-xs">Specifications</TabsTrigger>
+                    <TabsTrigger value="features" className="text-xs">Features</TabsTrigger>
+                    <TabsTrigger value="compatibility" className="text-xs">Compatibility</TabsTrigger>
+                    <TabsTrigger value="warranty" className="text-xs">Warranty</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="specifications" className="h-44 overflow-y-auto rounded-[2rem] border border-slate-200 bg-slate-50 p-5 sm:h-40">
-                    <div className="whitespace-pre-line text-sm leading-7 text-slate-700">
-                      {hasText(selectedProduct.specifications)
-                        ? selectedProduct.specifications
-                        : "No specifications have been added for this product yet."}
-                    </div>
+                  <TabsContent value="specifications" className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 whitespace-pre-line mt-6">
+                    {hasText(selectedProduct.specifications)
+                      ? selectedProduct.specifications
+                      : "No specifications have been added for this product yet."}
                   </TabsContent>
 
-                  <TabsContent value="features" className="h-44 overflow-y-auto rounded-[2rem] border border-slate-200 bg-slate-50 p-5 sm:h-40">
+                  <TabsContent value="features" className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm mt-6">
                     {normalizeFeatures(selectedProduct.features).length > 0 ? (
-                      <ul className="space-y-3 text-sm leading-7 text-slate-700">
+                      <ul className="space-y-2">
                         {normalizeFeatures(selectedProduct.features).map((feature, index) => (
-                          <li key={index} className="flex gap-3">
-                            <span className="mt-1 h-2.5 w-2.5 rounded-full bg-blue-600"></span>
-                            <span>{feature}</span>
+                          <li key={index} className="flex gap-2">
+                            <span className="mt-0.5 h-2 w-2 rounded-full bg-blue-600 flex-shrink-0"></span>
+                            <span className="text-slate-700">{feature}</span>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm leading-7 text-slate-700">No features have been added for this product yet.</p>
+                      <p className="text-slate-700">No features have been added for this product yet.</p>
                     )}
                   </TabsContent>
 
-                  <TabsContent value="compatibility" className="h-44 overflow-y-auto rounded-[2rem] border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700 sm:h-40">
-                    <div className="whitespace-pre-line">
-                      {hasText(selectedProduct.compatibility)
-                        ? selectedProduct.compatibility
-                        : "No compatibility details have been added for this product yet."}
-                    </div>
+                  <TabsContent value="compatibility" className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 whitespace-pre-line mt-6">
+                    {hasText(selectedProduct.compatibility)
+                      ? selectedProduct.compatibility
+                      : "No compatibility details have been added for this product yet."}
                   </TabsContent>
 
-                  <TabsContent value="warranty" className="h-44 overflow-y-auto rounded-[2rem] border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700 space-y-3 sm:h-40">
-                    <div className="whitespace-pre-line">
-                      {hasText(selectedProduct.warranty)
-                        ? selectedProduct.warranty
-                        : "No warranty details have been added for this product yet."}
-                    </div>
+                  <TabsContent value="warranty" className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 whitespace-pre-line mt-6">
+                    {hasText(selectedProduct.warranty)
+                      ? selectedProduct.warranty
+                      : "No warranty details have been added for this product yet."}
                   </TabsContent>
                 </Tabs>
-
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1">
-                    <button
-                      type="button"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      onClick={() => handleQuantityChange(-1)}
-                      disabled={modalQuantity <= 1}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-14 text-center text-sm font-semibold">{modalQuantity}</span>
-                    <button
-                      type="button"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      onClick={() => handleQuantityChange(1)}
-                      disabled={modalQuantity >= getProductStock(selectedProduct)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <Button
-                    className="w-full justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800 sm:w-auto"
-                    onClick={() => handleAddToCart(selectedProduct)}
-                    disabled={getProductStock(selectedProduct) <= 0}
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    Add to Cart
-                  </Button>
-                </div>
               </div>
+            </div>
+
+            <div className="border-t border-slate-200 bg-white px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 w-fit">
+                <button
+                  type="button"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={modalQuantity <= 1}
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-12 text-center text-sm font-semibold">{modalQuantity}</span>
+                <button
+                  type="button"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={modalQuantity >= getProductStock(selectedProduct)}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+              <Button
+                className="w-full sm:w-auto justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800"
+                onClick={() => handleAddToCart(selectedProduct)}
+                disabled={getProductStock(selectedProduct) <= 0}
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Add to Cart
+              </Button>
             </div>
           </DialogContent>
         )}

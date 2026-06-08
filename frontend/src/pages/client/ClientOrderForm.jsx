@@ -285,99 +285,167 @@ export default function ClientOrderForm({ selectedPackage }) {
                   <p>No items in cart. Browse products to add items.</p>
                 </div>
               ) : (
-                <div className="rounded-3xl border border-gray-200 bg-white shadow-sm">
-                  <table className="w-full min-w-[640px] border-collapse text-left">
-                    <thead>
-                      <tr className="border-b bg-gray-50 text-sm font-semibold text-gray-700">
-                        <th className="px-4 py-3">
-                          <label className="inline-flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300 text-blue-600"
-                              checked={allSelected}
-                              onChange={handleToggleSelectAll}
-                            />
-                            Select All
-                          </label>
-                        </th>
-                        <th className="px-4 py-3">Product</th>
-                        <th className="px-4 py-3">Price</th>
-                        <th className="px-4 py-3">Quantity</th>
-                        <th className="px-4 py-3">Subtotal</th>
-                        <th className="px-4 py-3">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cart.map((item) => {
-                        const subtotal = (item.price || 0) * item.quantity;
-                        const isSelected = selectedIds.includes(item._id);
-                        const stockLevel = getCartItemStock(item);
-
-                        return (
-                          <tr key={item._id} className="border-b last:border-b-0">
-                            <td className="px-4 py-4 align-middle">
+                <div className="space-y-4">
+                  <div className="hidden md:block rounded-3xl border border-gray-200 bg-white shadow-sm">
+                    <table className="w-full border-collapse text-left">
+                      <thead>
+                        <tr className="border-b bg-gray-50 text-sm font-semibold text-gray-700">
+                          <th className="px-4 py-3">
+                            <label className="inline-flex items-center gap-2">
                               <input
                                 type="checkbox"
                                 className="h-4 w-4 rounded border-gray-300 text-blue-600"
-                                checked={isSelected}
-                                onChange={() => handleToggleSelect(item._id)}
+                                checked={allSelected}
+                                onChange={handleToggleSelectAll}
                               />
-                            </td>
-                            <td className="px-4 py-4 align-middle">
-                              <div className="font-medium text-gray-900">
+                              Select All
+                            </label>
+                          </th>
+                          <th className="px-4 py-3">Product</th>
+                          <th className="px-4 py-3">Price</th>
+                          <th className="px-4 py-3">Quantity</th>
+                          <th className="px-4 py-3">Subtotal</th>
+                          <th className="px-4 py-3">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cart.map((item) => {
+                          const subtotal = (item.price || 0) * item.quantity;
+                          const isSelected = selectedIds.includes(item._id);
+                          const stockLevel = getCartItemStock(item);
+
+                          return (
+                            <tr key={item._id} className="border-b last:border-b-0">
+                              <td className="px-4 py-4 align-middle">
+                                <input
+                                  type="checkbox"
+                                  className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                  checked={isSelected}
+                                  onChange={() => handleToggleSelect(item._id)}
+                                />
+                              </td>
+                              <td className="px-4 py-4 align-middle">
+                                <div className="font-medium text-gray-900">
+                                  {item.name || item.productName}
+                                </div>
+                                {item.category && (
+                                  <div className="text-xs text-gray-500">{item.category}</div>
+                                )}
+                                {stockLevel > 0 && (
+                                  <div className="text-xs text-gray-500">{stockLevel} in stock</div>
+                                )}
+                              </td>
+                              <td className="px-4 py-4 align-middle text-gray-900">
+                                PHP {Number(item.price || 0).toLocaleString()}
+                              </td>
+                              <td className="px-4 py-4 align-middle">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2 h-10">
+                                  <button
+                                    type="button"
+                                    className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm hover:bg-gray-100"
+                                    onClick={() => updateQuantity(item._id, -1)}
+                                    disabled={item.quantity <= 1}
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </button>
+                                  <span className="w-12 text-center text-sm font-semibold flex-shrink-0 leading-none">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm hover:bg-gray-100"
+                                    onClick={() => updateQuantity(item._id, 1)}
+                                    disabled={stockLevel > 0 && item.quantity >= stockLevel}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="px-4 py-4 align-middle font-semibold text-blue-600">
+                                PHP {subtotal.toLocaleString()}
+                              </td>
+                              <td className="px-4 py-4 align-middle text-right">
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100"
+                                  onClick={() => removeFromCart(item._id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="grid gap-4 md:hidden">
+                    {cart.map((item) => {
+                      const subtotal = (item.price || 0) * item.quantity;
+                      const stockLevel = getCartItemStock(item);
+
+                      return (
+                        <div key={item._id} className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="min-w-0">
+                              <div className="font-semibold text-gray-900 truncate">
                                 {item.name || item.productName}
                               </div>
                               {item.category && (
-                                <div className="text-xs text-gray-500">{item.category}</div>
+                                <div className="mt-1 text-xs text-gray-500">{item.category}</div>
                               )}
                               {stockLevel > 0 && (
-                                <div className="text-xs text-gray-500">{stockLevel} in stock</div>
+                                <div className="mt-1 text-xs text-gray-500">{stockLevel} in stock</div>
                               )}
-                            </td>
-                            <td className="px-4 py-4 align-middle text-gray-900">
+                            </div>
+                            <div className="text-right text-sm font-semibold text-blue-600">
                               PHP {Number(item.price || 0).toLocaleString()}
-                            </td>
-                            <td className="px-4 py-4 align-middle">
-                              <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
+                            </div>
+                          </div>
+
+                              <div className="mt-3 grid gap-3 text-sm">
+                            <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-gray-200 bg-gray-50 px-3 py-3">
+                              <span className="font-medium text-gray-700">Quantity</span>
+                              <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2 h-10">
                                 <button
                                   type="button"
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm hover:bg-gray-100"
+                                  className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm hover:bg-gray-100"
                                   onClick={() => updateQuantity(item._id, -1)}
                                   disabled={item.quantity <= 1}
                                 >
                                   <Minus className="h-4 w-4" />
                                 </button>
-                                <span className="w-10 text-center text-sm font-semibold">
+                                <span className="w-12 text-center text-sm font-semibold flex-shrink-0 leading-none">
                                   {item.quantity}
                                 </span>
                                 <button
                                   type="button"
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm hover:bg-gray-100"
+                                  className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm hover:bg-gray-100"
                                   onClick={() => updateQuantity(item._id, 1)}
                                   disabled={stockLevel > 0 && item.quantity >= stockLevel}
                                 >
                                   <Plus className="h-4 w-4" />
                                 </button>
                               </div>
-                            </td>
-                            <td className="px-4 py-4 align-middle font-semibold text-blue-600">
-                              PHP {subtotal.toLocaleString()}
-                            </td>
-                            <td className="px-4 py-4 align-middle text-right">
-                              <button
-                                type="button"
-                                className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 hover:bg-red-100"
-                                onClick={() => removeFromCart(item._id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">Subtotal</span>
+                              <span className="font-semibold text-blue-600">PHP {subtotal.toLocaleString()}</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="w-full rounded-full border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+                              onClick={() => removeFromCart(item._id)}
+                            >
+                              Remove item
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </CardContent>

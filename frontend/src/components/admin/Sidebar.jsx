@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Building2,
   Calendar,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { Button } from "../ui/button.jsx";
 import logoSrc from "../../assets/logo (1).webp";
 
 const menuItems = [
@@ -28,8 +29,8 @@ const menuItems = [
   { name: "Settings", path: "/admin/settings", icon: <Settings className="h-5 w-5" /> },
 ];
 
-const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+export const Sidebar = ({ isMobile = false, open, onClose }) => {
+  const [isOpen, setIsOpen] = useState(Boolean(open));
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -38,21 +39,30 @@ const Sidebar = () => {
     navigate("/login");
   };
 
+  // keep internal state in sync when parent controls open
+  useEffect(() => {
+    if (open !== undefined) setIsOpen(Boolean(open));
+  }, [open]);
+
   return (
     <>
-      {isOpen && (
+      {isMobile && isOpen && (
         <button
           aria-label="Close sidebar overlay"
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
+          onClick={() => (onClose ? onClose() : setIsOpen(false))}
           type="button"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white transform transition-transform duration-300
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0 lg:sticky lg:top-0 lg:self-start h-screen flex flex-col`}
+        className={`${
+          isMobile
+            ? `fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ${
+                isOpen ? "translate-x-0" : "-translate-x-full"
+              }`
+            : "sticky top-0 self-start w-64 h-screen"
+        } bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col`}
       >
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <div className="flex items-center gap-3">
@@ -67,9 +77,11 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <button onClick={() => setIsOpen(false)} className="lg:hidden text-slate-400 hover:text-white" type="button">
-            <X size={20} />
-          </button>
+          {isMobile && (
+            <button onClick={() => (onClose ? onClose() : setIsOpen(false))} className="text-slate-400 hover:text-white" type="button">
+              <X size={20} />
+            </button>
+          )}
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -78,7 +90,7 @@ const Sidebar = () => {
               key={name}
               to={path}
               end={isParent}
-              onClick={() => setIsOpen(false)}
+              onClick={() => isMobile && (onClose ? onClose() : setIsOpen(false))}
               className={({ isActive }) =>
                 `w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
                   isActive
@@ -118,16 +130,20 @@ const Sidebar = () => {
         </div>
       </aside>
 
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 lg:hidden p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all"
-        type="button"
-        title="Open menu"
-      >
-        <Menu className="h-6 w-6" />
-      </button>
+      {/* don't render the floating open button when parent controls open */}
+      {isMobile && open === undefined && (
+        <Button
+          variant="outline"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setIsOpen(true)}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      )}
     </>
   );
 };
 
+// Export both the component and a hook to control it
 export default Sidebar;
