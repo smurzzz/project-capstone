@@ -7,6 +7,7 @@ import {
   CardContent,
 } from "../../components/ui/card.jsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog.jsx";
+import { VisuallyHidden } from "../../components/ui/visually-hidden.jsx";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs.jsx";
 import { Input } from "../../components/ui/input.jsx";
 import {
@@ -20,6 +21,7 @@ import { productsAPI } from "../../utils/api.js";
 import { mergeProductDetails, mergeProductsDetails } from "../../utils/productDetailsStore.js";
 import { toast } from "sonner";
 import { useCart } from "../../context/CartContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 
 const getProductStock = (product) => Number(product?.stockLevel ?? product?.stock ?? 0);
@@ -29,6 +31,17 @@ const normalizeFeatures = (features) => {
   return raw ? raw.split(/\r?\n/).map((line) => line.trim()).filter(Boolean) : [];
 };
 const hasText = (value) => String(value || "").trim().length > 0;
+
+const getMemberPrice = (product, memberRole) => {
+  const basePrice = Number(product.srp ?? product.price);
+
+  if (memberRole === "Member") {
+    const discountedPrice = Math.floor(basePrice * 0.60);
+    return discountedPrice;
+  }
+
+  return basePrice;
+};
 
 export default function ClientProducts() {
   const [products, setProducts] = useState([]);
@@ -40,7 +53,12 @@ export default function ClientProducts() {
   const [productDialogTab, setProductDialogTab] = useState("specifications");
   const [modalQuantity, setModalQuantity] = useState(1);
   const { addToCart, getTotalItems } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log("DEBUG - User memberRole:", user?.memberRole);
+  }, [user]);
 
   async function fetchProducts() {
     try {
@@ -173,7 +191,11 @@ export default function ClientProducts() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredProducts.map((product) => {
-          const priceLabel = Number(product.srp ?? product.price).toLocaleString();
+          const isMember = user?.memberRole === "Member";
+          const basePrice = Number(product.srp ?? product.price);
+          const displayPrice = getMemberPrice(product, user?.memberRole);
+          const priceLabel = Number(displayPrice).toLocaleString();
+          const originalPriceLabel = Number(basePrice).toLocaleString();
           const stockLabel = getProductStock(product);
           const tagLabel = product.category || "Saver";
           const lowStock = stockLabel > 0 && stockLabel <= 3;
@@ -207,7 +229,14 @@ export default function ClientProducts() {
 
                 <div className="mt-6 flex items-end justify-between gap-4">
                   <div>
-                    <div className="text-2xl font-bold text-slate-900">PHP {priceLabel}</div>
+                    {isMember ? (
+                      <div className="space-y-1">
+                        <div className="text-2xl font-bold text-emerald-600">PHP {priceLabel}</div>
+                        <div className="text-sm text-slate-500 line-through">PHP {originalPriceLabel}</div>
+                      </div>
+                    ) : (
+                      <div className="text-2xl font-bold text-slate-900">PHP {priceLabel}</div>
+                    )}
                     <div className={`mt-1 text-xs ${stockLabel <= 0 ? "text-rose-600" : lowStock ? "text-amber-600" : "text-emerald-600"}`}>
                       {stockLabel <= 0 ? "Out of stock" : lowStock ? `Only ${stockLabel} left` : `${stockLabel} in stock`}
                     </div>
@@ -245,6 +274,11 @@ export default function ClientProducts() {
       >
         {selectedProduct && (
           <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl overflow-hidden bg-white p-0 shadow-2xl flex flex-col max-h-[90vh]">
+            <DialogHeader>
+              <VisuallyHidden>
+                <DialogTitle>{selectedProduct.productName || selectedProduct.name}</DialogTitle>
+              </VisuallyHidden>
+            </DialogHeader>
             <div className="flex flex-col lg:grid lg:grid-cols-[220px_1fr] gap-6 overflow-y-auto flex-1 p-6">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-full max-w-[220px] aspect-square flex items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
@@ -272,9 +306,21 @@ export default function ClientProducts() {
                   </h2>
 
                   <div className="flex items-baseline gap-3">
-                    <div className="text-2xl font-bold text-slate-900">
-                      PHP {Number(selectedProduct.srp ?? selectedProduct.price).toLocaleString()}
-                    </div>
+                    <div className="space-y-1">
+                    {user?.memberRole === "Member" ? (
+                      <>
+                        <div className="text-2xl font-bold text-emerald-600">
+                          PHP {Number(getMemberPrice(selectedProduct, user?.memberRole)).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-slate-500 line-through">
+                          PHP {Number(selectedProduct.srp ?? selectedProduct.price).toLocaleString()}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-2xl font-bold text-slate-900">
+                        PHP {Number(getMemberPrice(selectedProduct, user?.memberRole)).toLocaleString()}
+                      </div>
+                    )}
                     <div className={`text-sm font-medium ${
                       getProductStock(selectedProduct) <= 0
                         ? "text-rose-600"
@@ -343,6 +389,7 @@ export default function ClientProducts() {
                 </Tabs>
               </div>
             </div>
+          </div>
 
             <div className="border-t border-slate-200 bg-white px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 w-fit">

@@ -119,7 +119,9 @@ export default function ClientDashboard() {
       try {
         const [ordersResponse, appointmentsResponse] = await Promise.all([
           user.customerId ? ordersAPI.getByCustomer(user.customerId) : Promise.resolve({ data: { data: [] } }),
-          appointmentsAPI.getMyAppointments(),
+          user?.type === "customer"
+            ? appointmentsAPI.getMyAppointments()
+            : Promise.resolve({ data: { data: [] } }),
         ]);
         const orders = ordersResponse.data.data || [];
         const appointments = appointmentsResponse.data.data || [];

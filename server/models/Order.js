@@ -65,8 +65,8 @@ const orderSchema = new mongoose.Schema({
     },
     orderType: {
         type: String,
-        enum: ["regular", "membership"],
-        default: "regular"
+        enum: ["products", "package", "membership", "regular"],
+        default: "products"
     },
    
     total: {

@@ -1,11 +1,11 @@
-import { getTierDetails, isMembershipActive } from '../../utils/membership';
+import { isMembershipActive } from '../../utils/membership';
 
 export default function MemberBadge({ membership, size = 'md' }) {
     if (!membership || !isMembershipActive(membership)) {
         return null;
     }
 
-    const tierDetails = getTierDetails(membership.tier);
+    const label = membership.tier ? membership.tier.charAt(0).toUpperCase() : 'M';
     const sizeClasses = {
         sm: 'h-6 w-6 text-xs',
         md: 'h-8 w-8 text-sm',
@@ -15,11 +15,10 @@ export default function MemberBadge({ membership, size = 'md' }) {
 
     return (
         <div
-            className={`${sizeClasses[size]} rounded-full flex items-center justify-center font-bold text-white select-none shadow-lg`}
-            style={{ backgroundColor: tierDetails.displayColor }}
-            title={`${membership.tier} Member`}
+            className={`${sizeClasses[size]} rounded-full flex items-center justify-center font-bold text-white select-none shadow-lg bg-green-600`}
+            title={`${membership.tier || 'Member'} Member`}
         >
-            {tierDetails.displayIcon}
+            {label}
         </div>
     );
 }

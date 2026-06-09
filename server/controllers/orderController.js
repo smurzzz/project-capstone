@@ -281,8 +281,10 @@ export const createOrder = async (req, res) => {
         const promotionCode = cleanString(req.body.promotionCode, 80).toUpperCase();
         const notes = cleanString(req.body.notes, 1000);
         const packageId = cleanString(req.body.packageId, 80);
+        const orderTypeParam = cleanString(req.body.orderType, 30);
         let items = Array.isArray(req.body.items) ? req.body.items : [];
         let packageDeal = null;
+        let orderType = "products"; // default
 
         if (packageId) {
             if (!isValidObjectId(packageId)) {
@@ -397,6 +399,11 @@ export const createOrder = async (req, res) => {
         subtotal = roundMoney(subtotal);
         const packageBaseTotal = packageDeal ? roundMoney(packageDeal.price) : subtotal;
         
+        // Set orderType based on packageDeal
+        if (packageDeal) {
+            orderType = "package";
+        }
+        
         // Calculate promotions - REQUIRED to avoid undefined variable error
         let promotionResult = { discountAmount: 0, appliedPromotions: [] };
         if (promotionCode) {
@@ -444,6 +451,7 @@ export const createOrder = async (req, res) => {
             paymentReference: payment.reference,
             paymentCheckoutUrl: payment.checkoutUrl,
             referenceNumber,
+            orderType: orderTypeParam || orderType,
             total,
             discountAmount: promotionResult.discountAmount,
             membershipDiscountAmount: 0,
@@ -615,7 +623,7 @@ export const updateOrderStatus = async (req, res) => {
             const customer = await Customer.findById(order.customerId);
             const earnedPoints = calculateMembershipPoints({ customer, amount: order.total });
 
-            if (earnedPoints > 0) {
+            if (earnedPoints > 0 && customer) {
                 customer.membership.pointsBalance = (customer.membership.pointsBalance || 0) + earnedPoints;
                 customer.updatedAt = new Date();
                 await customer.save();

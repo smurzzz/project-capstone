@@ -80,6 +80,27 @@ export const getAllPackageDeals = async (req, res) => {
     }
 };
 
+export const getPackagesForMembershipApplication = async (req, res) => {
+    try {
+        const packages = await PackageDeal.find({ isActive: true })
+            .populate("items.productId", "productName imageUrl srp price stockLevel")
+            .sort({ price: 1 });
+
+        // Filter out packages with "B" in their name (case-insensitive)
+        const filteredPackages = packages.filter(pkg => !pkg.name.toLowerCase().includes("b"));
+
+        res.status(200).json({
+            success: true,
+            data: filteredPackages,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
 export const getPackageDealById = async (req, res) => {
     try {
         if (!isValidObjectId(req.params.id)) {

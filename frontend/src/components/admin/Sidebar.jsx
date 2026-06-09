@@ -25,6 +25,7 @@ const menuItems = [
   { name: "Inventory", path: "/admin/inventory", icon: <Package className="h-5 w-5" /> },
   { name: "Package Deals", path: "/admin/packages", icon: <PackagePlus className="h-5 w-5" /> },
   { name: "Staff", path: "/admin/staff", icon: <UsersRound className="h-5 w-5" /> },
+  { name: "Memberships", path: "/admin/memberships", icon: <UsersRound className="h-5 w-5" /> },
   { name: "Reports", path: "/admin/reports", icon: <BarChart3 className="h-5 w-5" /> },
   { name: "Settings", path: "/admin/settings", icon: <Settings className="h-5 w-5" /> },
 ];

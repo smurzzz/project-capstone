@@ -215,9 +215,9 @@ export const getMyAppointments = async (req, res) => {
         const customer = await getAuthenticatedCustomer(req.user);
 
         if (!customer) {
-            return res.status(404).json({
-                success: false,
-                message: "Customer profile not found",
+            return res.status(200).json({
+                success: true,
+                data: [],
             });
         }
 

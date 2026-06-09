@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Eye, Filter, Search } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
@@ -29,6 +29,14 @@ const paymentStatusColors = {
   failed: "bg-red-100 text-red-700",
 };
 
+const getOrderTypeLabel = (order) => {
+  if (order.orderType === "membership") return "Membership";
+  if (order.membershipType && ["Prime", "Stater", "Bronze", "Silver", "Gold"].includes(order.membershipType)) return "Membership";
+  if (order.packageDealId || order.packageName) return "Package";
+  if (order.items?.length > 0) return "Product";
+  return "Regular";
+};
+
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,6 +45,43 @@ export default function Orders() {
   const [orderDetails, setOrderDetails] = useState(null);
   const [newStatus, setNewStatus] = useState("");
   const [loading, setLoading] = useState(true);
+  const [tableScrollWidth, setTableScrollWidth] = useState(0);
+  const topScrollRef = useRef(null);
+  const bottomScrollRef = useRef(null);
+  const tableRef = useRef(null);
+
+  useEffect(() => {
+    const top = topScrollRef.current;
+    const bottom = bottomScrollRef.current;
+
+    if (!top || !bottom) return;
+
+    const syncTopToBottom = () => {
+      bottom.scrollLeft = top.scrollLeft;
+    };
+
+    const syncBottomToTop = () => {
+      top.scrollLeft = bottom.scrollLeft;
+    };
+
+    top.addEventListener("scroll", syncTopToBottom);
+    bottom.addEventListener("scroll", syncBottomToTop);
+
+    const updateTableWidth = () => {
+      if (tableRef.current) {
+        setTableScrollWidth(tableRef.current.scrollWidth);
+      }
+    };
+
+    updateTableWidth();
+    window.addEventListener("resize", updateTableWidth);
+
+    return () => {
+      top.removeEventListener("scroll", syncTopToBottom);
+      bottom.removeEventListener("scroll", syncBottomToTop);
+      window.removeEventListener("resize", updateTableWidth);
+    };
+  }, [orders, searchTerm, statusFilter]);
 
   useEffect(() => {
     fetchOrders();
@@ -145,20 +190,30 @@ export default function Orders() {
           <CardTitle>All Orders ({filteredOrders.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Order ID</th>
-                  <th className="text-left py-3 px-4">Customer</th>
-                  <th className="text-left py-3 px-4 hidden md:table-cell">Date</th>
-                  <th className="text-left py-3 px-4">Amount</th>
-                  <th className="text-left py-3 px-4">Payment</th>
-                  <th className="text-left py-3 px-4">Reference</th>
-                  <th className="text-left py-3 px-4">Status</th>
-                  <th className="text-left py-3 px-4">Actions</th>
-                </tr>
-              </thead>
+          <div className="overflow-hidden">
+            <div
+              ref={topScrollRef}
+              className="mb-2 overflow-x-auto"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              <div style={{ width: tableScrollWidth, height: 1 }} />
+            </div>
+            <div className="overflow-x-auto" ref={bottomScrollRef}>
+              <table ref={tableRef} className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4">Order ID</th>
+                    <th className="text-left py-3 px-4">Customer</th>
+                    <th className="text-left py-3 px-4">Type</th>
+                    <th className="text-left py-3 px-4">Package / Item</th>
+                    <th className="text-left py-3 px-4 hidden md:table-cell">Date</th>
+                    <th className="text-left py-3 px-4">Amount</th>
+                    <th className="text-left py-3 px-4">Payment</th>
+                    <th className="text-left py-3 px-4">Reference</th>
+                    <th className="text-left py-3 px-4">Status</th>
+                    <th className="text-left py-3 px-4">Actions</th>
+                  </tr>
+                </thead>
               <tbody>
                 {filteredOrders.map((order) => (
                   <tr key={order._id} className="border-b last:border-0">
@@ -170,6 +225,12 @@ export default function Orders() {
                           {order.customerId?.contactInfo?.email || order.email || order.contactNumber}
                         </p>
                       </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Badge variant="outline">{getOrderTypeLabel(order)}</Badge>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="text-sm">{order.orderType === "membership" ? (order.notes?.split(" | ").pop() || "Membership") : "Product Order"}</span>
                     </td>
                     <td className="py-3 px-4 hidden md:table-cell">
                       {new Date(order.createdAt).toLocaleDateString()}
@@ -202,7 +263,7 @@ export default function Orders() {
                 ))}
                 {filteredOrders.length === 0 && (
                   <tr>
-                    <td className="py-8 px-4 text-center text-gray-500" colSpan={8}>
+                    <td className="py-8 px-4 text-center text-gray-500" colSpan={9}>
                       No orders found.
                     </td>
                   </tr>
@@ -210,6 +271,7 @@ export default function Orders() {
               </tbody>
             </table>
           </div>
+        </div>
         </CardContent>
       </Card>
 
@@ -224,6 +286,10 @@ export default function Orders() {
                 <div>
                   <p className="text-sm text-gray-500">Customer</p>
                   <p>{detailOrder.customerId?.name || detailOrder.fullName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Type</p>
+                  <p>{getOrderTypeLabel(detailOrder)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Phone</p>
@@ -273,19 +339,54 @@ export default function Orders() {
                 <p className="text-sm text-gray-500">Delivery Address</p>
                 <p>{detailOrder.address}</p>
               </div>
+              {detailOrder.notes && (
+                <div>
+                  <p className="text-sm text-gray-500">Additional Information</p>
+                  <div className="text-sm text-gray-700 space-y-1">
+                    {detailOrder.orderType === 'membership' ? (
+                      <>
+                        {detailOrder.notes.includes('|') ? (
+                          <>
+                            <p>{detailOrder.notes.split('|')[0].trim()}</p>
+                            <p className="italic text-gray-600">{detailOrder.notes.split('|')[1].trim()}</p>
+                          </>
+                        ) : (
+                          <p>{detailOrder.notes}</p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="whitespace-pre-wrap">{detailOrder.notes}</p>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="border-t pt-4">
                 <p className="text-sm text-gray-500 mb-2">Order Items</p>
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                  {detailItems.map((item) => (
-                    <div key={item._id} className="flex justify-between">
-                      <span>{item.productName}</span>
-                      <span>x{item.quantity}</span>
+                  {detailOrder.orderType === 'membership' && detailOrder.packageName ? (
+                    <div className="flex justify-between items-center py-2">
+                      <div>
+                        <p className="font-semibold text-gray-900">{detailOrder.packageName}</p>
+                        <p className="text-xs text-gray-500">Membership Package</p>
+                      </div>
+                      <span className="text-sm font-medium">x1</span>
                     </div>
-                  ))}
-                  {detailItems.length === 0 && <p className="text-sm text-gray-500">No item details loaded.</p>}
-                  <div className="flex justify-between pt-2 border-t">
-                    <span>Total Amount</span>
-                    <span>PHP {Number(detailOrder.total || 0).toLocaleString()}</span>
+                  ) : (
+                    <>
+                      {detailItems.map((item) => (
+                        <div key={item._id} className="flex justify-between">
+                          <span>{item.productName}</span>
+                          <span>x{item.quantity}</span>
+                        </div>
+                      ))}
+                      {detailItems.length === 0 && <p className="text-sm text-gray-500">No item details loaded.</p>}
+                    </>
+                  )}
+                  <div className="space-y-1 pt-2 border-t">
+                    <div className="flex justify-between font-semibold pt-2 border-t">
+                      <span>Total Amount</span>
+                      <span>PHP {Number(detailOrder.total || 0).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               </div>

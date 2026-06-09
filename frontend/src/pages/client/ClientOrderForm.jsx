@@ -162,6 +162,12 @@ export default function ClientOrderForm({ selectedPackage }) {
         quantity: item.quantity
       }));
       
+      // Determine order type
+      let orderType = "products"; // default
+      if (selectedPackage) {
+        orderType = "package"; // package deal order
+      }
+      
       const response = await ordersAPI.create({
         customerId: user?.id,
         fullName: name,
@@ -172,6 +178,7 @@ export default function ClientOrderForm({ selectedPackage }) {
         referenceNumber,
         packageId: selectedPackage?._id,
         items: selectedPackage ? [] : orderItemsForAPI,
+        orderType,
         notes: specialInstructions,
       });
 

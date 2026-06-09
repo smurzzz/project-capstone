@@ -19,7 +19,8 @@ export default function ClientPackages({ onSelectPackage }) {
   const [packages, setPackages] = useState([]);
   const [membership, setMembership] = useState(user?.membership || null);
   const [loading, setLoading] = useState(true);
-  const canSelectPackages = isMembershipActive(membership);
+  const memberRoleActive = user?.memberRole === "Member";
+  const canSelectPackages = memberRoleActive || isMembershipActive(membership);
 
   useEffect(() => {
     const fetchPackages = async () => {

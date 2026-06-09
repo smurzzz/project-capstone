@@ -24,7 +24,7 @@ import { Button } from "../../components/ui/button.jsx";
 import { Badge } from "../../components/ui/badge.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { appointmentsAPI, membershipAPI, ordersAPI, packagesAPI, productsAPI } from "../../utils/api.js";
-import { getTierDetails, isMembershipActive } from "../../utils/membership.js";
+import { isMembershipActive } from "../../utils/membership.js";
 
 export default function ClientHome({ onNavigateTab }) {
   const { user } = useAuth();
@@ -38,6 +38,8 @@ export default function ClientHome({ onNavigateTab }) {
   const [membership, setMembership] = useState(null);
   const [packageDeals, setPackageDeals] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const memberRoleActive = user?.memberRole === "Member";
+  const membershipActive = isMembershipActive(membership);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -77,8 +79,10 @@ export default function ClientHome({ onNavigateTab }) {
 
       <MembershipCard
         membership={membership}
+        isMemberRole={memberRoleActive}
         onApply={() => navigate("/membership/apply")}
         onViewStatus={() => navigate("/membership/status")}
+        onOpenPackages={() => onNavigateTab?.("packages")}
       />
 
       <DealsSection
@@ -209,13 +213,13 @@ function DealsSection({ packageDeals, onOpenPackages }) {
   );
 }
 
-function MembershipCard({ membership, onApply, onViewStatus }) {
-  const active = isMembershipActive(membership);
+function MembershipCard({ membership, onApply, onViewStatus, onOpenPackages, isMemberRole }) {
+  const active = isMembershipActive(membership) || isMemberRole;
   const hasApplied = membership && membership.status && membership.status !== "None";
-  const tierDetails = getTierDetails(membership?.tier);
+  const shouldShowViewStatus = active || (hasApplied && membership.status === "Pending");
 
   const statusCopy = active
-    ? `${membership.tier} member benefits are active.`
+    ? "Your membership is active — enjoy your member benefits"
     : hasApplied && membership.status === "Pending"
       ? "Your membership application is waiting for admin approval."
       : hasApplied && membership.status === "Rejected"
@@ -223,12 +227,8 @@ function MembershipCard({ membership, onApply, onViewStatus }) {
         : "Join the membership program when you are ready.";
 
   const Icon = active ? ShieldCheck : hasApplied ? Clock : Award;
-  const action = hasApplied && membership.status !== "Rejected" ? onViewStatus : onApply;
-  const actionLabel = active
-    ? "View Status"
-    : hasApplied && membership.status === "Pending"
-      ? "View Status"
-      : "Apply for Membership";
+  const action = isMemberRole ? onOpenPackages : hasApplied && membership.status !== "Rejected" ? onViewStatus : onApply;
+  const actionLabel = shouldShowViewStatus ? "View Status" : "Apply for Membership";
 
   return (
     <Card className="border-blue-100 bg-blue-50/70 shadow-sm">
@@ -252,9 +252,8 @@ function MembershipCard({ membership, onApply, onViewStatus }) {
                 <div className="mt-3 flex flex-wrap gap-3 text-sm text-gray-700">
                   <span className="inline-flex items-center gap-1">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    {tierDetails.monthlyDiscount}% discount
+                    Membership benefits are active
                   </span>
-                  <span>{membership.pointsBalance || 0} points</span>
                 </div>
               )}
             </div>

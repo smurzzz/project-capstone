@@ -1,7 +1,7 @@
 import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { getTierDetails, getDaysUntilExpiration, isMembershipExpired } from '../../utils/membership';
+import { getDaysUntilExpiration, isMembershipExpired } from '../../utils/membership';
 
 const STATUS_ICONS = {
     Pending: Clock,
@@ -25,7 +25,6 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
         );
     }
 
-    const tierDetails = getTierDetails(membership.tier);
     const StatusIcon = STATUS_ICONS[membership.status] || AlertCircle;
     const isExpired = isMembershipExpired(membership);
     const daysRemaining = getDaysUntilExpiration(membership.expiresAt);
@@ -75,9 +74,8 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
                                 {membership.status}
                             </CardTitle>
                             {membership.status === 'Active' && (
-                                <span className={`text-xs font-semibold px-3 py-1 rounded-full`}
-                                    style={{ backgroundColor: tierDetails.displayColor, color: 'white' }}>
-                                    {tierDetails.displayIcon} {membership.tier}
+                                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-900 text-white">
+                                    {membership.tier || 'Member'}
                                 </span>
                             )}
                         </div>

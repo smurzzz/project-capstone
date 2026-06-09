@@ -33,25 +33,19 @@ const customerSchema = new mongoose.Schema({
     membership: {
         status: {
             type: String,
-            enum: ["None", "Pending", "Active"
-            ],
+            enum: ["None", "Pending", "Active", "Rejected"],
             default: "None",
         },
         tier: {
             type: String,
-            enum: ["Silver", "Gold", "Platinum"],
-            default: "Silver",
+            trim: true,
+            default: "",
         },
-        pointsBalance: {
-            type: Number,
-            default: 0,
-            min: 0,
-        },
-        joinedAt: {
+        approvedAt: {
             type: Date,
             default: null,
         },
-        approvedAt: {
+        joinedAt: {
             type: Date,
             default: null,
         },
@@ -62,7 +56,46 @@ const customerSchema = new mongoose.Schema({
         renewalCount: {
             type: Number,
             default: 0,
-            min: 0,
+        },
+    },
+    selectedPackageDeal: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PackageDeal",
+        default: null,
+    },
+    entryPackage: {
+        type: String,
+        trim: true,
+        default: "None",
+    },
+    applicationNotes: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+    applicationSubmittedAt: {
+        type: Date,
+        default: null,
+    },
+    membershipPaymentInfo: {
+        packageDealId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "PackageDeal",
+            default: null,
+        },
+        paymentMethod: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        referenceNumber: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        appliedAt: {
+            type: Date,
+            default: null,
         },
     },
     profileImageUrl: {

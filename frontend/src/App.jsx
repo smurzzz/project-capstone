@@ -23,6 +23,7 @@ const ClientDashboard = lazy(() => import("./pages/client/ClientDashboard"));
 const ClientHomepage = lazy(() => import("./pages/client/ClientHomepage"));
 const ClientTracking = lazy(() => import("./pages/client/ClientTracking"));
 const MembershipApplication = lazy(() => import("./pages/client/MembershipApplication"));
+const MembershipApplicationForm = lazy(() => import("./pages/client/MembershipApplicationForm"));
 const MembershipStatus = lazy(() => import("./pages/client/MembershipStatus"));
 const Settings = lazy(() => import("./pages/shared/Settings"));
 
@@ -134,7 +135,7 @@ const App = () => (
               path="/membership/apply"
               element={
                 <ProtectedRoutes requireRole={["customer"]}>
-                  <MembershipApplication />
+                  <MembershipApplicationForm />
                 </ProtectedRoutes>
               }
             />

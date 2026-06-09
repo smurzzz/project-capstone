@@ -95,7 +95,7 @@ export default function MembershipApplication() {
             return;
         }
 
-        navigate('/dashboard', { state: { activeTab: 'order', membershipPackage: selectedPackageDeal } });
+        navigate('/membership/apply');
     };
 
     return (

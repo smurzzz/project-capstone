@@ -82,11 +82,13 @@ export default function Login({ mode = "customer" }) {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} autoComplete="on" className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                             <input
                                 type="email"
+                                name="email"
+                                autoComplete="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -101,6 +103,8 @@ export default function Login({ mode = "customer" }) {
                             <div className="relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    autoComplete="current-password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
