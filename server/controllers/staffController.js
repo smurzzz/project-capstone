@@ -237,6 +237,62 @@ export const updateStaffPassword = async (req, res) => {
 };
 
 /**
+ * Update own staff password (authenticated staff)
+ */
+export const updateOwnPassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "oldPassword and newPassword are required"
+            });
+        }
+
+        if (!isStrongPassword(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters and include a letter and a number"
+            });
+        }
+
+        const staffMember = await Staff.findById(req.user?.id);
+
+        if (!staffMember) {
+            return res.status(404).json({
+                success: false,
+                message: "Staff not found"
+            });
+        }
+
+        // Verify old password
+        const isPasswordValid = await bcrypt.compare(oldPassword, staffMember.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Old password is incorrect"
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        staffMember.password = hashedPassword;
+        await staffMember.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Password updated successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+/**
  * Delete staff member (Admin only)
  */
 export const deleteStaff = async (req, res) => {

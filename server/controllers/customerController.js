@@ -6,7 +6,10 @@ import {
     cleanProfileImage,
     isValidObjectId,
     normalizeEmail,
+    isStrongPassword,
 } from "../utils/validation.js";
+
+import bcrypt from "bcrypt";
 import { MEMBERSHIP_STATUSES, MEMBERSHIP_TIERS, getExpiryDate, expireActiveMemberships } from "../utils/membership.js";
 
 const defaultMembership = ({ status = "Active", tier = "Prime" } = {}) => {
@@ -712,6 +715,69 @@ export const updateEmailPreferences = async (req, res) => {
             success: false,
             message: "Internal server error",
         });
+    }
+};
+
+/**
+ * Update password for authenticated customer
+ */
+export const updateCustomerPassword = async (req, res) => {
+    try {
+        // Debug: log authenticated user info for troubleshooting
+        console.log("[updateCustomerPassword] req.user:", JSON.stringify(req.user));
+
+        if (req.user?.type !== "customer") {
+            return res.status(403).json({
+                success: false,
+                message: "Customer account required",
+            });
+        }
+
+        const { oldPassword, newPassword } = req.body;
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "oldPassword and newPassword are required",
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Customer not found",
+            });
+        }
+
+        if (!user.password) {
+            return res.status(400).json({
+                success: false,
+                message: "This account does not support password authentication",
+            });
+        }
+
+        if (!isStrongPassword(newPassword)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters and include a letter and a number",
+            });
+        }
+
+        const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Old password is incorrect",
+            });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.status(200).json({ success: true, message: "Password updated successfully" });
+    } catch (error) {
+        console.error("[updateCustomerPassword] error:", error.stack || error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 

@@ -1,17 +1,22 @@
 import express from "express";
-import { verifyAdmin, verifyToken } from "../middleware/auth.js";
+import { verifyAdmin, verifyToken, verifyStaff } from "../middleware/auth.js";
 import {
     getAllStaff,
     getStaffById,
     createStaff,
     updateStaff,
     updateStaffPassword,
+    updateOwnPassword,
     deleteStaff,
     getStaffStats,
     deactivateStaff
 } from "../controllers/staffController.js";
 
 const router = express.Router();
+
+// Allow authenticated staff to update their own password
+router.put("/me/password", verifyToken, verifyStaff, updateOwnPassword);
+
 router.use(verifyToken, verifyAdmin);
 
 // Admin routes

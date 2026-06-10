@@ -93,7 +93,7 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
                                 'Your application was not approved. You can submit a new application.'
                             )}
                             {membership.status === 'Expired' && (
-                                'Your membership has expired. Renew to continue enjoying benefits.'
+                                'Your membership has expired. Apply again to regain benefits.'
                             )}
                             {membership.status === 'Suspended' && (
                                 'Your membership is currently suspended. Please contact support.'
@@ -137,7 +137,7 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
                             ⏰ Your membership expires in {daysRemaining} days
                         </p>
                         <p className="text-xs text-yellow-800 mt-1">
-                            Renew now to maintain your benefits without interruption
+                            Consider applying again if you want to retain benefits
                         </p>
                     </div>
                 )}
@@ -149,7 +149,7 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
                             Expired on {new Date(membership.expiresAt).toLocaleDateString()}
                         </p>
                         <p className="text-xs text-gray-700 mt-1">
-                            Your membership is no longer active. Renew to regain access to member benefits.
+                            Your membership is no longer active. Apply again to regain access to member benefits.
                         </p>
                     </div>
                 )}
@@ -170,7 +170,7 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
 
                     {(membership.status === 'Active' || isExpired) && onRenew && (
                         <Button onClick={onRenew} variant="outline" className="flex-1 sm:flex-none">
-                            {isExpired ? 'Renew Membership' : 'Renew Early'}
+                            {isExpired ? 'Apply Again' : 'Renew Early'}
                         </Button>
                     )}
 

@@ -19,10 +19,10 @@ router.get("/low-stock", verifyToken, verifyStaff, getLowStockProducts);
 router.get("/:id/movements", verifyToken, verifyStaff, getInventoryMovements);
 router.get("/:id", getProductById);
 
-// Admin routes
-router.post("/", verifyToken, verifyAdmin, createProduct);
-router.put("/:id", verifyToken, verifyAdmin, updateProduct);
-router.delete("/:id", verifyToken, verifyAdmin, deleteProduct);
-router.post("/update-stock", verifyToken, verifyAdmin, updateStock);
+// Staff/Admin routes
+router.post("/", verifyToken, verifyStaff, createProduct);
+router.put("/:id", verifyToken, verifyStaff, updateProduct);
+router.delete("/:id", verifyToken, verifyStaff, deleteProduct);
+router.post("/update-stock", verifyToken, verifyStaff, updateStock);
 
 export default router;

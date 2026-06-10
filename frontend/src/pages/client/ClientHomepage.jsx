@@ -274,7 +274,7 @@ export default function ClientHomepage() {
               </p>
               <p className="flex items-start gap-3">
                 <Clock className="mt-1 h-5 w-5 shrink-0 text-blue-400" />
-                <span>Mon - Sat &nbsp; - &nbsp; 8:00 AM - 5:00 PM</span>
+                <span>Mon - Fri &nbsp; - &nbsp; 8:00 AM - 5:00 PM</span>
               </p>
             </div>
           </div>

@@ -67,6 +67,7 @@ export const optionalAuth = (req, res, next) => {
 export const verifyToken = (req, res, next) => {
     try {
         const token = getBearerToken(req);
+        console.log("[verifyToken] authorization:", req.headers.authorization || "<none>");
 
         if (!token) {
             return res.status(401).json({
@@ -78,6 +79,7 @@ export const verifyToken = (req, res, next) => {
         req.user = verifyAuthToken(token);
         next();
     } catch (error) {
+        console.error("[verifyToken] error:", error.stack || error);
         res.status(401).json({
             success: false,
             message: "Invalid or expired token",

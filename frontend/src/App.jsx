@@ -73,8 +73,22 @@ const AdminLayout = () => {
           <Routes>
             <Route path="/" element={<AdminDashboard />} />
             <Route path="/dashboard" element={<AdminDashboard />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/packages" element={<AdminPackages />} />
+            <Route
+              path="/inventory"
+              element={
+                <ProtectedRoutes requireRole={["Admin", "Staff"]}>
+                  <Inventory />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="/packages"
+              element={
+                <ProtectedRoutes requireRole={["Admin", "Staff"]}>
+                  <AdminPackages />
+                </ProtectedRoutes>
+              }
+            />
             <Route
               path="/memberships"
               element={
@@ -83,8 +97,22 @@ const AdminLayout = () => {
                 </ProtectedRoutes>
               }
             />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/customers" element={<Customers />} />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoutes requireRole={["Admin", "Staff"]}>
+                  <Orders />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <ProtectedRoutes requireRole={["Admin", "Staff"]}>
+                  <Customers />
+                </ProtectedRoutes>
+              }
+            />
             <Route
               path="/staff"
               element={
@@ -93,9 +121,30 @@ const AdminLayout = () => {
                 </ProtectedRoutes>
               }
             />
-            <Route path="/appointments" element={<Appointments />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route
+              path="/appointments"
+              element={
+                <ProtectedRoutes requireRole={["Admin", "Staff"]}>
+                  <Appointments />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoutes requireRole={["Admin", "Staff"]}>
+                  <Reports />
+                </ProtectedRoutes>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoutes requireRole={["Admin", "Staff"]}>
+                  <Settings />
+                </ProtectedRoutes>
+              }
+            />
           </Routes>
         </div>
       </div>

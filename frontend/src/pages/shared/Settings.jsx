@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, ImageIcon, ShieldCheck, UserRound, Mail, CheckCircle } from "lucide-react";
+import { Camera, ImageIcon, ShieldCheck, UserRound, Mail, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
 import { Input } from "../../components/ui/input.jsx";
@@ -10,7 +10,7 @@ import { customersAPI, staffAPI } from "../../utils/api.js";
 import { imageFileToDataUrl } from "../../utils/imageFile.js";
 
 export default function Settings() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -29,6 +29,13 @@ export default function Settings() {
   });
   const [loadingPreferences, setLoadingPreferences] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     // Keep the editable form in sync when a different account signs in.
@@ -272,6 +279,105 @@ export default function Settings() {
                 <Button type="submit" disabled={saving}>
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5" />
+                Change Password
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+
+                  if (!oldPassword || !newPassword || !confirmNewPassword) {
+                    toast.error("Please fill all password fields");
+                    return;
+                  }
+
+                  if (newPassword !== confirmNewPassword) {
+                    toast.error("New passwords do not match");
+                    return;
+                  }
+
+                  setSavingPassword(true);
+                  try {
+                    if (isCustomer) {
+                      await customersAPI.updatePassword(oldPassword, newPassword);
+                    } else if (isStaff) {
+                      await staffAPI.updateOwnPassword(oldPassword, newPassword);
+                    } else {
+                      toast.error("Password changes are not supported for this account type");
+                      return;
+                    }
+
+                    setOldPassword("");
+                    setNewPassword("");
+                    setConfirmNewPassword("");
+                    toast.success("Password updated successfully");
+                  } catch (error) {
+                    console.error("Password update error:", error);
+                    const status = error?.response?.status;
+                    if (status === 401 || status === 403) {
+                      toast.error(error.response?.data?.message || "Session expired or access denied");
+                      logout();
+                    } else {
+                      toast.error(error.response?.data?.message || "Failed to update password");
+                    }
+                  } finally {
+                    setSavingPassword(false);
+                  }
+                }}
+              >
+                <input
+                  type="hidden"
+                  name="username"
+                  autoComplete="username"
+                  value={user?.email || ""}
+                  aria-hidden="true"
+                />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="oldPassword">Current Password</Label>
+                    <div className="flex items-center gap-2">
+                      <Input id="oldPassword" name="current-password" autoComplete="current-password" type={showOldPassword ? "text" : "password"} value={oldPassword} onChange={(e)=>setOldPassword(e.target.value)} />
+                      <button type="button" className="p-2 rounded-md text-gray-600 hover:bg-gray-100" onClick={()=>setShowOldPassword(s=>!s)} aria-label="Toggle password visibility">
+                        {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <div className="flex items-center gap-2">
+                      <Input id="newPassword" name="new-password" autoComplete="new-password" type={showNewPassword ? "text" : "password"} value={newPassword} onChange={(e)=>setNewPassword(e.target.value)} />
+                      <button type="button" className="p-2 rounded-md text-gray-600 hover:bg-gray-100" onClick={()=>setShowNewPassword(s=>!s)} aria-label="Toggle password visibility">
+                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                    <div className="flex items-center gap-2">
+                      <Input id="confirmNewPassword" name="new-password-confirm" autoComplete="new-password" type={showConfirmPassword ? "text" : "password"} value={confirmNewPassword} onChange={(e)=>setConfirmNewPassword(e.target.value)} />
+                      <button type="button" className="p-2 rounded-md text-gray-600 hover:bg-gray-100" onClick={()=>setShowConfirmPassword(s=>!s)} aria-label="Toggle password visibility">
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button disabled={savingPassword} type="submit">
+                      {savingPassword ? "Saving..." : "Change Password"}
+                    </Button>
+                  </div>
+                </div>
               </form>
             </CardContent>
           </Card>

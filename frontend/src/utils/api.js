@@ -142,6 +142,10 @@ export const customersAPI = {
         api.get(`/customers/${id}/membership/history?limit=${limit}`)
 };
 
+// Customer account password update
+customersAPI.updatePassword = (oldPassword, newPassword) =>
+    api.put(`/customers/me/password`, { oldPassword, newPassword });
+
 // MEMBERSHIP APIs
 export const membershipAPI = {
     // Customer endpoints
@@ -226,6 +230,8 @@ export const staffAPI = {
     update: (id, staffData) => api.put(`/staff/${id}`, staffData),
     updatePassword: (id, oldPassword, newPassword) =>
         api.put(`/staff/${id}/password`, { oldPassword, newPassword }),
+    updateOwnPassword: (oldPassword, newPassword) =>
+        api.put(`/staff/me/password`, { oldPassword, newPassword }),
     delete: (id) => api.delete(`/staff/${id}`),
     deactivate: (id) => api.put(`/staff/${id}/deactivate`, {}),
     getStats: () => api.get("/staff/stats")

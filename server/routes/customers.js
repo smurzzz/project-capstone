@@ -6,6 +6,7 @@ import {
     getCustomerByEmail,
     getCurrentCustomer,
     updateCurrentCustomer,
+    updateCustomerPassword,
     createCustomer,
     updateCustomer,
     deleteCustomer,
@@ -21,6 +22,7 @@ const router = express.Router();
 // Authenticated customer route
 router.get("/me", verifyToken, getCurrentCustomer);
 router.put("/me", verifyToken, updateCurrentCustomer);
+router.put("/me/password", verifyToken, updateCustomerPassword);
 router.get("/me/email-preferences", verifyToken, getEmailPreferences);
 router.put("/me/email-preferences", verifyToken, updateEmailPreferences);
 
