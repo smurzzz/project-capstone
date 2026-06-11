@@ -141,7 +141,7 @@ export default function ClientProducts() {
   }
 
   return (
-    <div className="space-y-6 pb-16 mx-auto max-w-7xl">
+    <div className="space-y-4 pb-16 mx-auto max-w-7xl">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold sm:text-3xl">Browse Products</h2>
@@ -155,7 +155,7 @@ export default function ClientProducts() {
       </div>
 
       <Card>
-        <CardContent className="flex min-h-24 items-center p-4">
+        <CardContent className="flex min-h-20 items-center px-4 py-3">
           <div className="mx-auto grid w-full max-w-6xl items-center gap-3 md:grid-cols-[minmax(0,1fr)_200px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />

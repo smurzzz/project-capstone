@@ -29,40 +29,34 @@ const createTransporter = async () => {
     const mailUser = getMailUser();
     const mailPass = getMailPass();
     const service = process.env.EMAIL_SERVICE || process.env.SMTP_SERVICE || "gmail";
-
-    console.log(`Creating email transporter: service=${service}, user=${mailUser}`);
-
-    if (service) {
-        return nodemailer.createTransport({
-            service,
-            connectionTimeout: parseNumber(process.env.SMTP_CONNECTION_TIMEOUT_MS, 10_000),
-            greetingTimeout: parseNumber(process.env.SMTP_GREETING_TIMEOUT_MS, 10_000),
-            socketTimeout: parseNumber(process.env.SMTP_SOCKET_TIMEOUT_MS, 20_000),
-            auth: {
-                user: mailUser,
-                pass: mailPass,
-            },
-        });
-    }
-
     const port = Number(process.env.SMTP_PORT || 587);
+    const secure = parseBoolean(process.env.SMTP_SECURE) || port === 465;
+    const smtpHost = String(process.env.SMTP_HOST || "").trim();
 
-    console.log(`Creating custom SMTP transporter: host=${process.env.SMTP_HOST}:${port}`);
-    return nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port,
-        secure: parseBoolean(process.env.SMTP_SECURE) || port === 465,
-        connectionTimeout: parseNumber(process.env.SMTP_CONNECTION_TIMEOUT_MS, 10_000),
-        greetingTimeout: parseNumber(process.env.SMTP_GREETING_TIMEOUT_MS, 10_000),
-        socketTimeout: parseNumber(process.env.SMTP_SOCKET_TIMEOUT_MS, 20_000),
-        tls: {
-            rejectUnauthorized: false,
-        },
+    const transportOptions = {
         auth: {
             user: mailUser,
             pass: mailPass,
         },
-    });
+        connectionTimeout: parseNumber(process.env.SMTP_CONNECTION_TIMEOUT_MS, 10_000),
+        greetingTimeout: parseNumber(process.env.SMTP_GREETING_TIMEOUT_MS, 10_000),
+        socketTimeout: parseNumber(process.env.SMTP_SOCKET_TIMEOUT_MS, 20_000),
+        port,
+        secure,
+    };
+
+    if (smtpHost) {
+        transportOptions.host = smtpHost;
+        transportOptions.tls = {
+            rejectUnauthorized: false,
+        };
+        console.log(`Creating custom SMTP transporter: host=${smtpHost}:${port}, secure=${secure}`);
+    } else {
+        transportOptions.service = service;
+        console.log(`Creating email transporter: service=${service}, user=${mailUser}, port=${port}, secure=${secure}`);
+    }
+
+    return nodemailer.createTransport(transportOptions);
 };
 
 const getTransporter = async () => {

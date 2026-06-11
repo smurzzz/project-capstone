@@ -157,7 +157,7 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="relative h-20 w-20 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center overflow-hidden border group"
+                className="relative mt-5 h-20 w-20 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center overflow-hidden border group"
                 aria-label="Choose profile picture"
               >
                 {formData.profileImageUrl ? (
