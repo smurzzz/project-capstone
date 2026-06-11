@@ -1,16 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Building2,
   Calendar,
   BarChart3,
+  ChevronDown,
   Home,
   LogOut,
   Menu,
   Package,
   PackagePlus,
-  BookOpen,
   Settings,
   ShoppingCart,
+  User,
   UsersRound,
   X,
 } from "lucide-react";
@@ -29,27 +30,31 @@ const menuItems = [
   { name: "Memberships", path: "/admin/memberships", icon: <UsersRound className="h-5 w-5" /> },
   { name: "FAQs", path: "/admin/faqs", icon: <Building2 className="h-5 w-5" /> },
   { name: "Reports", path: "/admin/reports", icon: <BarChart3 className="h-5 w-5" /> },
-  { name: "Settings", path: "/admin/settings", icon: <Settings className="h-5 w-5" /> },
 ];
 
 export const Sidebar = ({ isMobile = false, open, onClose }) => {
   const [isOpen, setIsOpen] = useState(Boolean(open));
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isSidebarOpen = open !== undefined ? Boolean(open) : isOpen;
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  // keep internal state in sync when parent controls open
-  useEffect(() => {
-    if (open !== undefined) setIsOpen(Boolean(open));
-  }, [open]);
+  const handleSettings = () => {
+    setAccountMenuOpen(false);
+    if (isMobile) {
+      onClose ? onClose() : setIsOpen(false);
+    }
+    navigate("/admin/settings");
+  };
 
   return (
     <>
-      {isMobile && isOpen && (
+      {isMobile && isSidebarOpen && (
         <button
           aria-label="Close sidebar overlay"
           className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
@@ -62,12 +67,12 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
         className={`${
           isMobile
             ? `fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ${
-                isOpen ? "translate-x-0" : "-translate-x-full"
+                isSidebarOpen ? "translate-x-0" : "-translate-x-full"
               }`
             : "sticky top-0 self-start w-64 h-[100dvh]"
         } bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="relative p-6 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <img
               src={logoSrc}
@@ -75,13 +80,17 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
               className="h-14 w-[64px] rounded-xl bg-white/10 p-2 object-contain border border-white/10"
             />
             <div>
-              <h1 className="font-bold text-base">JBM ELECTRO</h1>
+              <h1 className="text-base font-bold">JBM Electro</h1>
               <p className="text-xs text-slate-400">Admin Panel</p>
             </div>
           </div>
 
           {isMobile && (
-            <button onClick={() => (onClose ? onClose() : setIsOpen(false))} className="text-slate-400 hover:text-white" type="button">
+            <button
+              onClick={() => (onClose ? onClose() : setIsOpen(false))}
+              className="absolute right-4 top-4 text-slate-400 hover:text-white"
+              type="button"
+            >
               <X size={20} />
             </button>
           )}
@@ -117,27 +126,55 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
         </nav>
 
         <div className="p-4 border-t border-slate-700 space-y-3">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-slate-700/50">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center overflow-hidden flex-shrink-0">
-              {user?.profileImageUrl ? (
-                <img src={user.profileImageUrl} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-sm font-semibold text-white">{user?.name?.[0]?.toUpperCase() || "A"}</span>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.name || "Admin User"}</p>
-              <p className="text-xs text-slate-400 truncate">{user?.email || "admin@jbm.com"}</p>
-            </div>
-          </div>
           <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-red-600/20 hover:text-red-300 transition-all duration-200"
             type="button"
+            onClick={() => setAccountMenuOpen((open) => !open)}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"
           >
-            <LogOut className="h-5 w-5" />
-            <span className="text-sm font-medium">Logout</span>
+            <User className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm font-medium flex-1 text-left">Account</span>
+            <ChevronDown
+              className={`h-4 w-4 transition-transform flex-shrink-0 ${
+                accountMenuOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
+
+          {accountMenuOpen && (
+            <div className="p-4 bg-slate-700/50 rounded-lg space-y-3 border border-slate-600">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {user?.profileImageUrl ? (
+                    <img src={user.profileImageUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="font-semibold text-white">{user?.name?.[0]?.toUpperCase() || "A"}</span>
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-slate-400">Logged in as</p>
+                  <p className="text-sm font-semibold text-white truncate">{user?.name || "Admin User"}</p>
+                  <p className="text-xs text-slate-400 truncate">{user?.email || "admin@jbm.com"}</p>
+                </div>
+              </div>
+              <div className="h-px bg-slate-600" />
+              <button
+                type="button"
+                onClick={handleSettings}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-600 rounded transition-all duration-200"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-300 hover:bg-red-600/20 rounded transition-all duration-200"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 

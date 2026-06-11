@@ -14,8 +14,7 @@ const getMembershipBadgeColor = (status) => {
     const colors = {
         'Active': '#10b981',
         'Pending': '#f59e0b',
-        'None': '#9ca3af',
-        'Suspended': '#ef4444'
+        'None': '#9ca3af'
     };
     return colors[status] || '#9ca3af';
 };

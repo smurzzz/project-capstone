@@ -65,8 +65,8 @@ export default function ClientHomepage() {
                     </Link>
                   </>
                 ) : (
-                  <Link to="/admin">
-                    <Button>Admin</Button>
+                  <Link to="/dashboard">
+                    <Button>Dashboard</Button>
                   </Link>
                 )
               ) : (

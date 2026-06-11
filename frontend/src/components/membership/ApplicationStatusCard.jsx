@@ -8,8 +8,7 @@ const STATUS_ICONS = {
     Approved: CheckCircle,
     Active: CheckCircle,
     Rejected: XCircle,
-    Expired: AlertCircle,
-    Suspended: AlertCircle
+    Expired: AlertCircle
 };
 
 export default function ApplicationStatusCard({ membership, onRenew, onReapply }) {
@@ -38,7 +37,6 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
             case 'Pending':
                 return 'bg-yellow-50 border-yellow-200';
             case 'Rejected':
-            case 'Suspended':
                 return 'bg-red-50 border-red-200';
             case 'Expired':
                 return 'bg-gray-50 border-gray-200';
@@ -56,7 +54,6 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
             case 'Pending':
                 return 'text-yellow-900';
             case 'Rejected':
-            case 'Suspended':
                 return 'text-red-900';
             case 'Expired':
                 return 'text-gray-900';
@@ -86,7 +83,7 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
                                 'Your membership has expired. Apply again to regain benefits.'
                             )}
                             {!isExpired && membership.status === 'Pending' && (
-                                'Your application is under review. We will notify you within 24-48 hours.'
+                                'Your application is under review. Activation will be set once your order is completed.'
                             )}
                             {!isExpired && membership.status === 'Active' && (
                                 `Your membership is active and benefits are available`
@@ -96,9 +93,6 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
                             )}
                             {!isExpired && membership.status === 'Rejected' && (
                                 'Your application was not approved. You can submit a new application.'
-                            )}
-                            {!isExpired && membership.status === 'Suspended' && (
-                                'Your membership is currently suspended. Please contact support.'
                             )}
                         </CardDescription>
                     </div>
@@ -170,12 +164,6 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
                         <Button onClick={onRenew} variant="outline" className="flex-1 sm:flex-none">
                             Apply Again
                         </Button>
-                    )}
-
-                    {membership.status === 'Suspended' && (
-                        <div className="text-center py-2 text-sm text-red-600 flex-1">
-                            Contact support@jbmelectro.com for assistance
-                        </div>
                     )}
                 </div>
             </CardContent>
