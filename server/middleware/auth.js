@@ -1,21 +1,33 @@
 import jwt from "jsonwebtoken";
 import { isAdminRole, isStaffRole } from "../utils/validation.js";
 
-const DEVELOPMENT_SECRET = "development-only-change-me";
-
 export const getJwtSecret = () => {
     const secret = process.env.JWT_SECRET;
 
-    if (!secret || secret === "your-secret-key" || secret.includes("change-this")) {
-        if (process.env.NODE_ENV === "production") {
-            throw new Error("JWT_SECRET must be set to a strong value in production");
-        }
-
-        return secret || DEVELOPMENT_SECRET;
+    if (!secret) {
+        throw new Error("JWT_SECRET must be set");
     }
 
-    return secret;
+    // Disallow common placeholder secrets to prevent insecure deployments.
+    const normalized = String(secret).trim().toLowerCase();
+    const isPlaceholder =
+        normalized === "your-secret-key" ||
+        normalized.includes("change-this") ||
+        normalized.includes("development-only-change-me");
+
+    if (isPlaceholder) {
+        throw new Error("JWT_SECRET must not be a placeholder value");
+    }
+
+    // Basic strength check: require a decent length.
+    if (String(secret).length < 20) {
+        throw new Error("JWT_SECRET is too short");
+    }
+
+    return String(secret);
 };
+
+
 
 export const signAuthToken = (payload) =>
     jwt.sign(payload, getJwtSecret(), {
@@ -67,7 +79,6 @@ export const optionalAuth = (req, res, next) => {
 export const verifyToken = (req, res, next) => {
     try {
         const token = getBearerToken(req);
-        console.log("[verifyToken] authorization:", req.headers.authorization || "<none>");
 
         if (!token) {
             return res.status(401).json({
@@ -79,13 +90,13 @@ export const verifyToken = (req, res, next) => {
         req.user = verifyAuthToken(token);
         next();
     } catch (error) {
-        console.error("[verifyToken] error:", error.stack || error);
         res.status(401).json({
             success: false,
             message: "Invalid or expired token",
         });
     }
 };
+
 
 /**
  * Middleware to verify user is Admin

@@ -47,6 +47,7 @@ export default function GoogleAuthButton({
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
+
     onErrorRef.current = onError;
   }, [onError]);
 

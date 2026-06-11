@@ -62,7 +62,7 @@ export default function Login({ mode = "customer" }) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-4">
             <div className="w-full max-w-md">
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-5 sm:p-8">
                     <div className="flex items-center justify-center mb-6">
                         <div className="rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 p-3">
                             <LogIn className="h-6 w-6 text-white" />
@@ -129,6 +129,14 @@ export default function Login({ mode = "customer" }) {
                         >
                             {loading ? "Signing in..." : "Sign In"}
                         </button>
+
+                        {!isStaffLogin && (
+                            <div className="text-right">
+                                <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                                    Forgot password?
+                                </Link>
+                            </div>
+                        )}
                     </form>
 
                     {!isStaffLogin && (

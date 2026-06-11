@@ -64,7 +64,7 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
             ? `fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ${
                 isOpen ? "translate-x-0" : "-translate-x-full"
               }`
-            : "sticky top-0 self-start w-64 h-screen"
+            : "sticky top-0 self-start w-64 h-[100dvh]"
         } bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col`}
       >
         <div className="flex items-center justify-between p-6 border-b border-slate-700">

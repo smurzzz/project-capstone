@@ -154,8 +154,10 @@ export const verifyOtp = async (req, res) => {
 export const requestPasswordReset = async (req, res) => {
     try {
         const email = normalizeEmail(req.body.email);
+        console.log("[PASSWORD_RESET] Request received for:", email || "(missing email)");
 
         if (!email || !isValidEmail(email)) {
+            console.log("[PASSWORD_RESET] Invalid email");
             return res.status(400).json({
                 success: false,
                 message: "A valid email address is required",
@@ -163,9 +165,12 @@ export const requestPasswordReset = async (req, res) => {
         }
 
         const account = await findAccountByEmail(email);
+        console.log("[PASSWORD_RESET] Account lookup:", account ? "FOUND" : "NOT FOUND");
+
         const resetToken = crypto.randomBytes(32).toString("hex");
 
         if (account) {
+            console.log("[PASSWORD_RESET] Creating reset token");
             await createEmailToken({
                 email,
                 purpose: "password_reset",
@@ -178,13 +183,24 @@ export const requestPasswordReset = async (req, res) => {
                 ? `${appUrl}/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(email)}`
                 : "";
 
-            await sendPasswordResetEmail({
+            console.log("[PASSWORD_RESET] Sending reset email to:", email);
+            const emailResult = await sendPasswordResetEmail({
                 to: email,
                 name: account.name,
                 resetToken,
                 resetUrl,
                 expiresInMinutes: RESET_TTL_MINUTES,
             });
+            console.log("[PASSWORD_RESET] Email send result:", emailResult ? "SENT" : "FAILED");
+
+            if (!emailResult) {
+                return res.status(503).json({
+                    success: false,
+                    message: "Password reset email could not be sent. Check SMTP configuration and server logs.",
+                });
+            }
+        } else {
+            console.log("[PASSWORD_RESET] No account found for:", email);
         }
 
         return res.status(200).json({
@@ -192,14 +208,13 @@ export const requestPasswordReset = async (req, res) => {
             message: "If the email is registered, a password reset email has been sent",
         });
     } catch (error) {
-        console.error("Request password reset error:", error);
+        console.error("[PASSWORD_RESET] Request failed:", error);
         return res.status(500).json({
             success: false,
             message: "Failed to send password reset email",
         });
     }
 };
-
 export const resetPassword = async (req, res) => {
     try {
         const email = normalizeEmail(req.body.email);

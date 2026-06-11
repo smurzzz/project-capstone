@@ -51,7 +51,7 @@ export default function AdminDashboard() {
         }
       } finally {
         if (active) setLoading(false);
-      } 
+      }
     };
 
     fetchDashboardData();
@@ -124,14 +124,23 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6 p-6 md:p-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Dashboard Overview</h1>
-          <p className="text-gray-600">Live database snapshot for {report?.period?.label || "last 7 days"}.</p>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-10 -mx-6 px-6 py-4 bg-[var(--brand-surface)]/80 backdrop-blur border-b border-gray-200/60">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              Dashboard Overview
+            </h1>
+            <p className="text-gray-600">
+              Live database snapshot for {report?.period?.label || "last 7 days"}.
+            </p>
+          </div>
+          <p className="text-xs text-gray-500 font-medium">
+            {lastUpdated
+              ? `Updated ${lastUpdated.toLocaleTimeString()}`
+              : "Waiting for first update"}
+          </p>
         </div>
-        <p className="text-xs text-gray-500 font-medium">
-          {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString()}` : "Waiting for first update"}
-        </p>
       </div>
 
       {error && (
@@ -216,14 +225,20 @@ export default function AdminDashboard() {
               <tbody>
                 {recentOrders.map((order) => (
                   <tr key={order._id} className="border-b last:border-0">
-                    <td className="py-3 px-4">{order.orderId || order.referenceNumber || order._id}</td>
+                    <td className="py-3 px-4">
+                      {order.orderId || order.referenceNumber || order._id}
+                    </td>
                     <td className="py-3 px-4">{order.customerName}</td>
                     <td className="py-3 px-4 hidden md:table-cell">
                       {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "-"}
                     </td>
                     <td className="py-3 px-4">{formatMoney(order.total)}</td>
                     <td className="py-3 px-4">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs ${statusColor(order.status)}`}>
+                      <span
+                        className={`inline-block px-2 py-1 rounded-full text-xs ${statusColor(
+                          order.status
+                        )}`}
+                      >
                         {order.status}
                       </span>
                     </td>
@@ -244,3 +259,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

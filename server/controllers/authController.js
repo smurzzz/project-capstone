@@ -435,8 +435,10 @@ export const registerCustomer = async (req, res) => {
 export const googleCustomerAuth = async (req, res) => {
     try {
         const credential = cleanString(req.body.credential, 10_000);
+        console.log("[GOOGLE_AUTH] Request received");
 
         if (!credential) {
+            console.log("[GOOGLE_AUTH] Missing credential");
             return res.status(400).json({
                 success: false,
                 message: "Google credential is required",
@@ -447,9 +449,11 @@ export const googleCustomerAuth = async (req, res) => {
         const email = normalizeEmail(googleProfile.email);
         const name = cleanString(googleProfile.name, 120) || email;
         const profileImageUrl = cleanString(googleProfile.picture, 1000);
+        console.log("[GOOGLE_AUTH] Verified Google account:", email);
 
         const existingStaff = await Staff.findOne({ email });
         if (existingStaff) {
+            console.log("[GOOGLE_AUTH] Email belongs to staff account:", email);
             return res.status(400).json({
                 success: false,
                 message: "This email belongs to a staff account. Please use staff login.",
@@ -457,8 +461,10 @@ export const googleCustomerAuth = async (req, res) => {
         }
 
         let user = await User.findOne({ email, role: "customer" });
+        console.log("[GOOGLE_AUTH] Customer user lookup:", user ? "FOUND" : "NOT FOUND");
 
         if (!user) {
+            console.log("[GOOGLE_AUTH] Creating customer profile for:", email);
             const customer = await getOrCreateCustomerProfile({
                 name,
                 email,
@@ -466,6 +472,7 @@ export const googleCustomerAuth = async (req, res) => {
                 address: "Not provided",
             });
 
+            console.log("[GOOGLE_AUTH] Creating user for:", email);
             user = await User.create({
                 name,
                 email,
@@ -478,9 +485,11 @@ export const googleCustomerAuth = async (req, res) => {
                 googleId: googleProfile.googleId,
                 emailVerified: true,
             });
+            console.log("[GOOGLE_AUTH] User created:", String(user._id));
 
         } else {
             if (user.googleId && user.googleId !== googleProfile.googleId) {
+                console.log("[GOOGLE_AUTH] Google ID mismatch for:", email);
                 return res.status(401).json({
                     success: false,
                     message: "Google account does not match this email",
@@ -507,9 +516,11 @@ export const googleCustomerAuth = async (req, res) => {
             user.profileImageUrl = user.profileImageUrl || profileImageUrl;
             user.name = user.name || name;
             await user.save();
+            console.log("[GOOGLE_AUTH] Existing user updated:", String(user._id));
         }
 
         const session = await issueCustomerSession(user);
+        console.log("[GOOGLE_AUTH] Session issued for:", email);
 
         return res.status(200).json({
             success: true,
@@ -517,12 +528,19 @@ export const googleCustomerAuth = async (req, res) => {
             ...session,
         });
     } catch (error) {
+        // Log only safe details (no token/PII)
+        console.error("[GOOGLE_AUTH] Request failed:", {
+            message: error?.message,
+            statusCode: error?.statusCode,
+        });
+
         return res.status(error.statusCode || 500).json({
             success: false,
             message: error.statusCode ? error.message : "Internal server error",
         });
     }
 };
+
 
 /**
  * Legacy Login (for backward compatibility)

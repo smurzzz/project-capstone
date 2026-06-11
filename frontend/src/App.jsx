@@ -10,6 +10,8 @@ import { Menu } from "lucide-react";
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const SignUp = lazy(() => import("./pages/auth/SignUp"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminPackages = lazy(() => import("./pages/admin/AdminPackages"));
 const AdminMemberships = lazy(() => import("./pages/admin/AdminMemberships"));
@@ -43,7 +45,7 @@ const AdminLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-[100dvh] overflow-hidden bg-gray-50">
       <div className="hidden md:block">
         <Sidebar />
       </div>
@@ -62,19 +64,21 @@ const AdminLayout = () => {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4 shadow-sm md:hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm md:hidden">
           <Button
             variant="outline"
             size="icon"
-            className="md:hidden"
+            className="shrink-0 md:hidden"
             onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open admin menu"
           >
             <Menu className="h-5 w-5" />
           </Button>
+          <span className="truncate text-sm font-semibold text-gray-900">JBM Electro Admin</span>
         </div>
 
-        <div style={styles.mainContent}>
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[var(--brand-surface)]">
           <Routes>
             <Route path="/" element={<AdminDashboard />} />
             <Route path="/dashboard" element={<AdminDashboard />} />
@@ -157,9 +161,9 @@ const AdminLayout = () => {
                     <AdminFAQ />
                   </ProtectedRoutes>
                 }
-              />
+            />
           </Routes>
-        </div>
+        </main>
       </div>
     </div>
   );
@@ -174,6 +178,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/admin/login" element={<Login mode="staff" />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             <Route
               path="/admin/*"
@@ -239,13 +245,5 @@ const App = () => (
     </CartProvider>
   </AuthProvider>
 );
-
-const styles = {
-  mainContent: {
-    flex: 1,
-    overflow: "auto",
-    backgroundColor: "var(--brand-surface)",
-  },
-};
 
 export default App;

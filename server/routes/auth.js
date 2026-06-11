@@ -17,6 +17,11 @@ import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
+router.use((req, _res, next) => {
+    console.log(`[AUTH] ${req.method} ${req.originalUrl}`);
+    next();
+});
+
 // Customer auth routes
 router.post("/customer/login", loginCustomer);
 router.post("/customer/register", registerCustomer);

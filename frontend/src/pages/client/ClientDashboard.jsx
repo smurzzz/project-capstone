@@ -268,7 +268,7 @@ export default function ClientDashboard() {
   const Sidebar = ({ isMobile = false }) => (
     <div
       className={`${isMobile ? "w-full" : "w-64"} bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white ${
-        isMobile ? "min-h-screen" : "h-screen sticky top-0"
+        isMobile ? "min-h-screen" : "h-[100dvh] sticky top-0"
       } flex flex-col`}
     >
       <div className="p-6 border-b border-slate-700">
@@ -367,7 +367,7 @@ export default function ClientDashboard() {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-[100dvh] overflow-hidden bg-gray-50">
       <div className="hidden md:block">
         <Sidebar />
       </div>
@@ -386,18 +386,19 @@ export default function ClientDashboard() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between gap-4 shadow-sm">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-6">
           <Button
             variant="outline"
             size="icon"
-            className="md:hidden"
+            className="shrink-0 md:hidden"
             onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open customer menu"
           >
             <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-4">
             <button
               type="button"
               onClick={openSettings}
@@ -496,7 +497,7 @@ export default function ClientDashboard() {
           </div>
         </div>
 
-        <main className="flex-1 p-6 md:p-8 overflow-auto">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8">
           {activeTab === "home" && <ClientHome onNavigateTab={setActiveTab} />}
           {activeTab === "products" && <ClientProducts />}
           {activeTab === "packages" && (
