@@ -381,7 +381,7 @@ function OfferPreview({ packageDeals, user }) {
                   )}
                 </div>
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold leading-snug text-gray-900">{pkg.name}</p>
                     {pkg.isPopular && <Badge className="bg-blue-600">Popular</Badge>}
                   </div>

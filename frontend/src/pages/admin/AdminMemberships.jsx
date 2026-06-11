@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mail, Calendar, User, Trash2, Users, UserCheck, UserX } from 'lucide-react';
+import { Mail, Calendar, RefreshCw, Search, User, Trash2, Users, UserCheck, UserX } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 import RoleEditModal from '../../components/admin/RoleEditModal';
 import { customersAPI, membershipAPI } from '../../utils/api';
@@ -153,58 +153,39 @@ export default function AdminMemberships() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-sm text-slate-500">Active</div>
-              <div className="text-3xl text-slate-900">{members}</div>
-            </div>
-            <UserCheck className="h-8 w-8 text-green-600" />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-sm text-slate-500">Guests</div>
-              <div className="text-3xl text-slate-900">{guests}</div>
-            </div>
-            <Users className="h-8 w-8 text-blue-600" />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="text-sm text-slate-500">Cancelled</div>
-              <div className="text-3xl text-slate-900">{stats.cancelled || 0}</div>
-            </div>
-            <UserX className="h-8 w-8 text-rose-600" />
-          </div>
-        </div>
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <MembershipStat title="Active" value={members} icon={<UserCheck className="h-8 w-8 text-green-600" />} />
+        <MembershipStat title="Guests" value={guests} icon={<Users className="h-8 w-8 text-blue-600" />} />
+        <MembershipStat title="Cancelled" value={stats.cancelled || 0} icon={<UserX className="h-8 w-8 text-rose-600" />} />
       </div>
 
-      <div className="flex items-center gap-4 mb-4">
-        <div className="flex-1">
-          <Input
-            placeholder="Search by name, email, or package..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        <div>
-          <select className="px-3 py-2 border rounded-md" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-            <option value="All">All Roles</option>
-            <option value="Member">Member</option>
-            <option value="Guest">Guest</option>
-          </select>
-        </div>
-        <div>
-          <button
-            className="px-3 py-2 border rounded-md bg-white hover:bg-slate-50"
-            onClick={() => fetchApplications({ status: roleFilter === 'Member' ? 'Active' : '', search: query })}
-          >
-            Refresh
-          </button>
+      <div className="mb-4 flex min-h-24 items-center rounded-lg bg-white p-4 shadow-sm">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-3 md:grid-cols-[minmax(0,1fr)_180px_auto]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              placeholder="Search by name, email, or package..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="h-10 pl-10"
+            />
+          </div>
+          <div>
+            <select className="h-10 w-full rounded-md border px-3 py-2 text-sm" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+              <option value="All">All Roles</option>
+              <option value="Member">Member</option>
+              <option value="Guest">Guest</option>
+            </select>
+          </div>
+          <div>
+            <button
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border bg-white px-3 py-2 text-sm hover:bg-slate-50 md:w-auto"
+              onClick={() => fetchApplications({ status: roleFilter === 'Member' ? 'Active' : '', search: query })}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
@@ -319,6 +300,24 @@ export default function AdminMemberships() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function MembershipStat({ title, value, icon }) {
+  return (
+    <div className="rounded-lg bg-white shadow-sm">
+      <div className="flex min-h-40 items-center p-6">
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-sm text-slate-500">{title}</div>
+            <div className="mt-3 break-words text-3xl text-slate-900">{value}</div>
+          </div>
+          <div className="shrink-0">
+            {icon}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

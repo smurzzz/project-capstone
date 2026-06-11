@@ -291,59 +291,31 @@ export default function Inventory() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Total Items</p>
-                <p className="mt-2 text-3xl font-bold text-slate-950">{products.length}</p>
-              </div>
-              <div className="rounded-2xl bg-blue-50 p-3 text-blue-600">
-                <Package className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Low Stock Items</p>
-                <p className="mt-2 text-3xl font-bold text-slate-950">{lowStockItems.length}</p>
-              </div>
-              <div className="rounded-2xl bg-amber-50 p-3 text-amber-600">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Total Stock Value</p>
-                <p className="mt-2 text-3xl font-bold text-slate-950">{formatMoney(totalValue)}</p>
-              </div>
-              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
-                <PhilippinePeso className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Categories</p>
-                <p className="mt-2 text-3xl font-bold text-slate-950">{categoryList.length}</p>
-              </div>
-              <div className="rounded-2xl bg-violet-50 p-3 text-violet-600">
-                <Tags className="h-6 w-6" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <InventoryStat
+          title="Total Items"
+          value={products.length}
+          icon={<Package className="h-7 w-7" />}
+          iconClassName="text-blue-600"
+        />
+        <InventoryStat
+          title="Low Stock Items"
+          value={lowStockItems.length}
+          icon={<AlertTriangle className="h-7 w-7" />}
+          iconClassName="text-amber-600"
+        />
+        <InventoryStat
+          title="Total Stock Value"
+          value={formatMoney(totalValue)}
+          icon={<PhilippinePeso className="h-7 w-7" />}
+          iconClassName="text-emerald-600"
+        />
+        <InventoryStat
+          title="Categories"
+          value={categoryList.length}
+          icon={<Tags className="h-7 w-7" />}
+          iconClassName="text-violet-600"
+        />
       </div>
 
       {lowStockItems.length > 0 && (
@@ -370,21 +342,24 @@ export default function Inventory() {
       )}
 
       <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-4 md:p-5">
-          <div className="grid gap-3 lg:grid-cols-[1fr_auto_auto]">
-            <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder="Search by name, SKU, or category..."
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              className="h-11 rounded-2xl border-slate-200 bg-slate-50 pl-10"
-            />
+        <CardContent className="flex min-h-24 items-center p-4">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_220px_auto]">
+            <div className="hidden h-10 w-10 items-center justify-center text-gray-400 lg:flex">
+              <Search className="h-5 w-5" />
+            </div>
+            <div className="relative flex items-center">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 lg:hidden" />
+              <Input
+                placeholder="Search by name, SKU, or category..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="h-10 pl-10 lg:pl-3"
+              />
             </div>
             <select
               value={categoryFilter}
               onChange={(event) => setCategoryFilter(event.target.value)}
-              className="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm"
+              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <option value="all">All categories</option>
               {categoryList.map((category) => (
@@ -393,7 +368,7 @@ export default function Inventory() {
                 </option>
               ))}
             </select>
-            <Button type="button" variant="outline" className="h-11 rounded-2xl" onClick={() => fetchProducts(true)}>
+            <Button type="button" variant="outline" className="h-10 justify-center" onClick={() => fetchProducts(true)}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
@@ -743,5 +718,23 @@ export default function Inventory() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function InventoryStat({ title, value, icon, iconClassName }) {
+  return (
+    <Card>
+      <CardContent className="flex min-h-40 items-center p-6">
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm text-gray-500">{title}</p>
+            <p className="mt-3 break-words text-3xl font-bold text-slate-950">{value}</p>
+          </div>
+          <div className={`shrink-0 ${iconClassName}`}>
+            {icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -268,7 +268,7 @@ export default function ClientDashboard() {
   const Sidebar = ({ isMobile = false }) => (
     <div
       className={`${isMobile ? "w-full" : "w-64"} bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white ${
-        isMobile ? "min-h-screen" : "h-[100dvh] sticky top-0"
+        isMobile ? "min-h-screen" : "h-[100dvh]"
       } flex flex-col`}
     >
       <div className="p-6 border-b border-slate-700">
@@ -368,7 +368,7 @@ export default function ClientDashboard() {
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-gray-50">
-      <div className="hidden md:block">
+      <div className="fixed inset-y-0 left-0 z-40 hidden w-64 md:block">
         <Sidebar />
       </div>
 
@@ -386,7 +386,7 @@ export default function ClientDashboard() {
         </div>
       )}
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col md:ml-64">
         <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-6">
           <Button
             variant="outline"
@@ -497,7 +497,7 @@ export default function ClientDashboard() {
           </div>
         </div>
 
-        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-5 md:p-6 lg:p-8 xl:p-10">
           {activeTab === "home" && <ClientHome onNavigateTab={setActiveTab} />}
           {activeTab === "products" && <ClientProducts />}
           {activeTab === "packages" && (

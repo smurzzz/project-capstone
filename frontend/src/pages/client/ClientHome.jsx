@@ -73,8 +73,8 @@ export default function ClientHome({ onNavigateTab }) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Welcome to JBM Electro Ventures</h1>
-        <p className="text-lg text-gray-600">Your trusted e-commerce portal for electrical solutions</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2 sm:text-3xl lg:text-4xl">Welcome to JBM Electro Ventures</h1>
+        <p className="text-base text-gray-600 sm:text-lg">Your trusted e-commerce portal for electrical solutions</p>
       </div>
 
       <MembershipCard
@@ -168,7 +168,7 @@ function DealsSection({ packageDeals, onOpenPackages }) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-5 shadow-sm sm:px-6 sm:py-6">
             <p className="text-sm font-semibold text-slate-900">Unlock up to 40% member discounts and enjoy access to package deals.</p>
             <p className="mt-2 text-sm text-slate-600">Join today and make every order more valuable with exclusive pricing designed for members.</p>
           </div>
@@ -232,14 +232,14 @@ function MembershipCard({ membership, onApply, onViewStatus, onOpenPackages, isM
 
   return (
     <Card className="border-blue-100 bg-blue-50/70 shadow-sm">
-      <CardContent className="p-5">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex gap-4">
-            <div className="h-12 w-12 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+      <CardContent className="px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="flex flex-col items-center gap-5 text-center lg:flex-row lg:justify-between lg:text-left">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:text-left">
+            <div className="h-16 w-16 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
               <Icon className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                 <h2 className="text-xl font-bold text-gray-900">Membership</h2>
                 {hasApplied && (
                   <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-100">
@@ -249,7 +249,7 @@ function MembershipCard({ membership, onApply, onViewStatus, onOpenPackages, isM
               </div>
               <p className="mt-1 text-sm text-gray-700">{statusCopy}</p>
               {active && (
-                <div className="mt-3 flex flex-wrap gap-3 text-sm text-gray-700">
+                <div className="mt-3 flex flex-wrap justify-center gap-3 text-sm text-gray-700 sm:justify-start">
                   <span className="inline-flex items-center gap-1">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     Membership benefits are active
@@ -272,11 +272,11 @@ function Stat({ title, value, note, icon, color }) {
   const Icon = icon;
   return (
     <Card className="border-0 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
+      <CardHeader className="p-4 sm:p-5 lg:p-6">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             <CardTitle className="text-sm font-medium text-gray-600 mb-2">{title}</CardTitle>
-            <div className="text-3xl font-bold text-gray-900 tracking-tight">{value}</div>
+            <div className="text-2xl font-bold text-gray-900 tracking-tight sm:text-3xl">{value}</div>
             <p className="text-xs text-gray-500 mt-2">{note}</p>
           </div>
           <div className={`p-3 bg-gradient-to-br ${color} rounded-lg flex-shrink-0`}>

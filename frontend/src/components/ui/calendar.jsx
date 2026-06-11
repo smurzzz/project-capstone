@@ -16,10 +16,10 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("rounded-3xl border border-gray-100 bg-white p-4 shadow-sm", className)}
+      className={cn("mx-auto w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-3 shadow-sm sm:p-4", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row gap-3",
-        month: "flex flex-col gap-5",
+        months: "flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center",
+        month: "flex w-full max-w-[20rem] flex-col gap-4",
         caption: "flex justify-center relative items-center w-full px-10",
         caption_label: "text-sm font-semibold tracking-wide text-gray-900",
         nav: "flex items-center gap-1",
@@ -29,20 +29,20 @@ function Calendar({
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
-        table: "w-full border-collapse",
-        head_row: "flex",
+        table: "w-full table-fixed border-collapse",
+        head_row: "grid grid-cols-7",
         head_cell:
-          "w-9 rounded-md text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-gray-400",
-        row: "flex w-full mt-2",
+          "h-8 min-w-0 rounded-md text-center text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-gray-400",
+        row: "grid w-full grid-cols-7 gap-1",
         cell: cn(
-          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
+          "relative flex min-w-0 justify-center p-0 text-center text-sm focus-within:relative focus-within:z-20",
           props.mode === "range"
             ? "[&:has(>.day-range-end)]:rounded-full [&:has(>.day-range-start)]:rounded-full first:[&:has([aria-selected])]:rounded-full last:[&:has([aria-selected])]:rounded-full"
             : "[&:has([aria-selected])]:rounded-full",
         ),
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "size-9 rounded-full p-0 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-950 aria-selected:opacity-100",
+          "size-9 rounded-full p-0 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-950 aria-selected:opacity-100 sm:size-10",
         ),
         day_range_start:
           "day-range-start aria-selected:bg-gray-950 aria-selected:text-white",

@@ -15,7 +15,7 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
     if (!membership) {
         return (
             <Card className="border-gray-200">
-                <CardContent className="pt-6">
+                <CardContent className="px-4 py-5 sm:px-6 sm:py-6">
                     <p className="text-center text-gray-600">
                         No membership information available
                     </p>
@@ -64,8 +64,8 @@ export default function ApplicationStatusCard({ membership, onRenew, onReapply }
 
     return (
         <Card className={`${getStatusColor()} border-2`}>
-            <CardHeader>
-                <div className="flex items-start justify-between">
+            <CardHeader className="p-4 sm:p-5 lg:p-6">
+                <div className="flex items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <StatusIcon className={`h-6 w-6 ${getTextColor()}`} />

@@ -10,7 +10,7 @@ export default function BenefitsDisplay({ onSelectTier, currentTier = null, sele
     return (
         <div className="membership-benefits-container">
             <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                <h2 className="mb-4 text-2xl font-bold text-gray-900 sm:text-3xl">
                     Membership Tiers & Benefits
                 </h2>
                 <p className="text-lg text-gray-600">
@@ -26,8 +26,8 @@ export default function BenefitsDisplay({ onSelectTier, currentTier = null, sele
                             selectedTier === tier.tier ? 'ring-2 ring-blue-600 scale-105' : ''
                         } ${currentTier === tier.tier ? 'border-green-500 border-2' : ''}`}
                     >
-                        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
-                            <div className="flex items-start justify-between mb-4">
+                        <CardHeader className="rounded-t-lg bg-gradient-to-r from-gray-50 to-gray-100 p-4 sm:p-5 lg:p-6">
+                            <div className="mb-4 flex items-center justify-between gap-4">
                                 <div>
                                     <div className="text-4xl mb-2">{tier.displayIcon}</div>
                                     <CardTitle className="text-2xl">{tier.tier}</CardTitle>
@@ -50,7 +50,7 @@ export default function BenefitsDisplay({ onSelectTier, currentTier = null, sele
                             )}
                         </CardHeader>
 
-                        <CardContent className="pt-6">
+                        <CardContent className="px-4 py-5 sm:px-5 lg:px-6 lg:py-6">
                             <div className="space-y-4 mb-6">
                                 {/* Key Stats */}
                                 <div className="grid grid-cols-2 gap-4 mb-6 pb-6 border-b">

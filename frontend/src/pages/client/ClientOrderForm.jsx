@@ -218,15 +218,15 @@ export default function ClientOrderForm({ selectedPackage, onCancelPackage }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold">Place an Order</h2>
+        <h2 className="text-2xl font-bold sm:text-3xl">Place an Order</h2>
         <p className="text-gray-600">Fill out the form below to place your order</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {selectedPackage && (
           <Card className="border-blue-500 border-2 bg-blue-50">
-            <CardHeader>
-              <div className="flex items-start justify-between gap-4">
+            <CardHeader className="p-4 sm:p-5 lg:p-6">
+              <div className="flex items-center justify-between gap-4">
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Package className="h-5 w-5 text-blue-600" />
@@ -250,7 +250,7 @@ export default function ClientOrderForm({ selectedPackage, onCancelPackage }) {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 pb-4 sm:px-5 sm:pb-5 lg:px-6 lg:pb-6">
               <div className="space-y-5">
                 <h3 className="text-xl font-bold text-blue-900">{selectedPackage.name}</h3>
                 <p className="text-gray-700">{selectedPackage.description}</p>
@@ -425,7 +425,7 @@ export default function ClientOrderForm({ selectedPackage, onCancelPackage }) {
 
                       return (
                         <div key={item._id} className="rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
-                          <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center justify-between gap-4">
                             <div className="min-w-0">
                               <div className="font-semibold text-gray-900 truncate">
                                 {item.name || item.productName}

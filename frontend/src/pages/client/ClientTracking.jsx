@@ -115,7 +115,7 @@ export default function ClientTracking() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold">Track Your Orders & Appointments</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">Track Your Orders & Appointments</h2>
           <p className="text-gray-600">Monitor the status of your orders and appointments</p>
         </div>
         <div className="text-center py-12">
@@ -128,7 +128,7 @@ export default function ClientTracking() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold">Track Your Orders & Appointments</h2>
+        <h2 className="text-2xl font-bold sm:text-3xl">Track Your Orders & Appointments</h2>
         <p className="text-gray-600">Monitor the status of your orders and appointments</p>
       </div>
 
@@ -137,14 +137,15 @@ export default function ClientTracking() {
           <CardTitle>Track by ID</CardTitle>
           <CardDescription>Enter your order ID or appointment ID to track</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
+          <CardContent className="px-4 py-5 sm:px-6 sm:py-6">
+          <form onSubmit={handleSearch} className="mx-auto grid w-full max-w-6xl items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
             <Input
               placeholder="Enter Order ID (e.g., ORD-20260611-ABCDE) or Appointment ID (e.g., APT-20260611-XXXXX)"
               value={trackingId}
               onChange={(event) => setTrackingId(event.target.value)}
+              className="h-10"
             />
-            <Button type="submit" className="gap-2">
+            <Button type="submit" className="h-10 gap-2">
               <Search className="h-4 w-4" />
               Track
             </Button>
@@ -211,9 +212,9 @@ export default function ClientTracking() {
         <TabsContent value="orders" className="space-y-4">
           {myOrders.map((order) => (
             <Card key={order._id}>
-              <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-start gap-4">
+              <CardContent className="px-4 py-5 sm:px-6 sm:py-6">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-4">
                     <div className="rounded-full bg-blue-100 p-3">
                       <Package className="h-6 w-6 text-blue-600" />
                     </div>
@@ -257,9 +258,9 @@ export default function ClientTracking() {
         <TabsContent value="appointments" className="space-y-4">
           {myAppointments.map((appointment) => (
             <Card key={appointment._id}>
-              <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-start gap-4">
+              <CardContent className="px-4 py-5 sm:px-6 sm:py-6">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-4">
                     <div className="rounded-full bg-purple-100 p-3">
                       <Calendar className="h-6 w-6 text-purple-600" />
                     </div>

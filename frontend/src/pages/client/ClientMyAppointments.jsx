@@ -66,7 +66,7 @@ export default function ClientMyAppointments() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold">My Appointments</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">My Appointments</h2>
           <p className="text-gray-600">View and manage your upcoming appointments</p>
         </div>
         <div className="text-center py-12">
@@ -80,7 +80,7 @@ export default function ClientMyAppointments() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold">My Appointments</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">My Appointments</h2>
           <p className="text-gray-600">View and manage your upcoming appointments</p>
         </div>
         <Card>
@@ -103,9 +103,9 @@ export default function ClientMyAppointments() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold">My Appointments</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">My Appointments</h2>
           <p className="text-gray-600">View and manage your upcoming appointments</p>
         </div>
         <Badge variant="secondary" className="text-sm">
@@ -132,8 +132,8 @@ export default function ClientMyAppointments() {
         <div className="space-y-4">
           {appointments.map((appointment) => (
             <Card key={appointment._id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between gap-4">
+              <CardHeader className="p-4 sm:p-5 lg:p-6">
+                <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
                     <CardTitle className="flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-blue-600" />
@@ -151,7 +151,7 @@ export default function ClientMyAppointments() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 px-4 pb-4 sm:px-5 sm:pb-5 lg:px-6 lg:pb-6">
                 {appointment.notes && (
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-sm text-gray-600">

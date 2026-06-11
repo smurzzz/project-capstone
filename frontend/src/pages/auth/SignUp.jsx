@@ -41,6 +41,16 @@ export default function SignUp() {
             const response = await authAPI.googleCustomer(credential);
 
             if (response.data.success) {
+                if (response.data.requiresOtp) {
+                    setPendingSession({
+                        user: response.data.user,
+                        token: response.data.token,
+                        email: response.data.user?.email,
+                    });
+                    setNotice(response.data.message || "Verification code sent to your email.");
+                    return;
+                }
+
                 login(response.data.user, response.data.token);
                 navigate("/dashboard");
             }

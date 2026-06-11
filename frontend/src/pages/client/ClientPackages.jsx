@@ -48,7 +48,7 @@ export default function ClientPackages({ onSelectPackage }) {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="mb-4 h-6 w-36 animate-pulse rounded-full bg-slate-200" />
           <div className="h-9 w-64 animate-pulse rounded-xl bg-slate-200" />
           <div className="mt-3 h-5 w-80 max-w-full animate-pulse rounded-lg bg-slate-100" />
@@ -57,7 +57,7 @@ export default function ClientPackages({ onSelectPackage }) {
           {[1, 2].map((item) => (
             <Card key={item} className="overflow-hidden rounded-[2rem] border-slate-200">
               <div className="h-64 animate-pulse bg-slate-100" />
-              <CardContent className="space-y-4 p-6">
+              <CardContent className="space-y-4 p-4 sm:p-6">
                 <div className="h-7 w-2/3 animate-pulse rounded-lg bg-slate-200" />
                 <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
                 <div className="h-11 w-full animate-pulse rounded-full bg-slate-200" />
@@ -72,13 +72,13 @@ export default function ClientPackages({ onSelectPackage }) {
   return (
     <div className="space-y-8">
       <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <div className="grid gap-6 bg-gradient-to-br from-slate-950 via-blue-950 to-cyan-900 p-6 text-white md:grid-cols-[1fr_auto] md:items-end md:p-8">
+        <div className="grid gap-6 bg-gradient-to-br from-slate-950 via-blue-950 to-cyan-900 p-5 text-white sm:p-6 md:grid-cols-[1fr_auto] md:items-end lg:p-8">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-blue-100">
               <Sparkles className="h-4 w-4" />
               Curated savings
             </div>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Package Deals</h2>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">Package Deals</h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100 md:text-base">
               Bundle-ready electrical essentials with cleaner pricing, faster ordering, and better value for common projects.
             </p>
@@ -152,7 +152,7 @@ export default function ClientPackages({ onSelectPackage }) {
                   <CardContent className="flex flex-1 flex-col space-y-4 p-5 pt-0">
                     <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold tracking-tight text-slate-950">
+                        <span className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
                           PHP {Number(pkg.price || 0).toLocaleString()}
                         </span>
                       </div>

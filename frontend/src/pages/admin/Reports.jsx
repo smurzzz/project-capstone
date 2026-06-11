@@ -611,14 +611,14 @@ function Metric({ title, value, note, icon, color }) {
   const Icon = icon;
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div>
+      <CardContent className="flex min-h-40 items-center p-6">
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-sm text-gray-500">{title}</p>
-            <p className="text-2xl mt-2">{value}</p>
-            <p className="text-sm text-green-600 mt-1">{note}</p>
+            <p className="mt-3 break-words text-2xl">{value}</p>
+            <p className="mt-2 text-sm text-green-600">{note}</p>
           </div>
-          <Icon className={`w-8 h-8 ${color}`} />
+          <Icon className={`h-8 w-8 shrink-0 ${color}`} />
         </div>
       </CardContent>
     </Card>

@@ -130,7 +130,7 @@ export default function ClientProducts() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold">Browse Products</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">Browse Products</h2>
           <p className="text-gray-600">Find the perfect electrical products for your needs</p>
         </div>
         <div className="text-center py-12">
@@ -142,9 +142,9 @@ export default function ClientProducts() {
 
   return (
     <div className="space-y-6 pb-16 mx-auto max-w-7xl">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold">Browse Products</h2>
+          <h2 className="text-2xl font-bold sm:text-3xl">Browse Products</h2>
           <p className="text-gray-600">Find the perfect electrical products for your needs</p>
         </div>
         {getTotalItems() > 0 && (
@@ -155,18 +155,19 @@ export default function ClientProducts() {
       </div>
 
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 flex items-center gap-2">
-              <Search className="h-4 w-4 text-gray-400 shrink-0" />
+        <CardContent className="flex min-h-24 items-center p-4">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-3 md:grid-cols-[minmax(0,1fr)_200px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
+                className="h-10 pl-10"
               />
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full md:w-[200px]">
+              <SelectTrigger className="h-10 w-full">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -201,7 +202,7 @@ export default function ClientProducts() {
               className="h-full min-h-[30rem] flex flex-col overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl"
               onClick={() => openProductDetails(product)}
             >
-              <CardContent className="px-6 py-8 flex flex-col flex-1">
+              <CardContent className="flex flex-1 flex-col px-4 py-5 sm:px-6 sm:py-8">
                 <div className="mx-auto flex aspect-square w-full items-center justify-center overflow-hidden rounded-[2rem] bg-slate-100 shadow-sm">
                   {product.imageUrl ? (
                     <img
@@ -281,7 +282,7 @@ export default function ClientProducts() {
                 <DialogTitle>{selectedProduct.productName || selectedProduct.name}</DialogTitle>
               </VisuallyHidden>
             </DialogHeader>
-            <div className="flex flex-col lg:grid lg:grid-cols-[220px_1fr] gap-6 overflow-y-auto flex-1 p-6">
+            <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-4 sm:p-6 lg:grid lg:grid-cols-[220px_1fr] lg:gap-6">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-full max-w-[220px] aspect-square flex items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
                   {selectedProduct.imageUrl ? (
@@ -393,7 +394,7 @@ export default function ClientProducts() {
             </div>
           </div>
 
-            <div className="border-t border-slate-200 bg-white px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 w-fit">
                 <button
                   type="button"

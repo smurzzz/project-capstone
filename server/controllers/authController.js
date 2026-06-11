@@ -461,9 +461,11 @@ export const googleCustomerAuth = async (req, res) => {
         }
 
         let user = await User.findOne({ email, role: "customer" });
+        let isNewGoogleRegistration = false;
         console.log("[GOOGLE_AUTH] Customer user lookup:", user ? "FOUND" : "NOT FOUND");
 
         if (!user) {
+            isNewGoogleRegistration = true;
             console.log("[GOOGLE_AUTH] Creating customer profile for:", email);
             const customer = await getOrCreateCustomerProfile({
                 name,
@@ -483,7 +485,7 @@ export const googleCustomerAuth = async (req, res) => {
                 customerId: customer._id,
                 authProvider: "google",
                 googleId: googleProfile.googleId,
-                emailVerified: true,
+                emailVerified: false,
             });
             console.log("[GOOGLE_AUTH] User created:", String(user._id));
 
@@ -521,6 +523,20 @@ export const googleCustomerAuth = async (req, res) => {
 
         const session = await issueCustomerSession(user);
         console.log("[GOOGLE_AUTH] Session issued for:", email);
+
+        if (isNewGoogleRegistration) {
+            const verificationEmailSent = await sendRegistrationOtp(user);
+
+            return res.status(201).json({
+                success: true,
+                requiresOtp: true,
+                message: verificationEmailSent
+                    ? "Google registration successful. Verification code sent to your email."
+                    : "Google registration successful, but verification email could not be sent.",
+                verificationEmailSent,
+                ...session,
+            });
+        }
 
         return res.status(200).json({
             success: true,

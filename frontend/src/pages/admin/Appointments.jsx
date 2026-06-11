@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertCircle, Calendar as CalendarIcon, CheckCircle, Clock, Mail, MapPin, Phone, Wrench } from "lucide-react";
-import { Alert, AlertDescription } from "../../components/ui/alert.jsx";
+import { AlertCircle, Calendar as CalendarIcon, CheckCircle, Clock, Mail, MapPin, Phone, UserRound, Wrench } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import { Calendar } from "../../components/ui/calendar.jsx";
@@ -85,7 +84,6 @@ export default function Appointments() {
   const getPhone = (appointment) => appointment.contactInfo?.phone || appointment.customerId?.contactInfo?.phone || "N/A";
   const getLocation = (appointment) => appointment.customerId?.contactInfo?.address || "No address provided";
   const getService = (appointment) => appointment.service || appointment.serviceType || "Electrical Service";
-  const getDateValue = (appointment) => appointment.date?.split("T")[0] || "";
   const getDisplayDate = (appointment) =>
     appointment.date ? new Date(appointment.date).toLocaleDateString() : "N/A";
   const getDisplayTime = (appointment) => appointment.timeSlot || appointment.time || "N/A";
@@ -171,13 +169,13 @@ export default function Appointments() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 sm:p-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold mb-2">Appointment Scheduling</h1>
         <p className="text-gray-500">Manage customer appointments and schedules</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Stat
           title="Today's Appointments"
           value={todayAppointments.length}
@@ -231,35 +229,44 @@ export default function Appointments() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1 border border-slate-200 shadow-sm">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(320px,380px)_1fr]">
+        <Card className="border border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle>Mark Dates Unavailable</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <p className="text-sm text-slate-600">Select a date to block or unblock it from booking</p>
-              <div className="rounded-3xl bg-gray-50 p-3 flex justify-center">
+              <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  className="border-gray-100"
                   modifiers={{
                     blocked: (date) => {
                       const dateStr = date.toISOString().slice(0, 10);
                       return blockedDates.includes(dateStr);
                     },
+                    fullyBooked: (date) => {
+                      const dateStr = date.toISOString().slice(0, 10);
+                      return fullyBookedDates.includes(dateStr) && !blockedDates.includes(dateStr);
+                    },
                     appointment: (date) => {
                       const dateStr = date.toISOString().slice(0, 10);
-                      return appointmentDates.includes(dateStr) && !blockedDates.includes(dateStr);
+                      return appointmentDates.includes(dateStr) && !blockedDates.includes(dateStr) && !fullyBookedDates.includes(dateStr);
                     }
                   }}
                   modifiersClassNames={{
                     blocked: "bg-red-50 text-red-700 line-through opacity-80",
+                    fullyBooked: "bg-amber-50 text-amber-700 font-semibold",
                     appointment: "bg-green-50 text-green-700 font-semibold"
                   }}
                 />
+              </div>
+              <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
+                <CalendarLegend className="bg-green-100" label="Booked" />
+                <CalendarLegend className="bg-amber-100" label="Fully booked" />
+                <CalendarLegend className="bg-red-100" label="Blocked" />
               </div>
               {selectedDate && (
                 <p className="text-sm text-slate-600 mt-2">
@@ -312,7 +319,7 @@ export default function Appointments() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <CardTitle>{listHeading}</CardTitle>
           </CardHeader>
@@ -400,7 +407,7 @@ export default function Appointments() {
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Update Status</p>
                   <div className="mt-4 space-y-3">
                     <Select value={newStatus} onValueChange={setNewStatus}>
-                      <SelectTrigger className="h-11 rounded-2xl border-gray-300 bg-gray-2cd00">
+                      <SelectTrigger className="h-11 rounded-2xl border-gray-300 bg-gray-200">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -445,7 +452,7 @@ export default function Appointments() {
 
                 <div className="rounded-3xl border border-slate-200 p-5">
                   <h3 className="font-semibold text-slate-950">Notes</h3>
-                  <p className="mt-3 min-h-28 rounded-2xl border border-gray-300 bg-gray-2cd00 p-4 text-sm leading-6 text-slate-700">
+                  <p className="mt-3 min-h-28 rounded-2xl border border-gray-300 bg-gray-200 p-4 text-sm leading-6 text-slate-700">
                     {selectedAppointment.notes || "No notes provided"}
                   </p>
                 </div>
@@ -461,13 +468,15 @@ export default function Appointments() {
 function Stat({ title, value, icon }) {
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+      <CardContent className="flex min-h-40 items-center p-6">
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-sm text-gray-500">{title}</p>
-            <p className="text-3xl mt-2 text-slate-900">{value}</p>
+            <p className="mt-3 text-3xl text-slate-900">{value}</p>
           </div>
-          <div>{icon}</div>
+          <div className="shrink-0">
+            {icon}
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -497,5 +506,14 @@ function SummaryItem({ icon, label, value }) {
         <p className="truncate text-sm font-semibold text-slate-950">{value}</p>
       </div>
     </div>
+  );
+}
+
+function CalendarLegend({ className, label }) {
+  return (
+    <span className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5">
+      <span className={`h-2.5 w-2.5 rounded-full ${className}`} />
+      {label}
+    </span>
   );
 }

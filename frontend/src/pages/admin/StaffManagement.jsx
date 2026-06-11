@@ -207,62 +207,22 @@ export default function StaffManagement() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Staff</p>
-                <p className="text-3xl mt-2">{stats.totalStaff}</p>
-              </div>
-              <UsersRound className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Active</p>
-                <p className="text-3xl mt-2">{stats.activeStaff}</p>
-              </div>
-              <UserCheck className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Admins</p>
-                <p className="text-3xl mt-2">{stats.admins}</p>
-              </div>
-              <ShieldCheck className="h-8 w-8 text-indigo-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Inactive</p>
-                <p className="text-3xl mt-2">{inactiveStaff}</p>
-              </div>
-              <UserX className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StaffStat title="Total Staff" value={stats.totalStaff} icon={<UsersRound className="h-8 w-8 text-blue-600" />} />
+        <StaffStat title="Active" value={stats.activeStaff} icon={<UserCheck className="h-8 w-8 text-green-600" />} />
+        <StaffStat title="Admins" value={stats.admins} icon={<ShieldCheck className="h-8 w-8 text-indigo-600" />} />
+        <StaffStat title="Inactive" value={inactiveStaff} icon={<UserX className="h-8 w-8 text-red-600" />} />
       </div>
 
       <Card>
-        <CardContent className="p-4">
-          <div className="relative">
+        <CardContent className="flex min-h-24 items-center p-4">
+          <div className="relative mx-auto w-full max-w-6xl">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               placeholder="Search staff by name, email, role, or department..."
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              className="pl-10"
+              className="h-10 pl-10"
             />
           </div>
         </CardContent>
@@ -487,5 +447,23 @@ export default function StaffManagement() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function StaffStat({ title, value, icon }) {
+  return (
+    <Card>
+      <CardContent className="flex min-h-40 items-center p-6">
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm text-gray-500">{title}</p>
+            <p className="mt-3 break-words text-3xl text-slate-950">{value}</p>
+          </div>
+          <div className="shrink-0">
+            {icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
