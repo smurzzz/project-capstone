@@ -4,7 +4,7 @@ import { customersAPI } from '../../utils/api';
 import './modal.css';
 
 const MEMBERSHIP_TIERS = ['Silver', 'Gold', 'Platinum'];
-const MEMBERSHIP_STATUSES = ['None', 'Pending', 'Active', 'Expired', 'Suspended'];
+const MEMBERSHIP_STATUSES = ['None', 'Pending', 'Active', 'Expired'];
 
 export default function MembershipEditModal({ customer, onClose, onSave }) {
     const isExistingMember = customer?.role === 'Member';
