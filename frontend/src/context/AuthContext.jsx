@@ -4,8 +4,6 @@ import { authAPI } from "../utils/api.js";
 
 const AuthContext = createContext();
 
-const isAuthFailure = (error) => [401, 403].includes(error?.response?.status);
-
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
         try {
@@ -36,7 +34,7 @@ export const AuthProvider = ({ children }) => {
                 const sessionUser = response.data.user;
                 setUser(sessionUser);
                 localStorage.setItem("pos-user", JSON.stringify(sessionUser));
-            } catch (error) {
+            } catch {
                 if (!mounted) return;
 
                 // Always clear auth data on any error to prevent redirect loops

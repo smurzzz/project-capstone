@@ -15,6 +15,8 @@ import {
     sendAppointmentCreatedEmail,
     sendAppointmentStatusEmail,
 } from "../utils/notifications.js";
+import { handleControllerError } from "../utils/errorResponse.js";
+import logger from "../utils/logger.js";
 
 const ALL_SLOTS = [
     "9:00 AM - 10:00 AM",
@@ -649,7 +651,7 @@ export const getFullyBookedAppointmentDates = async (req, res) => {
             const blockedStrings = (blocked || []).map((d) => d.date.toISOString().slice(0, 10));
             dates = Array.from(new Set([...dates, ...blockedStrings]));
         } catch (err) {
-            console.error('Error loading blocked dates:', err);
+            logger.error('Appointment.getFullyBookedDates', err);
         }
 
         res.status(200).json({
@@ -684,8 +686,7 @@ export const addBlockedDate = async (req, res) => {
         const blocked = await BlockedDate.create({ date: d, reason, createdBy: req.user?.id });
         return res.status(201).json({ success: true, data: blocked });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ success: false, message: 'Internal server error' });
+        handleControllerError(res, error, 'Appointment.addBlockedDate', 500, 'Internal server error');
     }
 };
 
@@ -704,8 +705,7 @@ export const removeBlockedDate = async (req, res) => {
         await BlockedDate.findOneAndDelete({ date: d });
         return res.status(200).json({ success: true });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ success: false, message: 'Internal server error' });
+        handleControllerError(res, error, 'Appointment.removeBlockedDate', 500, 'Internal server error');
     }
 };
 
@@ -718,8 +718,7 @@ export const getBlockedDates = async (req, res) => {
         const dates = docs.map((d) => d.date.toISOString().slice(0, 10));
         return res.status(200).json({ success: true, data: dates });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ success: false, message: 'Internal server error' });
+        handleControllerError(res, error, 'Appointment.getBlockedDates', 500, 'Internal server error');
     }
 };
 
@@ -750,9 +749,6 @@ export const getAppointmentStats = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+        handleControllerError(res, error, 'Appointment.getAppointmentStats', 500, 'Internal server error');
     }
 };

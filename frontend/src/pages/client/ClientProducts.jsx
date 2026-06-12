@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ImageIcon, Search, X, ShoppingCart, Plus, Minus, Star } from "lucide-react";
+import { ImageIcon, Search, X, ShoppingCart, Plus, Minus, Star, Zap, CheckCircle, Cable, Shield } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import {
@@ -22,7 +22,6 @@ import { mergeProductDetails, mergeProductsDetails } from "../../utils/productDe
 import { toast } from "sonner";
 import { useCart } from "../../context/CartContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
 
 const getProductStock = (product) => Number(product?.stockLevel ?? product?.stock ?? 0);
 const normalizeFeatures = (features) => {
@@ -54,14 +53,12 @@ export default function ClientProducts() {
   const [modalQuantity, setModalQuantity] = useState(1);
   const { addToCart, getTotalItems } = useCart();
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   async function fetchProducts() {
     try {
       const response = await productsAPI.getAll();
       setProducts(mergeProductsDetails(response.data.data || []));
-    } catch (error) {
-      console.error("Error fetching products:", error);
+    } catch {
       toast.error("Failed to load products");
       // Fallback to mock data if API fails
       setProducts([
@@ -117,8 +114,8 @@ export default function ClientProducts() {
       setSelectedProduct((current) => (
         current?._id === product._id ? mergeProductDetails({ ...current, ...(response.data.data || {}) }) : current
       ));
-    } catch (error) {
-      console.error("Error loading product details:", error);
+    } catch (err) {
+      void err;
     }
   };
 
@@ -151,7 +148,7 @@ export default function ClientProducts() {
       </div>
 
       <Card>
-        <CardContent className="flex min-h-20 items-center px-4 py-6">
+        <CardContent className="flex min-h-20 items-center px-4 py-8">
           <div className="mx-auto grid w-full max-w-6xl items-center gap-3 pt-5 md:grid-cols-[minmax(0,1fr)_200px]">
             <div className="relative flex h-10 items-center">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -288,7 +285,7 @@ export default function ClientProducts() {
                 <DialogTitle>{selectedProduct.productName || selectedProduct.name}</DialogTitle>
               </VisuallyHidden>
             </DialogHeader>
-            <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-4 sm:p-6 lg:grid lg:grid-cols-[220px_1fr] lg:gap-6">
+            <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-4 sm:p-6 lg:grid lg:grid-cols-[220px_1fr] lg:gap-6 pb-20">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-full max-w-[220px] aspect-square flex items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
                   {selectedProduct.imageUrl ? (
@@ -355,47 +352,61 @@ export default function ClientProducts() {
                   </div>
                 </div>
 
-                <Tabs value={productDialogTab} onValueChange={setProductDialogTab} className="space-y-5 border-t border-slate-200 pt-4">
-                  <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-5">
-                    <TabsTrigger value="specifications" className="text-xs">Specifications</TabsTrigger>
-                    <TabsTrigger value="features" className="text-xs">Features</TabsTrigger>
-                    <TabsTrigger value="compatibility" className="text-xs">Compatibility</TabsTrigger>
-                    <TabsTrigger value="warranty" className="text-xs">Warranty</TabsTrigger>
+                <Tabs value={productDialogTab} onValueChange={setProductDialogTab} className="space-y-4 border-t border-slate-200 pt-6">
+                  <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-transparent p-0">
+                    <TabsTrigger value="specifications" className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 bg-white py-3 px-2 text-xs font-medium text-slate-700 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 hover:bg-slate-50 transition-all">
+                      <Zap className="h-5 w-5" />
+                      <span className="leading-tight">Specs</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="features" className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 bg-white py-3 px-2 text-xs font-medium text-slate-700 data-[state=active]:border-green-600 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 hover:bg-slate-50 transition-all">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="leading-tight">Features</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="compatibility" className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 bg-white py-3 px-2 text-xs font-medium text-slate-700 data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 hover:bg-slate-50 transition-all">
+                      <Cable className="h-5 w-5" />
+                      <span className="leading-tight">Compat</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="warranty" className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 bg-white py-3 px-2 text-xs font-medium text-slate-700 data-[state=active]:border-amber-600 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700 hover:bg-slate-50 transition-all">
+                      <Shield className="h-5 w-5" />
+                      <span className="leading-tight">Warranty</span>
+                    </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="specifications" className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 whitespace-pre-line mt-6">
-                    {hasText(selectedProduct.specifications)
-                      ? selectedProduct.specifications
-                      : "No specifications have been added for this product yet."}
-                  </TabsContent>
+                  <div className="pt-2">
+                    <TabsContent value="specifications" className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 p-5 text-sm leading-7 text-slate-700 whitespace-pre-line m-0">
+                      {hasText(selectedProduct.specifications)
+                        ? selectedProduct.specifications
+                        : <p className="italic text-slate-500">No specifications have been added for this product yet.</p>}
+                    </TabsContent>
 
-                  <TabsContent value="features" className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm mt-6">
-                    {normalizeFeatures(selectedProduct.features).length > 0 ? (
-                      <ul className="space-y-2">
-                        {normalizeFeatures(selectedProduct.features).map((feature, index) => (
-                          <li key={index} className="flex gap-2">
-                            <span className="mt-0.5 h-2 w-2 rounded-full bg-blue-600 flex-shrink-0"></span>
-                            <span className="text-slate-700">{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-slate-700">No features have been added for this product yet.</p>
-                    )}
-                  </TabsContent>
+                    <TabsContent value="features" className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 p-5 text-sm m-0">
+                      {normalizeFeatures(selectedProduct.features).length > 0 ? (
+                        <ul className="space-y-2.5">
+                          {normalizeFeatures(selectedProduct.features).map((feature, index) => (
+                            <li key={index} className="flex gap-3 items-start">
+                              <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex-shrink-0"></span>
+                              <span className="text-slate-700">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="italic text-slate-500">No features have been added for this product yet.</p>
+                      )}
+                    </TabsContent>
 
-                  <TabsContent value="compatibility" className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 whitespace-pre-line mt-6">
-                    {hasText(selectedProduct.compatibility)
-                      ? selectedProduct.compatibility
-                      : "No compatibility details have been added for this product yet."}
-                  </TabsContent>
+                    <TabsContent value="compatibility" className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 p-5 text-sm leading-7 text-slate-700 whitespace-pre-line m-0">
+                      {hasText(selectedProduct.compatibility)
+                        ? selectedProduct.compatibility
+                        : <p className="italic text-slate-500">No compatibility details have been added for this product yet.</p>}
+                    </TabsContent>
 
-                  <TabsContent value="warranty" className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-700 whitespace-pre-line mt-6">
-                    {hasText(selectedProduct.warranty)
-                      ? selectedProduct.warranty
-                      : "No warranty details have been added for this product yet."}
-                  </TabsContent>
-                </Tabs>
+                    <TabsContent value="warranty" className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 p-5 text-sm leading-7 text-slate-700 whitespace-pre-line m-0">
+                      {hasText(selectedProduct.warranty)
+                        ? selectedProduct.warranty
+                        : <p className="italic text-slate-500">No warranty details have been added for this product yet.</p>}
+                    </TabsContent>
+                  </div>
+                  </Tabs>
               </div>
             </div>
           </div>

@@ -39,7 +39,6 @@ export default function MembersTable({ applications = [], onView, loading = fals
                     </thead>
                     <tbody className="divide-y">
                         {applications.map((app) => {
-                            const status = app.membership?.status || 'Guest';
                             const roleLabel = (app.membership?.status === 'Active') ? 'Member' : 'Guest';
                             const registeredAt = app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '';
                             return (

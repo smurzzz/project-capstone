@@ -50,8 +50,8 @@ export default function FAQ() {
         const response = await faqAPI.getAll();
         setFAQs(response.data.data || []);
         setError(null);
-      } catch (err) {
-        console.error('Error fetching FAQs:', err);
+      } catch {
+
         setError('Failed to load FAQs');
       } finally {
         setLoading(false);

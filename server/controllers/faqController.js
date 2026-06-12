@@ -1,5 +1,6 @@
 import FAQ from "../models/FAQ.js";
 import { cleanString, isValidObjectId } from "../utils/validation.js";
+import { sendErrorResponse, handleControllerError } from "../utils/errorResponse.js";
 
 const mapFAQInput = (body) => {
   const rawCategory = body.category;
@@ -25,30 +26,20 @@ export const getAllFAQs = async (req, res) => {
       data: faqs,
     });
   } catch (error) {
-    console.error("Error fetching FAQs:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch FAQs",
-    });
+    handleControllerError(res, error, "FAQ.getAllFAQs", 500, "Failed to fetch FAQs");
   }
 };
 
 export const getFAQById = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid FAQ ID",
-      });
+      return sendErrorResponse(res, 400, "Invalid FAQ ID");
     }
 
     const faq = await FAQ.findById(req.params.id).lean();
 
     if (!faq) {
-      return res.status(404).json({
-        success: false,
-        error: "FAQ not found",
-      });
+      return sendErrorResponse(res, 404, "FAQ not found");
     }
 
     res.json({
@@ -56,11 +47,7 @@ export const getFAQById = async (req, res) => {
       data: faq,
     });
   } catch (error) {
-    console.error("Error fetching FAQ:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch FAQ",
-    });
+    handleControllerError(res, error, "FAQ.getFAQById", 500, "Failed to fetch FAQ");
   }
 };
 
@@ -69,10 +56,7 @@ export const createFAQ = async (req, res) => {
     const faqData = mapFAQInput(req.body);
 
     if (!faqData.question || !faqData.answer) {
-      return res.status(400).json({
-        success: false,
-        error: "Question and answer are required",
-      });
+      return sendErrorResponse(res, 400, "Question and answer are required");
     }
 
     const faq = new FAQ(faqData);
@@ -83,21 +67,14 @@ export const createFAQ = async (req, res) => {
       data: faq,
     });
   } catch (error) {
-    console.error("Error creating FAQ:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to create FAQ",
-    });
+    handleControllerError(res, error, "FAQ.createFAQ", 500, "Failed to create FAQ");
   }
 };
 
 export const updateFAQ = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid FAQ ID",
-      });
+      return sendErrorResponse(res, 400, "Invalid FAQ ID");
     }
 
     const faqData = mapFAQInput(req.body);
@@ -109,10 +86,7 @@ export const updateFAQ = async (req, res) => {
     );
 
     if (!faq) {
-      return res.status(404).json({
-        success: false,
-        error: "FAQ not found",
-      });
+      return sendErrorResponse(res, 404, "FAQ not found");
     }
 
     res.json({
@@ -120,30 +94,20 @@ export const updateFAQ = async (req, res) => {
       data: faq,
     });
   } catch (error) {
-    console.error("Error updating FAQ:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to update FAQ",
-    });
+    handleControllerError(res, error, "FAQ.updateFAQ", 500, "Failed to update FAQ");
   }
 };
 
 export const deleteFAQ = async (req, res) => {
   try {
     if (!isValidObjectId(req.params.id)) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid FAQ ID",
-      });
+      return sendErrorResponse(res, 400, "Invalid FAQ ID");
     }
 
     const faq = await FAQ.findByIdAndDelete(req.params.id);
 
     if (!faq) {
-      return res.status(404).json({
-        success: false,
-        error: "FAQ not found",
-      });
+      return sendErrorResponse(res, 404, "FAQ not found");
     }
 
     res.json({
@@ -151,11 +115,7 @@ export const deleteFAQ = async (req, res) => {
       message: "FAQ deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting FAQ:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to delete FAQ",
-    });
+    handleControllerError(res, error, "FAQ.deleteFAQ", 500, "Failed to delete FAQ");
   }
 };
 
@@ -175,10 +135,6 @@ export const getFAQsByCategory = async (req, res) => {
       data: faqs,
     });
   } catch (error) {
-    console.error("Error fetching FAQs by category:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to fetch FAQs",
-    });
+    handleControllerError(res, error, "FAQ.getFAQsByCategory", 500, "Failed to fetch FAQs");
   }
 };

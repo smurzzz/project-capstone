@@ -37,11 +37,6 @@ const getOrderTypeLabel = (order) => {
   return "Regular";
 };
 
-const getDiscountLabel = (order) => {
-  if (order.membershipDiscountAmount > 0) return "Member discount";
-  return "Discount";
-};
-
 const formatCurrency = (value) => `PHP ${Number(value || 0).toLocaleString()}`;
 
 export default function Orders() {
@@ -98,8 +93,7 @@ export default function Orders() {
     try {
       const response = await ordersAPI.getAll();
       setOrders(response.data.data || []);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
+    } catch {
       toast.error("Failed to load orders");
     } finally {
       setLoading(false);
@@ -117,8 +111,7 @@ export default function Orders() {
         const el = document.getElementById("order-status-select-trigger");
         if (el && typeof el.focus === "function") el.focus();
       }, 200);
-    } catch (error) {
-      console.error("Error fetching order details:", error);
+    } catch {
       setOrderDetails({ order, items: [] });
     }
   };
@@ -132,8 +125,7 @@ export default function Orders() {
       setSelectedOrder(null);
       setOrderDetails(null);
       fetchOrders();
-    } catch (error) {
-      console.error("Error updating order status:", error);
+    } catch {
       toast.error("Failed to update order status");
     }
   };
@@ -171,15 +163,15 @@ export default function Orders() {
       </div>
 
       <Card>
-        <CardContent className="flex min-h-24 items-center justify-center py-5 px-4">
-          <div className="w-full max-w-6xl grid items-center gap-3 md:grid-cols-[minmax(0,1fr)_12rem]">
-            <div className="relative">
+        <CardContent className="flex min-h-20 items-center justify-center py-8 px-4">
+          <div className="mx-auto w-full max-w-6xl grid items-center gap-3 pt-5 md:grid-cols-[minmax(0,1fr)_12rem]">
+            <div className="relative flex h-10 items-center">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search by order ID, customer, or email..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="h-10 pl-10 pr-10"
+                className="h-10 w-full pl-10 pr-10 py-0 leading-none"
               />
               {searchTerm && (
                 <button
@@ -276,9 +268,13 @@ export default function Orders() {
                       </div>
                     </td>
                     <td className="min-w-[12rem] whitespace-nowrap py-4 px-5">
-                      {String(order.paymentMethod || "").toLowerCase().includes("gcash")
-                        ? (order.referenceNumber || "N/A")
-                        : "N/A"}
+                      {order.paymentReference
+                        ? order.paymentReference
+                        : (order.orderType === 'membership'
+                          ? (order.orderId || order.membershipId || order.referenceNumber || "N/A")
+                          : String(order.paymentMethod || "").toLowerCase().includes("gcash")
+                            ? (order.referenceNumber || "N/A")
+                            : "N/A")}
                     </td>
                     <td className="min-w-[10rem] whitespace-nowrap py-4 px-5">
                       <Badge className={statusColors[order.status] || "bg-gray-100 text-gray-700"}>
@@ -346,10 +342,16 @@ export default function Orders() {
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Order ID</p>
                   <p className="mt-2 text-sm font-semibold text-slate-900">{detailOrder.orderId || detailOrder._id}</p>
                 </div>
-                {detailOrder.referenceNumber && (
+                {detailOrder.paymentReference && (
                   <div className="col-span-2">
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Gateway Reference</p>
                     <p className="mt-2 text-sm text-slate-800">{detailOrder.paymentReference}</p>
+                  </div>
+                )}
+                {detailOrder.referenceNumber && !detailOrder.paymentReference && (
+                  <div className="col-span-2">
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Reference</p>
+                    <p className="mt-2 text-sm text-slate-800">{detailOrder.referenceNumber}</p>
                   </div>
                 )}
                 {detailOrder.paymentCheckoutUrl && (

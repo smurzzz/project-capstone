@@ -33,22 +33,17 @@ const BENEFITS = {
 };
 
 export default function MembershipBanner() {
-    const [customer, setCustomer] = useState(null);
     const [membership, setMembership] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchMembershipData = async () => {
             try {
                 const response = await customersAPI.getMe();
                 const customerData = response.data.data;
-                setCustomer(customerData.customer);
                 setMembership(customerData.customer?.membership);
             } catch (err) {
-                if (err.response?.status !== 401) {
-                    setError('Failed to load membership information');
-                }
+                void err;
             } finally {
                 setLoading(false);
             }

@@ -77,8 +77,7 @@ export default function Inventory() {
       if (showSpinner) setLoading(true);
       const response = await productsAPI.getAll();
       setProducts(mergeProductsDetails(response.data.data || []));
-    } catch (error) {
-      console.error("Error fetching products:", error);
+    } catch {
       toast.error("Failed to load inventory");
     } finally {
       setLoading(false);
@@ -89,16 +88,15 @@ export default function Inventory() {
     fetchProducts();
   }, []);
 
-  const handleTopScroll = () => {
-    if (topScrollRef.current && tableScrollRef.current) {
-      tableScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
-    }
+  const handleTopScroll = (e) => {
+    const left = e?.target?.scrollLeft ?? 0;
+    if (tableScrollRef.current) tableScrollRef.current.scrollLeft = left;
+    if (topScrollRef.current && topScrollRef.current !== e?.target) topScrollRef.current.scrollLeft = left;
   };
 
   const handleBottomScroll = () => {
-    if (topScrollRef.current && tableScrollRef.current) {
-      topScrollRef.current.scrollLeft = tableScrollRef.current.scrollLeft;
-    }
+    const left = tableScrollRef.current?.scrollLeft || 0;
+    if (topScrollRef.current) topScrollRef.current.scrollLeft = left;
   };
 
   const handleSubmit = async (event) => {
@@ -170,7 +168,7 @@ export default function Inventory() {
       setEditingId(null);
       fetchProducts();
     } catch (error) {
-      console.error("Error saving product:", error);
+
       toast.error(error.response?.data?.message || "Failed to save product");
     } finally {
       setSaving(false);
@@ -187,7 +185,7 @@ export default function Inventory() {
       toast.success("Product deleted");
       fetchProducts();
     } catch (error) {
-      console.error("Error deleting product:", error);
+
       toast.error(error.response?.data?.message || "Failed to delete product");
     } finally {
       setDeletingId(null);
@@ -241,8 +239,7 @@ export default function Inventory() {
         compatibility: product.compatibility || "",
         warranty: product.warranty || "",
       }));
-    } catch (error) {
-      console.error("Error loading product details:", error);
+    } catch {
       toast.error("Could not refresh product details. Showing current inventory data.");
     }
   };
@@ -376,18 +373,15 @@ export default function Inventory() {
       )}
 
       <Card className="border-slate-200 shadow-sm">
-        <CardContent className="flex min-h-24 items-center justify-center py-5 px-4">
-          <div className="w-full max-w-6xl grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_220px_auto]">
-            <div className="hidden h-10 w-10 items-center justify-center text-gray-400 lg:flex">
-              <Search className="h-5 w-5" />
-            </div>
-            <div className="relative flex items-center">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 lg:hidden" />
+        <CardContent className="flex min-h-20 items-center justify-center py-8 px-4">
+          <div className="mx-auto w-full max-w-6xl grid items-center gap-3 pt-5 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
+            <div className="relative flex h-10 items-center">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search by name, SKU, or category..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="h-10 pl-10 lg:pl-3 pr-10"
+                className="h-10 w-full pl-10 pr-10 py-0 leading-none"
               />
               {searchTerm && (
                 <button
@@ -439,23 +433,24 @@ export default function Inventory() {
               <div style={{ width: `${scrollWidth}px`, height: 1 }} />
             </div>
           )}
-          <div
-            ref={tableScrollRef}
-            className="overflow-x-auto rounded-b-2xl border border-slate-200 border-t-0 bg-white"
-            onScroll={handleBottomScroll}
-          >
-            <table className="w-full border-collapse">
+          <div className="block">
+            <div
+              ref={tableScrollRef}
+              className="overflow-x-auto rounded-b-2xl border border-slate-200 border-t-0 bg-white"
+              onScroll={handleBottomScroll}
+            >
+              <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
-                  <th className="px-5 py-4 text-left min-w-[180px]">Product</th>
-                  <th className="hidden px-5 py-4 text-left min-w-[100px] lg:table-cell">Picture</th>
-                  <th className="hidden px-5 py-4 text-left min-w-[90px] md:table-cell">SKU</th>
-                  <th className="hidden px-5 py-4 text-left min-w-[120px] lg:table-cell">Category</th>
-                  <th className="px-5 py-4 text-left min-w-[130px]">Quantity</th>
-                  <th className="hidden px-5 py-4 text-left min-w-[110px] sm:table-cell">Price</th>
-                  <th className="hidden px-5 py-4 text-left min-w-[110px] xl:table-cell">Supplier</th>
-                  <th className="px-5 py-4 text-left min-w-[100px]">Status</th>
-                  <th className="px-5 py-4 text-left min-w-[180px]">Actions</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[200px]">Product</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[120px]">Picture</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[110px]">SKU</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[220px]">Category</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[150px]">Quantity</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[130px]">Price</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[140px]">Supplier</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[180px]">Status</th>
+                  <th className="px-6 py-5 lg:px-8 lg:py-6 text-left min-w-[200px]">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -464,13 +459,13 @@ export default function Inventory() {
                   const isLowStock = stockState !== "stocked";
                   return (
                     <tr key={item._id} className="border-b bg-white last:border-0 hover:bg-slate-50">
-                      <td className="py-4 px-5">
+                      <td className="py-5 px-6 lg:px-8 lg:py-6">
                         <div>
                           <p className="font-semibold text-slate-900">{item.productName}</p>
                           <p className="text-xs text-gray-500 md:hidden">{item.sku || "No SKU"}</p>
                         </div>
                       </td>
-                      <td className="py-4 px-5 hidden lg:table-cell">
+                      <td className="py-5 px-6 lg:px-8 lg:py-6">
                         <div className="h-16 w-20 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center">
                           {item.imageUrl ? (
                             <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-contain p-1" />
@@ -479,21 +474,23 @@ export default function Inventory() {
                           )}
                         </div>
                       </td>
-                      <td className="py-4 px-5 hidden md:table-cell text-sm">{item.sku || "-"}</td>
-                      <td className="py-4 px-5 hidden lg:table-cell">
+                      <td className="py-5 px-6 lg:px-8 lg:py-6 text-sm">{item.sku || "-"}</td>
+                      <td className="py-5 px-6 lg:px-8 lg:py-6 min-w-[220px]">
                         <Badge variant="outline">{item.category || "Uncategorized"}</Badge>
                       </td>
-                      <td className="py-4 px-5">
+                      <td className="py-5 px-6 lg:px-8 lg:py-6">
                         <span className={isLowStock ? "font-semibold text-amber-600" : "font-semibold text-slate-900"}>{item.stockLevel}</span>
                       </td>
-                      <td className="py-4 px-5 hidden sm:table-cell text-sm">{formatMoney(item.price)}</td>
-                      <td className="py-4 px-5 hidden xl:table-cell text-sm">{item.supplier || "-"}</td>
-                      <td className="py-4 px-5">
-                        <Badge className={`${stockBadgeClass[stockState]} border`}>
-                          {stockLabel[stockState]}
-                        </Badge>
+                      <td className="py-5 px-6 lg:px-8 lg:py-6 text-sm">{formatMoney(item.price)}</td>
+                      <td className="py-5 px-6 lg:px-8 lg:py-6 text-sm">{item.supplier || "-"}</td>
+                      <td className="py-5 px-6 lg:px-8 lg:py-6 min-w-[180px]">
+                        <div className="flex items-center">
+                          <Badge className={`${stockBadgeClass[stockState]} border`}>
+                            {stockLabel[stockState]}
+                          </Badge>
+                        </div>
                       </td>
-                      <td className="py-4 px-5">
+                      <td className="py-5 px-6 lg:px-8 lg:py-6">
                         <div className="flex flex-wrap gap-2">
                           <Button
                             variant="outline"
@@ -529,6 +526,7 @@ export default function Inventory() {
                 )}
               </tbody>
             </table>
+          </div>
           </div>
         </CardContent>
       </Card>

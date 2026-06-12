@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const defaultApiHost = typeof window !== "undefined" ? window.location.hostname : "localhost";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${defaultApiHost}:5000/api`;
 const GET_CACHE_TTL_MS = 30_000;
 const getCache = new Map();
 

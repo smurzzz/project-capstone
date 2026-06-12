@@ -5,9 +5,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    host: "127.0.0.1",
+    host: true,
     hmr: {
-      host: "127.0.0.1",
       protocol: "ws",
     },
   },

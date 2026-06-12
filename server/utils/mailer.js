@@ -8,22 +8,43 @@ const parseNumber = (value, fallback) => {
 
 let transporterPromise = null;
 let missingConfigLogged = false;
+let testAccount = null;
 
-const getMailUser = () => process.env.EMAIL_USER || process.env.SMTP_USER;
-const getMailPass = () => process.env.EMAIL_PASS || process.env.SMTP_PASS;
+const getMailUser = () => String(process.env.EMAIL_USER || process.env.SMTP_USER || "").trim();
+const getMailPass = () => String(process.env.EMAIL_PASS || process.env.SMTP_PASS || "").replace(/\s+/g, "");
 
 const hasMailerConfig = () =>
     Boolean(getMailUser() && getMailPass());
 
+const createTestTransporter = async () => {
+    if (process.env.NODE_ENV === "production") {
+        return null;
+    }
+
+    if (!testAccount) {
+        testAccount = await nodemailer.createTestAccount();
+    }
+
+    if (!missingConfigLogged) {
+        missingConfigLogged = true;
+        console.warn("SMTP settings are missing. Using Nodemailer Ethereal test account for local development.");
+        console.warn(`Ethereal account user=${testAccount.user}, pass=${testAccount.pass}`);
+    }
+
+    return nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+            user: testAccount.user,
+            pass: testAccount.pass,
+        },
+    });
+};
+
 const createTransporter = async () => {
     if (!hasMailerConfig()) {
-        if (!missingConfigLogged) {
-            missingConfigLogged = true;
-            console.warn("Email notifications are disabled. SMTP configuration is missing.");
-            console.warn(`EMAIL_USER: ${getMailUser()}, EMAIL_PASS: ${getMailPass() ? "***" : "missing"}`);
-        }
-
-        return null;
+        return createTestTransporter();
     }
 
     const mailUser = getMailUser();
@@ -68,7 +89,12 @@ const getTransporter = async () => {
         transporterPromise = createTransporter();
     }
 
-    return transporterPromise;
+    try {
+        return await transporterPromise;
+    } catch (error) {
+        transporterPromise = null;
+        throw error;
+    }
 };
 
 export const sendEmail = async ({ to, subject, text, html }) => {
@@ -93,20 +119,26 @@ export const sendEmail = async ({ to, subject, text, html }) => {
         if (process.env.NODE_ENV !== "production") {
             console.log(`Sending email to ${recipients} with subject: ${subject}`);
         }
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from,
             to: recipients,
             subject: String(subject || "JBM Electro notification").slice(0, 200),
             text: text || "",
             html: html || undefined,
         });
+
         if (process.env.NODE_ENV !== "production") {
             console.log(`Email sent successfully to ${recipients}`);
+            const previewUrl = nodemailer.getTestMessageUrl(info);
+            if (previewUrl) {
+                console.log(`Preview URL: ${previewUrl}`);
+            }
         }
         return true;
     } catch (error) {
         console.error(`Failed to send email to ${recipients}:`, error.message);
         console.error("Error details:", error);
+        transporterPromise = null;
         return false;
     }
 };

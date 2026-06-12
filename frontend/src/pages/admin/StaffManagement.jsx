@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog.jsx";
 import { Input } from "../../components/ui/input.jsx";
 import { Label } from "../../components/ui/label.jsx";
+import SearchBar from "../../components/SearchBar.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { staffAPI } from "../../utils/api.js";
 
@@ -79,7 +80,7 @@ export default function StaffManagement() {
         staffMembers: 0,
       });
     } catch (error) {
-      console.error("Error fetching staff:", error);
+
       toast.error(error.response?.data?.message || "Failed to load staff");
     } finally {
       setLoading(false);
@@ -188,7 +189,7 @@ export default function StaffManagement() {
       setEditingId(null);
       await fetchStaff();
     } catch (error) {
-      console.error("Error saving staff:", error);
+
       toast.error(error.response?.data?.message || "Failed to save staff");
     } finally {
       setSaving(false);
@@ -219,7 +220,7 @@ export default function StaffManagement() {
 
       await fetchStaff();
     } catch (error) {
-      console.error("Error changing staff status:", error);
+
       toast.error(error.response?.data?.message || "Failed to update staff status");
     }
   };
@@ -248,31 +249,12 @@ export default function StaffManagement() {
         <StaffStat title="Inactive" value={inactiveStaff} icon={<UserX className="h-8 w-8 text-red-600" />} />
       </div>
 
-      <Card>
-        <CardContent className="flex min-h-24 items-center justify-center py-5 px-4">
-          <div className="w-full max-w-3xl">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search staff by name, email, role, or department..."
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                className="h-10 w-full pl-10 pr-10"
-              />
-              {searchTerm && (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <SearchBar
+        placeholder="Search staff by name, email, role, or department..."
+        value={searchTerm}
+        onChange={(event) => setSearchTerm(event.target.value)}
+        onClear={() => setSearchTerm("")}
+      />
 
       <Card>
         <CardHeader>

@@ -208,7 +208,6 @@ export default function ClientOrderForm({ selectedPackage, onCancelPackage }) {
       toast.success("Order placed successfully. You will receive a confirmation shortly.");
       resetForm();
     } catch (error) {
-      console.error("Error placing order:", error);
       toast.error(error.response?.data?.message || "Failed to place order");
     } finally {
       setSubmitting(false);

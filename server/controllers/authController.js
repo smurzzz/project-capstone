@@ -11,6 +11,8 @@ import { verifyGoogleIdToken } from "../utils/googleAuth.js";
 import { sendOtpVerificationEmail } from "../utils/emailService.js";
 import { getExpiryDate, getActiveMembership } from "../utils/membership.js";
 import { refreshCustomerMembershipIfExpired } from "./customerController.js";
+import { handleControllerError } from "../utils/errorResponse.js";
+import logger from "../utils/logger.js";
 
 const SALT_ROUNDS = 12;
 const OTP_TTL_MINUTES = Number(process.env.EMAIL_OTP_TTL_MINUTES || 10);
@@ -211,11 +213,7 @@ export const loginCustomer = async (req, res) => {
             ...session,
         });
     } catch (error) {
-        console.error("Customer login error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+        handleControllerError(res, error, "Auth.customerLogin", 500, "Internal server error");
     }
 };
 
@@ -270,11 +268,7 @@ export const loginStaff = async (req, res) => {
             user: payload,
         });
     } catch (error) {
-        console.error("Staff login error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+        handleControllerError(res, error, "Auth.staffLogin", 500, "Internal server error");
     }
 };
 
@@ -330,11 +324,7 @@ export const getCurrentSession = async (req, res) => {
             message: "Invalid session",
         });
     } catch (error) {
-        console.error("Get current session error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+        handleControllerError(res, error, "Auth.getCurrentSession", 500, "Internal server error");
     }
 };
 
@@ -413,7 +403,7 @@ export const registerCustomer = async (req, res) => {
             ...session,
         });
     } catch (error) {
-        console.error("Registration error:", error);
+        logger.error("Auth.registerCustomer", error);
         if (error.code === 11000) {
             return res.status(400).json({
                 success: false,
@@ -535,7 +525,7 @@ export const googleCustomerAuth = async (req, res) => {
     } catch (error) {
         // Log only safe details (no token/PII) to prevent sensitive data leakage
         // in logs accessible to operations/support teams
-        console.error("[GOOGLE_AUTH] Request failed:", {
+        logger.error("Auth.googleCustomerAuth", {
             message: error?.message,
             statusCode: error?.statusCode,
         });

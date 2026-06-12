@@ -11,6 +11,8 @@ import {
 
 import bcrypt from "bcrypt";
 import { MEMBERSHIP_STATUSES, MEMBERSHIP_TIERS, getExpiryDate, expireActiveMemberships } from "../utils/membership.js";
+import { handleControllerError } from "../utils/errorResponse.js";
+import logger from "../utils/logger.js";
 
 const defaultMembership = ({ status = "Active", tier = "Prime" } = {}) => {
     const expiresAt = status === "None" ? null : getExpiryDate(new Date());
@@ -773,8 +775,8 @@ export const updateCustomerPassword = async (req, res) => {
 
         res.status(200).json({ success: true, message: "Password updated successfully" });
     } catch (error) {
-        console.error("[updateCustomerPassword] error:", error.stack || error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        logger.error("Customer.updateCustomerPassword", error);
+        handleControllerError(res, error, "Customer.updateCustomerPassword", 500, "Internal server error");
     }
 };
 

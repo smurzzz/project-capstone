@@ -7,6 +7,7 @@ import connectDb from "./db/connect.js"
 import dotenv from "dotenv"
 import helmet from "helmet"
 import morgan from "morgan"
+import logger from "./utils/logger.js"
 import { createRateLimiter, sanitizeInput, securityHeaders } from "./middleware/security.js"
 
 // Routes
@@ -47,7 +48,17 @@ const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173,http:/
     .map((origin) => origin.trim())
     .filter(Boolean)
 const isDevelopment = process.env.NODE_ENV !== "production"
-const isAllowedLocalDevOrigin = (origin) => /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)
+const isAllowedLocalDevOrigin = (origin) => {
+    return /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)
+}
+
+const corsOrigin = (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || isAllowedLocalDevOrigin(origin)) {
+        callback(null, true)
+        return
+    }
+    callback(new Error("Not allowed by CORS"))
+}
 
 app.set("trust proxy", 1)
 app.disable("x-powered-by")
@@ -55,19 +66,11 @@ app.disable("x-powered-by")
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }))
 app.use(securityHeaders)
 app.use(cors({
-    origin(origin, callback) {
-        if (
-            !origin ||
-            allowedOrigins.includes(origin) ||
-            (isDevelopment && isAllowedLocalDevOrigin(origin))
-        ) {
-            return callback(null, true)
-        }
-
-        return callback(new Error("Not allowed by CORS"))
-    },
+    origin: corsOrigin,
+    credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 200,
 }))
 app.use(express.json({ limit: "6mb" }))
 app.use(sanitizeInput)
@@ -115,12 +118,7 @@ app.use((error, req, res, next) => {
         return res.status(403).json({ success: false, message: "Origin not allowed" })
     }
 
-    // Avoid leaking stack traces in production
-    if (isDevelopment) {
-        console.error("Unhandled error:", error)
-    } else {
-        console.error("Unhandled error:", error && error.message ? error.message : error)
-    }
+    logger.error("Unhandled error", error)
 
     return res.status(500).json({ success: false, message: "Internal server error" })
 })
@@ -130,7 +128,7 @@ const port = process.env.PORT || 5000
 const startServer = async () => {
     await connectDb()
     app.listen(port, () => {
-        console.log(`Server is running on http://localhost:${port}`)
+        logger.startup(`Server running on http://localhost:${port}`)
     })
 }
 

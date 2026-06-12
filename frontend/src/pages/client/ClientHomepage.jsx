@@ -30,8 +30,8 @@ export default function ClientHomepage() {
         ]);
         setPackageDeals((packagesResponse.data.data || []).slice(0, 3));
         setFeaturedProducts(productsResponse.data.data || []);
-      } catch (error) {
-        console.error("Error loading landing offers:", error);
+      } catch {
+        // Silently handle offers loading errors
       }
     };
 

@@ -72,8 +72,7 @@ export default function AdminPackages() {
       ]);
       setPackages(packagesResponse.data.data || []);
       setProducts(productsResponse.data.data || []);
-    } catch (error) {
-      console.error("Error loading packages:", error);
+    } catch {
       toast.error("Failed to load package deals");
     } finally {
       setLoading(false);
@@ -150,7 +149,7 @@ export default function AdminPackages() {
       setDialogOpen(false);
       fetchData();
     } catch (error) {
-      console.error("Error saving package:", error);
+
       toast.error(error.response?.data?.message || "Failed to save package deal");
     }
   };
@@ -162,8 +161,7 @@ export default function AdminPackages() {
       await packagesAPI.delete(packageDeal._id);
       toast.success("Package deal deleted");
       fetchData();
-    } catch (error) {
-      console.error("Error deleting package:", error);
+    } catch {
       toast.error("Failed to delete package deal");
     }
   };

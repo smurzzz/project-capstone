@@ -1,46 +1,8 @@
 import { sendEmail } from "./mailer.js";
+import logger from "./logger.js";
+import { escapeHtml, formatCurrency, formatDate, formatDateTime } from "./formatters.js";
 
 const appName = process.env.APP_NAME || "JBM Electro Ventures";
-
-const escapeHtml = (value) =>
-    String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-
-const formatCurrency = (amount) =>
-    new Intl.NumberFormat("en-PH", {
-        style: "currency",
-        currency: "PHP",
-    }).format(Number(amount || 0));
-
-const formatDate = (value) => {
-    if (!value) return "TBD";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "TBD";
-
-    return date.toLocaleDateString("en-PH", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
-};
-
-const formatDateTime = (value) => {
-    if (!value) return "TBD";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return "TBD";
-
-    return date.toLocaleString("en-PH", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    });
-};
 
 const buildTemplate = ({ title, preview, body }) => `
 <!doctype html>
@@ -93,7 +55,7 @@ const sendNotification = async (payload) => {
     try {
         return await sendEmail(payload);
     } catch (error) {
-        console.error("Failed to send email notification:", error.message);
+        logger.error("Email.sendNotification", error);
         return false;
     }
 };

@@ -17,6 +17,8 @@ import {
     sendPasswordResetEmail,
     sendReceiptEmail,
 } from "../utils/emailService.js";
+import { sendErrorResponse, handleControllerError } from "../utils/errorResponse.js";
+import logger from "../utils/logger.js";
 
 const SALT_ROUNDS = 12;
 const OTP_TTL_MINUTES = Number(process.env.EMAIL_OTP_TTL_MINUTES || 10);
@@ -103,11 +105,7 @@ export const requestOtpVerification = async (req, res) => {
             message: "If the email is registered, a verification code has been sent",
         });
     } catch (error) {
-        console.error("Request OTP error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to send verification code",
-        });
+        handleControllerError(res, error, "Mail.requestOtpVerification", 500, "Failed to send verification code");
     }
 };
 
@@ -143,11 +141,7 @@ export const verifyOtp = async (req, res) => {
             message: "Email verified successfully",
         });
     } catch (error) {
-        console.error("Verify OTP error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to verify email",
-        });
+        handleControllerError(res, error, "Mail.verifyOtp", 500, "Failed to verify email");
     }
 };
 
@@ -167,6 +161,7 @@ export const requestPasswordReset = async (req, res) => {
         const resetToken = crypto.randomBytes(32).toString("hex");
 
         if (account) {
+            await createEmailToken({
                 email,
                 purpose: "password_reset",
                 token: resetToken,
@@ -187,10 +182,15 @@ export const requestPasswordReset = async (req, res) => {
             });
 
             if (!emailResult) {
-                return res.status(503).json({
-                    success: false,
-                    message: "Password reset email could not be sent. Check SMTP configuration and server logs.",
-                });
+                logger.warn("Mail.requestPasswordReset", `Password reset email failed for ${email}`);
+
+                const exposeError = process.env.EMAIL_DEBUG === "true" || process.env.NODE_ENV !== "production";
+                if (exposeError) {
+                    return res.status(500).json({
+                        success: false,
+                        message: "Password reset email could not be sent. Check backend logs for SMTP details.",
+                    });
+                }
             }
         }
 
@@ -199,14 +199,7 @@ export const requestPasswordReset = async (req, res) => {
             message: "If the email is registered, a password reset email has been sent",
         });
     } catch (error) {
-        console.error("[PASSWORD_RESET] Request failed:", {
-            message: error?.message,
-            stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
-        });
-        return res.status(500).json({
-            success: false,
-            message: "Failed to send password reset email",
-        });
+        handleControllerError(res, error, "Mail.requestPasswordReset", 500, "Failed to send password reset email");
     }
 };
 export const resetPassword = async (req, res) => {
@@ -259,11 +252,7 @@ export const resetPassword = async (req, res) => {
             message: "Password reset successfully",
         });
     } catch (error) {
-        console.error("Reset password error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to reset password",
-        });
+        handleControllerError(res, error, "Mail.resetPassword", 500, "Failed to reset password");
     }
 };
 
@@ -291,11 +280,7 @@ export const sendAdminNotification = async (req, res) => {
             message: sent ? "Admin notification sent" : "Email service is not configured",
         });
     } catch (error) {
-        console.error("Send admin notification error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to send admin notification",
-        });
+        handleControllerError(res, error, "Mail.sendAdminNotification", 500, "Failed to send admin notification");
     }
 };
 
@@ -330,10 +315,6 @@ export const sendOrderReceipt = async (req, res) => {
             message: sent ? "Receipt email sent" : "Email service is not configured",
         });
     } catch (error) {
-        console.error("Send order receipt error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to send receipt email",
-        });
+        handleControllerError(res, error, "Mail.sendOrderReceipt", 500, "Failed to send receipt email");
     }
 };

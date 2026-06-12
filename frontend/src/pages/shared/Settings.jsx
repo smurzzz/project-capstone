@@ -60,8 +60,8 @@ export default function Settings() {
       if (response.data.success) {
         setEmailPreferences(response.data.data);
       }
-    } catch (error) {
-      console.error("Error loading email preferences:", error);
+    } catch {
+      // Silently handle preference loading errors
     } finally {
       setLoadingPreferences(false);
     }
@@ -121,7 +121,6 @@ export default function Settings() {
 
       toast.success("Profile updated");
     } catch (error) {
-      console.error("Error updating profile:", error);
       toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setSaving(false);
@@ -136,7 +135,6 @@ export default function Settings() {
         toast.success("Email preferences saved");
       }
     } catch (error) {
-      console.error("Error saving email preferences:", error);
       toast.error(error.response?.data?.message || "Failed to save email preferences");
     } finally {
       setSavingPreferences(false);
@@ -290,18 +288,17 @@ export default function Settings() {
                     setConfirmNewPassword("");
                     toast.success("Password updated successfully");
                   } catch (error) {
-                    console.error("Password update error:", error);
-                    const status = error?.response?.status;
-                    if (status === 401 || status === 403) {
-                      toast.error(error.response?.data?.message || "Session expired or access denied");
-                      logout();
-                    } else {
-                      toast.error(error.response?.data?.message || "Failed to update password");
+                      const status = error?.response?.status;
+                      if (status === 401 || status === 403) {
+                        toast.error(error.response?.data?.message || "Session expired or access denied");
+                        logout();
+                      } else {
+                        toast.error(error.response?.data?.message || "Failed to update password");
+                      }
+                    } finally {
+                      setSavingPassword(false);
                     }
-                  } finally {
-                    setSavingPassword(false);
-                  }
-                }}
+                  }}
               >
                 <input
                   type="hidden"

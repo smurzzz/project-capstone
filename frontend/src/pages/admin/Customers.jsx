@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { customersAPI } from "../../utils/api.js";
 
 export default function Customers() {
@@ -24,8 +25,8 @@ export default function Customers() {
         try {
             const response = await customersAPI.getAll();
             setCustomers(response.data.data);
-        } catch (error) {
-            console.error("Error fetching customers:", error);
+        } catch {
+            toast.error('Failed to load customers');
         } finally {
             setLoading(false);
         }
@@ -66,8 +67,8 @@ export default function Customers() {
             });
             setShowForm(false);
             setEditingId(null);
-        } catch (error) {
-            console.error("Error saving customer:", error);
+        } catch {
+            toast.error('Failed to save customer');
         }
     };
 
@@ -82,8 +83,8 @@ export default function Customers() {
             try {
                 await customersAPI.delete(id);
                 fetchCustomers();
-            } catch (error) {
-                console.error("Error deleting customer:", error);
+            } catch {
+                toast.error('Failed to delete customer');
             }
         }
     };

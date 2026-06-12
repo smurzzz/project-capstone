@@ -3,10 +3,35 @@ import { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext.jsx";
 
 const CartContext = createContext();
+const CART_STORAGE_KEY = "pos-cart";
 
 const getProductStock = (product) => Number(product?.stockLevel ?? product?.stock ?? 0);
 const getBaseProductPrice = (product) => Number(product?.srp ?? product?.price ?? 0);
 const roundMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
+
+const loadStoredCart = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed?.cart) ? parsed.cart : [];
+  } catch {
+    return [];
+  }
+};
+
+const loadStoredQuantities = () => {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    if (!stored) return {};
+    const parsed = JSON.parse(stored);
+    return parsed?.quantities && typeof parsed.quantities === "object" ? parsed.quantities : {};
+  } catch {
+    return {};
+  }
+};
 
 const getMembershipDiscountRate = (user) => {
   if (!user) return 0;
@@ -22,8 +47,21 @@ const getProductPrice = (product, user) => {
 
 export const CartProvider = ({ children }) => {
   const { user } = useAuth();
-  const [cart, setCart] = useState([]);
-  const [quantities, setQuantities] = useState({});
+  const [cart, setCart] = useState(loadStoredCart);
+  const [quantities, setQuantities] = useState(loadStoredQuantities);
+
+  const persistCart = (nextCart, nextQuantities) => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ cart: nextCart, quantities: nextQuantities }));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  useEffect(() => {
+    persistCart(cart, quantities);
+  }, [cart, quantities]);
 
   // Clear cart when user logs out
   useEffect(() => {
@@ -74,22 +112,20 @@ export const CartProvider = ({ children }) => {
       quantity: Math.min(safeQuantity, stock),
       subtotal: roundMoney(price * Math.min(safeQuantity, stock)),
     };
-    
+
     setCart(prev => {
       const existingItem = prev.find(item => item._id === product._id);
       if (existingItem) {
         const nextQuantity = Math.min(existingItem.quantity + safeQuantity, stock);
-
         return prev.map(item => 
-          item._id === product._id 
+          item._id === product._id
             ? { ...item, stockLevel: stock, quantity: nextQuantity, price, subtotal: roundMoney(nextQuantity * price) }
             : item
         );
       }
-
       return [...prev, cartItem];
     });
-    
+
     setQuantities(prev => ({ ...prev, [product._id]: 1 }));
     return true;
   };
@@ -116,16 +152,18 @@ export const CartProvider = ({ children }) => {
 
   const removeFromCart = (productId) => {
     setCart(prev => prev.filter(item => item._id !== productId));
+
     setQuantities(prev => {
-      const newQuantities = { ...prev };
-      delete newQuantities[productId];
-      return newQuantities;
+      const nextQuantities = { ...prev };
+      delete nextQuantities[productId];
+      return nextQuantities;
     });
   };
 
   const clearCart = () => {
     setCart([]);
     setQuantities({});
+    persistCart([], {});
   };
 
   const getTotalItems = () => {

@@ -25,8 +25,8 @@ export default function MembershipStatus() {
       try {
         const response = await membershipAPI.getMyMembership();
         setMembershipData(response.data.data || null);
-      } catch (error) {
-        console.error("Error loading membership status:", error);
+      } catch (err) {
+        void err;
       } finally {
         setLoading(false);
       }
@@ -36,15 +36,10 @@ export default function MembershipStatus() {
   }, []);
 
   const membership = membershipData?.membership || null;
-  const status = membership?.status || "None";
-  const activationDate = membership?.joinedAt || membership?.approvedAt || null;
-  const expiryDate = membership?.expiresAt || null;
-  const isMember = Boolean(activationDate || expiryDate) && status !== "None";
-  const defaultDate = status === "None" ? null : membershipData?.applicationSubmittedAt || activationDate || expiryDate;
   const packageName = membershipData?.selectedPackageDeal?.name || membershipData?.entryPackage || "N/A";
   const paymentMethod = membershipData?.membershipPaymentInfo?.paymentMethod || "N/A";
   const paymentReference = membershipData?.membershipPaymentInfo?.referenceNumber || "N/A";
-  const membershipOrderId = membershipData?.order?.referenceNumber || membershipData?.order?.id || "N/A";
+  const membershipOrderId = membershipData?.order?.membershipId || membershipData?.order?.orderId || membershipData?.order?.id || "N/A";
   const submittedAt = membershipData?.applicationSubmittedAt;
   const applicationNotes = membershipData?.applicationNotes || "No notes available.";
 

@@ -45,7 +45,7 @@ const saveStoredReadNotifications = (userId, readIds) => {
 };
 
 const orderStatusMessage = (order) => {
-  const reference = order.referenceNumber || "your order";
+  const reference = order.orderId || order.membershipId || order.referenceNumber || "your order";
   const messages = {
     Pending: `${reference} is pending and waiting for admin review.`,
     Confirmed: `${reference} has been confirmed by admin.`,
@@ -78,7 +78,6 @@ export default function ClientDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   // Handle hash navigation for setting active tab and location state
   useEffect(() => {
     // Check if coming from navigation with state
@@ -191,13 +190,12 @@ export default function ClientDashboard() {
               }
             }
           }
-        } catch (e) {
-          console.error("Error loading membership status for notifications:", e);
+        } catch {
+          // Silently handle membership status loading errors
         }
 
         setNotifications(userNotifications);
-      } catch (error) {
-        console.error("Error loading notifications:", error);
+      } catch {
         setNotifications(userNotifications);
       }
     };
@@ -268,9 +266,9 @@ export default function ClientDashboard() {
 
   const Sidebar = ({ isMobile = false }) => (
     <div
-      className={`${isMobile ? "w-full" : "w-72"} bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white ${
+      className={`${isMobile ? "w-full max-w-xs" : "w-72"} bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white ${
         isMobile ? "min-h-screen" : "h-[100dvh]"
-      } flex flex-col`}
+      } flex flex-col overflow-hidden`}
     >
       <div className="p-6 border-b border-slate-700">
           <div className="flex items-center gap-3">
@@ -286,7 +284,8 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -326,7 +325,7 @@ export default function ClientDashboard() {
         </button>
 
         {accountMenuOpen && (
-          <div className="p-4 bg-slate-700/50 rounded-lg space-y-3 border border-slate-600">
+          <div className="flex flex-col gap-3 overflow-hidden rounded-lg border border-slate-600 bg-slate-700/50 p-4">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 overflow-hidden flex items-center justify-center flex-shrink-0">
                 {user?.profileImageUrl ? (
@@ -348,7 +347,7 @@ export default function ClientDashboard() {
                 setAccountMenuOpen(false);
                 setActiveTab("settings");
               }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-600 rounded transition-all duration-200"
+              className="w-full flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-slate-300 transition-all duration-200 hover:bg-slate-600"
             >
               <Settings className="h-5 w-5" />
               Settings
@@ -356,7 +355,7 @@ export default function ClientDashboard() {
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-300 hover:bg-red-600/20 rounded transition-all duration-200"
+              className="w-full flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-red-300 transition-all duration-200 hover:bg-red-600/20"
             >
               <LogOut className="h-5 w-5" />
               Logout
@@ -364,7 +363,7 @@ export default function ClientDashboard() {
           </div>
         )}
       </div>
-    </div>
+    
   );
 
   return (
@@ -520,4 +519,5 @@ export default function ClientDashboard() {
       </div>
     </div>
   );
+
 }

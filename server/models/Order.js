@@ -68,6 +68,11 @@ const orderSchema = new mongoose.Schema({
         enum: ["products", "package", "membership", "regular"],
         default: "products"
     },
+    membershipId: {
+        type: String,
+        trim: true,
+        default: ""
+    },
    
     total: {
         type: Number,
@@ -150,6 +155,10 @@ const orderSchema = new mongoose.Schema({
 orderSchema.index({ customerId: 1, createdAt: -1 });
 
 orderSchema.virtual("orderId").get(function () {
+    if (this.membershipId) {
+        return this.membershipId;
+    }
+
     if (this.referenceNumber) {
         return this.referenceNumber;
     }

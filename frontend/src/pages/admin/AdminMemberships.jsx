@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Mail, Calendar, Search, X, User, Trash2, Users, UserCheck, UserX } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/card.jsx';
 import { Input } from '../../components/ui/input';
 import RoleEditModal from '../../components/admin/RoleEditModal';
 import { customersAPI, membershipAPI } from '../../utils/api';
@@ -32,8 +33,7 @@ export default function AdminMemberships() {
         registered: a.applicationSubmittedAt || a.createdAt
       }));
       setCustomers(items);
-    } catch (e) {
-      console.error('Failed to load membership applications:', e);
+    } catch {
       setCustomers([]);
     } finally {
       setLoading(false);
@@ -44,7 +44,7 @@ export default function AdminMemberships() {
     try {
       const res = await membershipAPI.getMembershipStats();
       setStats(res?.data?.data || {});
-    } catch (e) {
+    } catch {
       // ignore stats failure
     }
   };
@@ -140,7 +140,6 @@ export default function AdminMemberships() {
       await fetchApplications({ status: roleFilter === 'Member' ? 'Active' : '', search: query });
       fetchStats();
     } catch (err) {
-      console.error('Failed to cancel membership:', err);
       window.alert(err.response?.data?.message || 'Unable to cancel membership.');
     }
   };
@@ -165,37 +164,39 @@ export default function AdminMemberships() {
         <MembershipStat title="Cancelled" value={stats.cancelled || 0} icon={<UserX className="h-8 w-8 text-rose-600" />} />
       </div>
 
-      <div className="mb-4 flex min-h-24 items-center justify-center rounded-lg bg-white py-5 px-4 shadow-sm">
-        <div className="w-full max-w-6xl grid items-center gap-3 md:grid-cols-[minmax(0,1fr)_180px_auto]">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              placeholder="Search by name, email, or package..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="h-10 pl-10 pr-10"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+      <Card>
+        <CardContent className="flex min-h-20 items-center px-4 py-8">
+          <div className="mx-auto grid w-full max-w-6xl items-center gap-3 pt-5 md:grid-cols-[minmax(0,1fr)_180px_auto]">
+            <div className="relative flex h-10 items-center w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                placeholder="Search by name, email, or package..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="h-10 w-full pl-10 pr-10 py-0 leading-none"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <div>
+              <select className="h-10 w-full rounded-md border px-3 py-2 text-sm" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                <option value="All">All Roles</option>
+                <option value="Member">Member</option>
+                <option value="Guest">Guest</option>
+              </select>
+            </div>
+            <div className="hidden md:block" />
           </div>
-          <div>
-            <select className="h-10 w-full rounded-md border px-3 py-2 text-sm" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-              <option value="All">All Roles</option>
-              <option value="Member">Member</option>
-              <option value="Guest">Guest</option>
-            </select>
-          </div>
-          <div className="hidden md:block" />
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         {showTopScroll && (

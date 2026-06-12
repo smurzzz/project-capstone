@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react';
 import {
   Plus,
@@ -42,8 +41,8 @@ export default function AdminFAQ() {
       const response = await faqAPI.getAll();
       setFAQs(response.data.data || []);
       setError(null);
-    } catch (err) {
-      console.error('Error fetching FAQs:', err);
+    } catch {
+
       setError('Failed to load FAQs');
     } finally {
       setLoading(false);
@@ -86,7 +85,7 @@ export default function AdminFAQ() {
       handleResetForm();
       setError(null);
     } catch (err) {
-      console.error('Error saving FAQ:', err);
+
       setError(err.response?.data?.error || 'Failed to save FAQ');
     }
   };
@@ -98,8 +97,8 @@ export default function AdminFAQ() {
       await faqAPI.delete(id);
       await fetchFAQs();
       setError(null);
-    } catch (err) {
-      console.error('Error deleting FAQ:', err);
+    } catch {
+
       setError('Failed to delete FAQ');
     }
   };

@@ -45,7 +45,6 @@ export default function AdminDashboard() {
         setError("");
       } catch (fetchError) {
         if (active) {
-          console.error("Error fetching dashboard data:", fetchError);
           setError(fetchError.response?.data?.message || "Failed to load dashboard data");
         }
       } finally {
@@ -240,7 +239,7 @@ export default function AdminDashboard() {
                   {recentOrders.map((order) => (
                     <tr key={order._id} className="border-b bg-white last:border-0 hover:bg-slate-50">
                       <td className="py-4 px-5 align-top text-sm min-w-[160px]">
-                        {order.orderId || order.referenceNumber || order._id}
+                        {order.orderType === 'membership' ? (order.orderId || order.membershipId || order.referenceNumber || order._id) : (order.orderId || order.referenceNumber || order._id)}
                       </td>
                       <td className="py-4 px-5 align-top text-sm min-w-[160px]">{order.customerName}</td>
                       <td className="py-4 px-5 hidden md:table-cell align-top text-sm min-w-[120px]">

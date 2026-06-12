@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import logger from "../utils/logger.js";
 
 const DEFAULT_DB_NAME = "jbm-electro-ventures";
 
@@ -38,11 +39,9 @@ const connectDb = async () => {
             autoIndex: process.env.NODE_ENV !== "production",
         });
 
-        if (process.env.NODE_ENV !== "production") {
-            console.log(`MongoDB connected to ${mongoose.connection.name}`);
-        }
+        logger.info(`MongoDB connected to ${mongoose.connection.name}`);
     } catch (error) {
-        console.error("MongoDB connection failed:", error.message);
+        logger.error("MongoDB connection failed", error);
         throw error;
     }
 };

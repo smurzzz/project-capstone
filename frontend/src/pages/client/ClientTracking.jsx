@@ -51,18 +51,18 @@ export default function ClientTracking() {
           const ordersResponse = await ordersAPI.getByCustomer(customerId);
           nextOrders = ordersResponse.data.data || [];
         }
-      } catch (orderError) {
-        console.error("Error fetching orders:", orderError);
+      } catch (err) {
+        void err;
       }
 
       try {
         const appointmentsResponse = await appointmentsAPI.getMyAppointments();
         nextAppointments = appointmentsResponse.data.data || [];
-      } catch (appointmentError) {
-        console.error("Error fetching appointments:", appointmentError);
+      } catch (err) {
+        void err;
       }
-    } catch (error) {
-      console.error("Error in fetchUserData:", error);
+    } catch (err) {
+      void err;
     } finally {
       setMyOrders(nextOrders);
       setMyAppointments(nextAppointments);
@@ -89,12 +89,12 @@ export default function ClientTracking() {
     ];
   };
 
-  const searchById = (id) => {
+  const searchById = useCallback((id) => {
     const normalizedId = id.trim().toLowerCase();
     const cleanedDigits = normalizedId.replace(/[^0-9]/g, "");
 
     const matchedOrders = myOrders.filter((item) => {
-      const orderId = item.orderId || item.referenceNumber || item._id;
+      const orderId = item.orderId || item.membershipId || item.referenceNumber || item._id;
       const normalizedOrderId = orderId?.toLowerCase() || "";
       const normalizedReference = item.referenceNumber?.toLowerCase() || "";
 
@@ -120,14 +120,14 @@ export default function ClientTracking() {
     setSearchResults(
       matchedOrders.length > 0 ? { orders: matchedOrders } : appointment ? { appointment } : null
     );
-  };
+  }, [myOrders, myAppointments]);
 
   useEffect(() => {
     if (!loading && orderQuery) {
       setTrackingId(orderQuery);
       searchById(orderQuery);
     }
-  }, [loading, orderQuery, myOrders, myAppointments]);
+  }, [loading, orderQuery, myOrders, myAppointments, searchById]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -165,14 +165,15 @@ export default function ClientTracking() {
           <CardTitle>Track by ID</CardTitle>
           <CardDescription>Enter your order ID or appointment ID to track</CardDescription>
         </CardHeader>
-          <CardContent className="px-4 py-5 sm:px-6 sm:py-6">
-          <form onSubmit={handleSearch} className="mx-auto grid w-full max-w-6xl items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <div className="relative w-full">
+          <CardContent className="flex min-h-20 items-center px-4 py-8 sm:px-6 sm:py-8">
+          <form onSubmit={handleSearch} className="mx-auto grid w-full max-w-6xl items-center gap-3 pt-5 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="relative flex h-10 items-center w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Enter order date (YYYYMMDD or MMDDYYYY) or part of the order ID"
                 value={trackingId}
                 onChange={(event) => setTrackingId(event.target.value)}
-                className="h-10 pr-10"
+                className="h-10 w-full pl-10 pr-10 py-0 leading-none"
               />
               {trackingId && (
                 <button
@@ -199,7 +200,7 @@ export default function ClientTracking() {
               {searchResults.orders.map((order) => (
                 <div key={order._id} className="rounded-lg bg-white border border-slate-200 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-4">
-                    <h4 className="font-semibold">Order {order.referenceNumber || order.orderId || order._id}</h4>
+                    <h4 className="font-semibold">Order {order.orderId || order.membershipId || order.referenceNumber || order._id}</h4>
                     <Badge className={orderStatusColors[order.status] || "bg-gray-100 text-gray-800"}>
                       {order.status}
                     </Badge>
@@ -268,7 +269,7 @@ export default function ClientTracking() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-semibold">Order {order.referenceNumber || order.orderId || order._id}</h4>
+                        <h4 className="font-semibold">Order {order.orderId || order.membershipId || order.referenceNumber || order._id}</h4>
                         {order.membershipDiscountAmount > 0 && (
                           <Badge className="bg-green-100 text-green-800">Member</Badge>
                         )}

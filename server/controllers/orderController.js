@@ -28,6 +28,8 @@ import {
     calculatePromotions,
     recordPromotionRedemptions,
 } from "../utils/promotionEngine.js";
+import { handleControllerError } from "../utils/errorResponse.js";
+import logger from "../utils/logger.js";
 
 const paymentMethodAliases = new Map([
     ["gcash", "GCash"],
@@ -566,7 +568,7 @@ export const createOrder = async (req, res) => {
                 });
             }
         } catch (promotionError) {
-            console.error("Failed to record promotion redemptions:", promotionError);
+            logger.error("Order.recordPromotionRedemptions", promotionError);
         }
 
         // Send confirmation email asynchronously to prevent slow mail servers from
@@ -578,7 +580,7 @@ export const createOrder = async (req, res) => {
                 items: createdItems,
             }, customer);
         } catch (emailError) {
-            console.error("Failed to send order confirmation email:", emailError);
+            logger.error("Order.sendOrderCreatedEmail", emailError);
         }
 
         res.status(201).json({
@@ -591,7 +593,7 @@ export const createOrder = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("Error creating order:", error);
+        logger.error("Order.createOrder", error);
         await Promise.all(stockDebits.map((item) =>
             Product.findByIdAndUpdate(item.productId, {
                 $inc: { stockLevel: item.quantity },
@@ -614,10 +616,7 @@ export const createOrder = async (req, res) => {
             });
         }
 
-        res.status(error.statusCode || 500).json({
-            success: false,
-            message: error.statusCode ? error.message : "Internal server error",
-        });
+        handleControllerError(res, error, "Order.createOrder", 500, "Internal server error");
     }
 };
 
@@ -717,7 +716,7 @@ export const updateOrderStatus = async (req, res) => {
             try {
                 await sendOrderStatusEmail(populatedOrder, populatedOrder.customerId);
             } catch (emailError) {
-                console.error("Failed to send order status email:", emailError);
+                logger.error("Order.sendOrderStatusEmail", emailError);
             }
         }
 
@@ -727,11 +726,7 @@ export const updateOrderStatus = async (req, res) => {
             data: populatedOrder,
         });
     } catch (error) {
-        console.error("Error updating order status:", error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+        handleControllerError(res, error, "Order.updateOrderStatus", 500, "Internal server error");
     }
 };
 
@@ -768,10 +763,7 @@ export const getOrderStats = async (req, res) => {
             },
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+        handleControllerError(res, error, "Order.getOrderStats", 500, "Internal server error");
     }
 };
 

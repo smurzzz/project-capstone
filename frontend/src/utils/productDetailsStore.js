@@ -4,7 +4,7 @@ const DETAIL_FIELDS = ["specifications", "features", "compatibility", "warranty"
 const readStore = () => {
     try {
         return JSON.parse(localStorage.getItem(PRODUCT_DETAILS_KEY) || "{}");
-    } catch (error) {
+    } catch {
         return {};
     }
 };

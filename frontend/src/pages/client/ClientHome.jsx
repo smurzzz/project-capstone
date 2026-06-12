@@ -39,7 +39,7 @@ export default function ClientHome({ onNavigateTab }) {
   const [packageDeals, setPackageDeals] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const memberRoleActive = user?.memberRole === "Member";
-  const membershipActive = isMembershipActive(membership);
+
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -63,8 +63,8 @@ export default function ClientHome({ onNavigateTab }) {
           spent: completedOrders.reduce((sum, order) => sum + Number(order.total || 0), 0),
           pending: orders.filter((order) => order.status === "Pending").length,
         });
-      } catch (error) {
-        console.error("Error loading customer stats:", error);
+      } catch {
+        // Silently handle stats loading errors
       }
     };
 
@@ -225,7 +225,7 @@ function DealsSection({ packageDeals, onOpenPackages }) {
   );
 }
 
-function MembershipCard({ membership, onApply, onViewStatus, onOpenPackages, isMemberRole }) {
+function MembershipCard({ membership, onApply, onViewStatus, isMemberRole }) {
   const active = isMembershipActive(membership) || isMemberRole;
   const hasApplied = membership && membership.status && membership.status !== "None";
   const shouldShowViewStatus = active || hasApplied;

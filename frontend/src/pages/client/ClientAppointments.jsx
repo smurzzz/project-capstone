@@ -76,8 +76,7 @@ export default function ClientAppointments() {
         const dateKey = date.toISOString().slice(0, 10);
         const response = await appointmentsAPI.getAvailableSlots(dateKey);
         setAvailableSlots(response.data.data || []);
-      } catch (error) {
-        console.error("Error loading available slots:", error);
+      } catch {
         setAvailableSlots(TIME_SLOTS);
       } finally {
         setLoadingSlots(false);
@@ -98,8 +97,8 @@ export default function ClientAppointments() {
         const booked = (bookedRes.data.data || []).map((dateValue) => `${dateValue}`);
         
         setUnavailableDates([...blocked, ...booked]);
-      } catch (error) {
-        console.error("Error loading date information:", error);
+      } catch {
+        // Silently handle date loading errors
       }
     };
 
@@ -141,7 +140,7 @@ const handleSubmit = async (event) => {
       }
     };
 
-    const response = await appointmentsAPI.create(appointmentData);
+    await appointmentsAPI.create(appointmentData);
 
     toast.success("Appointment booked successfully!");
 
@@ -153,7 +152,6 @@ const handleSubmit = async (event) => {
     setNotes("");
 
   } catch (error) {
-    console.error(error);
     toast.error(error.response?.data?.message || "Failed to book appointment");
   }
 };

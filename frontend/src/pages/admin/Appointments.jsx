@@ -38,8 +38,7 @@ export default function Appointments() {
     try {
       const response = await appointmentsAPI.getAll();
       setAppointmentsList(response.data.data || []);
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
+    } catch {
       toast.error("Failed to load appointments");
     } finally {
       setLoading(false);
@@ -57,8 +56,8 @@ export default function Appointments() {
         ]);
         setBlockedDates(blockedRes.data.data || []);
         setFullyBookedDates(bookedRes.data.data || []);
-      } catch (err) {
-        console.error('Failed to load date information', err);
+      } catch {
+        // Silently handle date loading errors
       }
     })();
   }, []);
@@ -73,8 +72,7 @@ export default function Appointments() {
       setSelectedAppointment(null);
       setNewStatus("");
       fetchAppointments();
-    } catch (error) {
-      console.error("Error updating status:", error);
+    } catch {
       toast.error("Failed to update appointment status");
     }
   };
@@ -224,7 +222,6 @@ export default function Appointments() {
       )}
 
       <div className="flex flex-wrap items-center gap-2 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
-        <span className="text-xs font-semibold text-slate-700">View:</span>
         {[
           { key: "all", label: "All appointments" },
           { key: "today", label: "Today" },
@@ -293,8 +290,8 @@ export default function Appointments() {
                           await appointmentsAPI.unblockDate(dateKey);
                           setBlockedDates((p) => (p || []).filter((d) => d !== dateKey));
                           toast.success('Date unblocked successfully');
-                        } catch (err) {
-                          console.error(err);
+                        } catch {
+
                           toast.error('Failed to unblock date');
                         }
                       }}
@@ -310,8 +307,8 @@ export default function Appointments() {
                           await appointmentsAPI.blockDate(dateKey, 'Blocked by admin');
                           setBlockedDates((p) => Array.from(new Set([...(p || []), dateKey])));
                           toast.success('Date blocked successfully');
-                        } catch (err) {
-                          console.error(err);
+                        } catch {
+
                           toast.error('Failed to block date');
                         }
                       }}

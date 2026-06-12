@@ -34,8 +34,7 @@ export default function ClientPackages({ onSelectPackage }) {
 
         setPackages(packagesResponse.data.data || []);
         setMembership(membershipResponse.data.data?.membership || null);
-      } catch (error) {
-        console.error("Error loading packages:", error);
+      } catch {
         toast.error("Failed to load package deals");
       } finally {
         setLoading(false);

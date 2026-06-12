@@ -68,8 +68,7 @@ export default function MembershipApplicationForm() {
         if (packages.length > 0) {
           setSelectedPackage(packages[0]);
         }
-      } catch (error) {
-        console.error("Error loading data:", error);
+      } catch {
         toast.error("Failed to load membership packages");
       } finally {
         setLoading(false);
@@ -141,7 +140,7 @@ export default function MembershipApplicationForm() {
         navigate("/membership/status");
       }, 1000);
     } catch (error) {
-      console.error("Error submitting application:", error);
+
       toast.error(error.response?.data?.message || "Failed to submit membership application");
     } finally {
       setSubmitting(false);

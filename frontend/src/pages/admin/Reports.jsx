@@ -162,7 +162,7 @@ const exportReportToExcel = (report, sections) => {
             "Recent Orders",
             ["Order ID", "Customer", "Date", "Amount", "Status"],
             (report.recentOrders || []).map((order) => [
-              order.referenceNumber,
+              order.orderType === 'membership' ? (order.orderId || order.membershipId || order.referenceNumber) : order.referenceNumber,
               order.customerName,
               order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "",
               order.total,
@@ -210,7 +210,6 @@ export default function Reports() {
         setError("");
       } catch (fetchError) {
         if (active) {
-          console.error("Error fetching reports:", fetchError);
           setError(fetchError.response?.data?.message || "Failed to load reports");
         }
       } finally {
@@ -273,7 +272,6 @@ export default function Reports() {
       exportReportToExcel(exportReport, exportOptions.sections);
       setExportDialogOpen(false);
     } catch (exportError) {
-      console.error("Error exporting report:", exportError);
       toast.error(exportError.response?.data?.message || "Failed to export report");
     } finally {
       setExporting(false);

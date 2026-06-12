@@ -34,7 +34,7 @@ export default function ClientMyAppointments() {
       const response = await appointmentsAPI.getMyAppointments();
       setAppointments(response.data.data || []);
     } catch (error) {
-      console.error("Error fetching appointments:", error);
+
       if (error.response?.status === 401) {
         toast.error("Please login to view your appointments");
       } else {
@@ -81,8 +81,7 @@ export default function ClientMyAppointments() {
       setCancelDialogOpen(false);
       setSelectedAppointment(null);
       fetchMyAppointments();
-    } catch (error) {
-      console.error("Error cancelling appointment:", error);
+    } catch {
       toast.error("Failed to cancel appointment");
     } finally {
       setCancelLoading(false);

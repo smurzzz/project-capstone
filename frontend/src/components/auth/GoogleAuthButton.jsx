@@ -4,6 +4,7 @@ const GOOGLE_SCRIPT_ID = "google-identity-services";
 const GOOGLE_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 
 let googleScriptPromise;
+let googleInitialized = false;
 
 const loadGoogleScript = () => {
   if (window.google?.accounts?.id) {
@@ -39,11 +40,13 @@ export default function GoogleAuthButton({
   onError,
   onSuccess,
   text = "continue_with",
+  maxWidth = 340,
 }) {
   const buttonRef = useRef(null);
   const onErrorRef = useRef(onError);
   const onSuccessRef = useRef(onSuccess);
   const [ready, setReady] = useState(false);
+  const [buttonWidth, setButtonWidth] = useState(maxWidth);
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
@@ -60,23 +63,40 @@ export default function GoogleAuthButton({
       return undefined;
     }
 
+    const updateWidth = () => {
+      const viewportWidth = window.innerWidth;
+      if (viewportWidth < 480) {
+        setButtonWidth(Math.min(maxWidth, 260));
+      } else if (viewportWidth < 640) {
+        setButtonWidth(Math.min(maxWidth, 300));
+      } else {
+        setButtonWidth(maxWidth);
+      }
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+
     let cancelled = false;
 
     loadGoogleScript()
       .then(() => {
         if (cancelled || !buttonRef.current) return;
 
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response) => {
-            if (response?.credential) {
-              onSuccessRef.current?.(response.credential);
-              return;
-            }
+        if (!googleInitialized) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: (response) => {
+              if (response?.credential) {
+                onSuccessRef.current?.(response.credential);
+                return;
+              }
 
-            onErrorRef.current?.("Google did not return a sign-in credential");
-          },
-        });
+              onErrorRef.current?.("Google did not return a sign-in credential");
+            },
+          });
+          googleInitialized = true;
+        }
 
         buttonRef.current.innerHTML = "";
         window.google.accounts.id.renderButton(buttonRef.current, {
@@ -84,7 +104,7 @@ export default function GoogleAuthButton({
           size: "large",
           text,
           theme: "outline",
-          width: 340,
+          width: buttonWidth,
         });
         setReady(true);
       })
@@ -96,8 +116,9 @@ export default function GoogleAuthButton({
 
     return () => {
       cancelled = true;
+      window.removeEventListener("resize", updateWidth);
     };
-  }, [clientId, disabled, text]);
+  }, [clientId, disabled, text, buttonWidth, maxWidth]);
 
   if (!clientId) {
     return (
@@ -115,7 +136,8 @@ export default function GoogleAuthButton({
     <div className="flex justify-center">
       <div
         ref={buttonRef}
-        className={disabled || !ready ? "pointer-events-none opacity-60" : ""}
+        className={disabled || !ready ? "flex justify-center pointer-events-none opacity-60" : "flex justify-center"}
+        style={{ width: "100%", maxWidth: `${maxWidth}px` }}
       />
     </div>
   );

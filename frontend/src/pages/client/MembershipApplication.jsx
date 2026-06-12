@@ -49,8 +49,8 @@ export default function MembershipApplication() {
 
                 setExistingMembership(membershipResponse.data.data?.membership || null);
                 setPackageDeals(packagesResponse.data.data || []);
-            } catch (error) {
-                console.error('Error loading membership packages:', error);
+            } catch (err) {
+                void err;
             }
         };
 
