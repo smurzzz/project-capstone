@@ -50,10 +50,14 @@ const createTransporter = async () => {
         transportOptions.tls = {
             rejectUnauthorized: false,
         };
-        console.log(`Creating custom SMTP transporter: host=${smtpHost}:${port}, secure=${secure}`);
+        if (process.env.NODE_ENV !== "production") {
+            console.log(`Creating custom SMTP transporter: host=${smtpHost}:${port}, secure=${secure}`);
+        }
     } else {
         transportOptions.service = service;
-        console.log(`Creating email transporter: service=${service}, user=${mailUser}, port=${port}, secure=${secure}`);
+        if (process.env.NODE_ENV !== "production") {
+            console.log(`Creating email transporter: service=${service}, user=${mailUser}, port=${port}, secure=${secure}`);
+        }
     }
 
     return nodemailer.createTransport(transportOptions);
@@ -86,7 +90,9 @@ export const sendEmail = async ({ to, subject, text, html }) => {
     const from = process.env.MAIL_FROM || process.env.EMAIL_FROM || getMailUser();
 
     try {
-        console.log(`Sending email to ${recipients} with subject: ${subject}`);
+        if (process.env.NODE_ENV !== "production") {
+            console.log(`Sending email to ${recipients} with subject: ${subject}`);
+        }
         await transporter.sendMail({
             from,
             to: recipients,
@@ -94,7 +100,9 @@ export const sendEmail = async ({ to, subject, text, html }) => {
             text: text || "",
             html: html || undefined,
         });
-        console.log(`Email sent successfully to ${recipients}`);
+        if (process.env.NODE_ENV !== "production") {
+            console.log(`Email sent successfully to ${recipients}`);
+        }
         return true;
     } catch (error) {
         console.error(`Failed to send email to ${recipients}:`, error.message);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Pencil,
@@ -10,6 +10,7 @@ import {
   UserRound,
   UsersRound,
   UserX,
+  X,
   Eye,
   EyeOff,
 } from "lucide-react";
@@ -54,6 +55,10 @@ export default function StaffManagement() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [scrollWidth, setScrollWidth] = useState(0);
+  const [showTopScroll, setShowTopScroll] = useState(false);
+  const topScrollRef = useRef(null);
+  const tableScrollRef = useRef(null);
 
   useEffect(() => {
     fetchStaff();
@@ -94,6 +99,35 @@ export default function StaffManagement() {
   }, [staff, searchTerm]);
 
   const inactiveStaff = staff.filter((member) => !member.isActive).length;
+
+  useEffect(() => {
+    const updateScrollState = () => {
+      const wrapper = tableScrollRef.current;
+      if (wrapper) {
+        const width = wrapper.scrollWidth;
+        setScrollWidth(width);
+        setShowTopScroll(width > wrapper.clientWidth);
+      } else {
+        setShowTopScroll(false);
+      }
+    };
+
+    updateScrollState();
+    window.addEventListener("resize", updateScrollState);
+    return () => window.removeEventListener("resize", updateScrollState);
+  }, [filteredStaff.length]);
+
+  const handleTopScroll = () => {
+    if (topScrollRef.current && tableScrollRef.current) {
+      tableScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  };
+
+  const handleBottomScroll = () => {
+    if (topScrollRef.current && tableScrollRef.current) {
+      topScrollRef.current.scrollLeft = tableScrollRef.current.scrollLeft;
+    }
+  };
 
   const openCreateDialog = () => {
     setEditingId(null);
@@ -215,15 +249,27 @@ export default function StaffManagement() {
       </div>
 
       <Card>
-        <CardContent className="flex min-h-24 items-center p-4">
-          <div className="relative mx-auto w-full max-w-6xl pt-5">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Search staff by name, email, role, or department..."
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              className="h-10 pl-10"
-            />
+        <CardContent className="flex min-h-24 items-center justify-center py-5 px-4">
+          <div className="w-full max-w-3xl">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search staff by name, email, role, or department..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="h-10 w-full pl-10 pr-10"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -233,22 +279,35 @@ export default function StaffManagement() {
           <CardTitle>Staff Accounts ({filteredStaff.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Staff</th>
-                  <th className="text-left py-3 px-4 hidden md:table-cell">Contact</th>
-                  <th className="text-left py-3 px-4 hidden lg:table-cell">Department</th>
-                  <th className="text-left py-3 px-4">Role</th>
-                  <th className="text-left py-3 px-4">Status</th>
-                  <th className="text-left py-3 px-4">Actions</th>
+          {showTopScroll && (
+            <div
+              ref={topScrollRef}
+              className="overflow-x-auto rounded-t-2xl border border-slate-200 border-b-0 bg-white"
+              onScroll={handleTopScroll}
+            >
+              <div style={{ width: `${scrollWidth}px`, height: 1 }} />
+            </div>
+          )}
+          <div
+            ref={tableScrollRef}
+            className="overflow-x-auto rounded-b-2xl border border-slate-200 border-t-0 bg-white"
+            onScroll={handleBottomScroll}
+          >
+            <table className="w-full border-collapse">
+              <thead className="bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500 border-b">
+                <tr>
+                  <th className="text-left py-4 px-5 min-w-[220px]">Staff</th>
+                  <th className="text-left py-4 px-5 min-w-[180px] hidden md:table-cell">Contact</th>
+                  <th className="text-left py-4 px-5 min-w-[160px] hidden lg:table-cell">Department</th>
+                  <th className="text-left py-4 px-5 min-w-[120px]">Role</th>
+                  <th className="text-left py-4 px-5 min-w-[120px]">Status</th>
+                  <th className="text-left py-4 px-5 min-w-[180px]">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredStaff.map((member) => (
-                  <tr key={member._id} className="border-b last:border-0">
-                    <td className="py-3 px-4">
+                  <tr key={member._id} className="border-b bg-white last:border-0 hover:bg-slate-50">
+                    <td className="py-4 px-5">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 overflow-hidden flex items-center justify-center">
                           {member.profileImageUrl ? (
@@ -267,21 +326,21 @@ export default function StaffManagement() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 hidden md:table-cell">{member.phone || "-"}</td>
-                    <td className="py-3 px-4 hidden lg:table-cell">{member.department || "-"}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-5 hidden md:table-cell">{member.phone || "-"}</td>
+                    <td className="py-4 px-5 hidden lg:table-cell">{member.department || "-"}</td>
+                    <td className="py-4 px-5">
                       <Badge className={roleBadgeClass[member.role] || roleBadgeClass.Staff}>
                         {member.role}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-5">
                       {member.isActive ? (
                         <Badge className="bg-green-100 text-green-700">Active</Badge>
                       ) : (
                         <Badge className="bg-red-100 text-red-700">Inactive</Badge>
                       )}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-5">
                       <div className="flex flex-wrap gap-2">
                         <Button variant="outline" size="sm" onClick={() => openEditDialog(member)}>
                           <Pencil className="h-4 w-4 mr-2" />
@@ -313,7 +372,7 @@ export default function StaffManagement() {
                 ))}
                 {filteredStaff.length === 0 && (
                   <tr>
-                    <td className="py-8 px-4 text-center text-gray-500" colSpan={6}>
+                    <td className="py-8 px-5 text-center text-gray-500" colSpan={6}>
                       No staff accounts found.
                     </td>
                   </tr>
@@ -412,13 +471,13 @@ export default function StaffManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="staffProfileImage">Profile Image URL</Label>
+              <Label htmlFor="staffProfileImage">Profile Image URL <span className="text-sm text-slate-400">(optional)</span></Label>
               <Input
                 id="staffProfileImage"
                 type="url"
                 value={formData.profileImageUrl}
                 onChange={(event) => setFormData({ ...formData, profileImageUrl: event.target.value })}
-                placeholder="https://example.com/profile.jpg"
+                placeholder="Optional - add later in profile settings"
               />
             </div>
 

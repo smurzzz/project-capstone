@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mail, Calendar, RefreshCw, Search, User, Trash2, Users, UserCheck, UserX } from 'lucide-react';
+import { Mail, Calendar, Search, X, User, Trash2, Users, UserCheck, UserX } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 import RoleEditModal from '../../components/admin/RoleEditModal';
 import { customersAPI, membershipAPI } from '../../utils/api';
@@ -11,6 +11,7 @@ export default function AdminMemberships() {
   const [roleFilter, setRoleFilter] = useState('All');
   const [stats, setStats] = useState({ totalMembers: 0, pending: 0, active: 0 });
   const [tableScrollWidth, setTableScrollWidth] = useState(0);
+  const [showTopScroll, setShowTopScroll] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [activeModal, setActiveModal] = useState(null);
   const topScrollRef = useRef(null);
@@ -57,30 +58,35 @@ export default function AdminMemberships() {
     const top = topScrollRef.current;
     const bottom = bottomScrollRef.current;
 
-    if (!top || !bottom) return;
+    if (!bottom) return;
 
     const syncTopToBottom = () => {
-      bottom.scrollLeft = top.scrollLeft;
+      if (bottom) bottom.scrollLeft = top?.scrollLeft || 0;
     };
 
     const syncBottomToTop = () => {
-      top.scrollLeft = bottom.scrollLeft;
+      if (top) top.scrollLeft = bottom.scrollLeft;
     };
-
-    top.addEventListener('scroll', syncTopToBottom);
-    bottom.addEventListener('scroll', syncBottomToTop);
 
     const updateTableWidth = () => {
-      if (tableRef.current) {
+      if (tableRef.current && bottom) {
         setTableScrollWidth(tableRef.current.scrollWidth);
+        setShowTopScroll(tableRef.current.scrollWidth > bottom.clientWidth);
       }
     };
+
+    if (top) {
+      top.addEventListener('scroll', syncTopToBottom);
+    }
+    bottom.addEventListener('scroll', syncBottomToTop);
 
     updateTableWidth();
     window.addEventListener('resize', updateTableWidth);
 
     return () => {
-      top.removeEventListener('scroll', syncTopToBottom);
+      if (top) {
+        top.removeEventListener('scroll', syncTopToBottom);
+      }
       bottom.removeEventListener('scroll', syncBottomToTop);
       window.removeEventListener('resize', updateTableWidth);
     };
@@ -146,8 +152,8 @@ export default function AdminMemberships() {
     <div className="p-6">
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-semibold">Membership Management</h1>
-          <p className="mt-2 text-sm text-slate-600 max-w-2xl">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Membership Management</h1>
+          <p className="text-gray-500 max-w-2xl">
             Manage membership applications, track member status, and review customer membership activity from one dashboard.
           </p>
         </div>
@@ -159,16 +165,26 @@ export default function AdminMemberships() {
         <MembershipStat title="Cancelled" value={stats.cancelled || 0} icon={<UserX className="h-8 w-8 text-rose-600" />} />
       </div>
 
-      <div className="mb-4 flex min-h-24 items-center rounded-lg bg-white p-4 shadow-sm">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-3 pt-5 md:grid-cols-[minmax(0,1fr)_180px_auto]">
+      <div className="mb-4 flex min-h-24 items-center justify-center rounded-lg bg-white py-5 px-4 shadow-sm">
+        <div className="w-full max-w-6xl grid items-center gap-3 md:grid-cols-[minmax(0,1fr)_180px_auto]">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               placeholder="Search by name, email, or package..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="h-10 pl-10"
+              className="h-10 pl-10 pr-10"
             />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
           <div>
             <select className="h-10 w-full rounded-md border px-3 py-2 text-sm" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
@@ -177,35 +193,32 @@ export default function AdminMemberships() {
               <option value="Guest">Guest</option>
             </select>
           </div>
-          <div>
-            <button
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border bg-white px-3 py-2 text-sm hover:bg-slate-50 md:w-auto"
-              onClick={() => fetchApplications({ status: roleFilter === 'Member' ? 'Active' : '', search: query })}
-            >
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </button>
-          </div>
+          <div className="hidden md:block" />
         </div>
       </div>
 
-      <div className="bg-white rounded-md shadow overflow-hidden">
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        {showTopScroll && (
+          <div
+            ref={topScrollRef}
+            className="overflow-x-auto rounded-t-3xl border-b border-slate-200 bg-white"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            <div style={{ width: tableScrollWidth, height: 1 }} />
+          </div>
+        )}
         <div
-          ref={topScrollRef}
-          className="overflow-x-auto border-b border-slate-200"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className={`overflow-x-auto bg-white ${showTopScroll ? 'rounded-b-3xl' : 'rounded-3xl'} border border-slate-200 border-t-0`}
+          ref={bottomScrollRef}
         >
-          <div style={{ width: tableScrollWidth, height: 1 }} />
-        </div>
-        <div className="overflow-x-auto" ref={bottomScrollRef}>
-          <table ref={tableRef} className="min-w-full">
-            <thead className="text-xs text-slate-500 border-b bg-slate-50">
+          <table ref={tableRef} className="w-full border-collapse">
+            <thead className="bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500 border-b">
               <tr>
-                <th className="text-left py-3 px-4">CUSTOMER</th>
-                <th className="text-left py-3 px-4">EMAIL</th>
-                <th className="text-left py-3 px-4">ROLE</th>
-                <th className="text-left py-3 px-4">REGISTERED</th>
-                <th className="text-center py-3 px-4 w-24">ACTIONS</th>
+                <th className="text-left py-4 px-5 min-w-[220px]">CUSTOMER</th>
+                <th className="text-left py-4 px-5 min-w-[260px]">EMAIL</th>
+                <th className="text-left py-4 px-5 min-w-[140px]">ROLE</th>
+                <th className="text-left py-4 px-5 min-w-[180px]">REGISTERED</th>
+                <th className="text-center py-4 px-5 min-w-[140px]">ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -214,8 +227,8 @@ export default function AdminMemberships() {
                   <td colSpan={5} className="text-center py-8 text-slate-500">Loading...</td>
                 </tr>
               ) : filtered.map(c => (
-                <tr key={c.id} className="border-b last:border-b-0 hover:bg-slate-50">
-                  <td className="py-4 px-4">
+                <tr key={c.id} className="border-b bg-white last:border-0 hover:bg-slate-50">
+                  <td className="py-4 px-5">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-semibold">{(c.name || 'U').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()}</div>
                       <div>
@@ -223,20 +236,20 @@ export default function AdminMemberships() {
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-sm text-slate-600 flex items-center gap-2">
+                  <td className="py-4 px-5 text-sm text-slate-600 flex items-center gap-2">
                     <Mail className="h-4 w-4 text-slate-400" />
                     <span>{c.email}</span>
                   </td>
-                  <td className="py-4 px-4">
+                  <td className="py-4 px-5">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${c.role === 'Member' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}>
                       {c.role}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-sm text-slate-600 flex items-center gap-2">
+                  <td className="py-4 px-5 text-sm text-slate-600 flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-slate-400" />
                     <span>{c.registered ? new Date(c.registered).toLocaleDateString() : ''}</span>
                   </td>
-                  <td className="py-4 px-4 text-center w-32">
+                  <td className="py-4 px-5 text-center w-32">
                     <div className="flex items-center justify-center gap-2">
                       <button
                         className="h-8 w-8 rounded-full border flex items-center justify-center text-slate-600 hover:bg-slate-100"

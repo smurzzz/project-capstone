@@ -545,10 +545,10 @@ export default function ClientOrderForm({ selectedPackage, onCancelPackage }) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="instructions">Special Instructions (Optional)</Label>
+              <Label htmlFor="instructions">Notes</Label>
               <Textarea
                 id="instructions"
-                placeholder="Any special instructions for delivery or installation..."
+                placeholder="Any special instructions for delivery..."
                 value={specialInstructions}
                 onChange={(event) => setSpecialInstructions(event.target.value)}
                 rows={2}

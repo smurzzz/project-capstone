@@ -218,7 +218,10 @@ export default function AdminPackages() {
                     </div>
                     <div className="flex gap-2">
                       {packageDeal.isPopular && <Badge>Popular</Badge>}
-                      <Badge variant={packageDeal.isActive ? "secondary" : "outline"}>
+                      <Badge
+                        variant="outline"
+                        className={packageDeal.isActive ? "border-blue-200 bg-blue-50 text-blue-600" : ""}
+                      >
                         {packageDeal.isActive ? "Active" : "Hidden"}
                       </Badge>
                     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ImageIcon, Search, ShoppingCart, Plus, Minus, Star } from "lucide-react";
+import { ImageIcon, Search, X, ShoppingCart, Plus, Minus, Star } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import {
@@ -55,10 +55,6 @@ export default function ClientProducts() {
   const { addToCart, getTotalItems } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    console.log("DEBUG - User memberRole:", user?.memberRole);
-  }, [user]);
 
   async function fetchProducts() {
     try {
@@ -163,8 +159,18 @@ export default function ClientProducts() {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                className="h-10 pl-10 py-0 leading-none"
+                className="h-10 pl-10 pr-10 py-0 leading-none"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="h-10 w-full">

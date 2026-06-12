@@ -55,12 +55,14 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
   return (
     <>
       {isMobile && isSidebarOpen && (
-        <button
-          aria-label="Close sidebar overlay"
-          className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
-          onClick={() => (onClose ? onClose() : setIsOpen(false))}
-          type="button"
-        />
+        <div className="fixed inset-0 z-40 md:hidden">
+          <button
+            aria-label="Close sidebar overlay"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => (onClose ? onClose() : setIsOpen(false))}
+            type="button"
+          />
+        </div>
       )}
 
       <aside
@@ -69,7 +71,7 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
             ? `fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ${
                 isSidebarOpen ? "translate-x-0" : "-translate-x-full"
               }`
-            : "sticky top-0 self-start w-64 h-[100dvh]"
+            : "!w-64 h-[100dvh]"
         } bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col`}
       >
         <div className="relative p-6 border-b border-slate-700">
@@ -77,10 +79,10 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
             <img
               src={logoSrc}
               alt="JBM Electro logo"
-              className="h-14 w-[64px] rounded-xl bg-white/10 p-2 object-contain border border-white/10"
+              className="!h-12 !w-12 md:!h-14 md:!w-[64px] rounded-xl bg-white/10 p-1 md:p-2 object-contain border border-white/10"
             />
             <div>
-              <h1 className="text-base font-bold">JBM Electro</h1>
+              <h1 className="!text-sm md:!text-base font-bold truncate">JBM Electro</h1>
               <p className="text-xs text-slate-400">Admin Panel</p>
             </div>
           </div>
@@ -112,7 +114,7 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
                 end={isParent}
                 onClick={() => isMobile && (onClose ? onClose() : setIsOpen(false))}
                 className={({ isActive }) =>
-                  `w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
+                  `w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-200 ${
                     isActive
                       ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
                       : "text-slate-300 hover:bg-slate-700 hover:text-white"
@@ -152,7 +154,7 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-slate-400">Logged in as</p>
-                  <p className="text-sm font-semibold text-white truncate">{user?.name || "Admin User"}</p>
+                  <p className="text-base font-semibold text-white truncate">{user?.name || "Admin User"}</p>
                   <p className="text-xs text-slate-400 truncate">{user?.email || "admin@jbm.com"}</p>
                 </div>
               </div>

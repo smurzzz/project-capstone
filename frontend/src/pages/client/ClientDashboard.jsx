@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   User,
   Zap,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { membershipAPI } from "../../utils/api.js";
@@ -267,20 +268,20 @@ export default function ClientDashboard() {
 
   const Sidebar = ({ isMobile = false }) => (
     <div
-      className={`${isMobile ? "w-full" : "w-64"} bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white ${
+      className={`${isMobile ? "w-full" : "w-72"} bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white ${
         isMobile ? "min-h-screen" : "h-[100dvh]"
       } flex flex-col`}
     >
       <div className="p-6 border-b border-slate-700">
-        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
           <img
             src={logoSrc}
             alt="JBM Electro logo"
-            className="h-14 w-[64px] rounded-xl bg-white/10 p-2 object-contain border border-white/10"
+            className="!h-12 !w-12 md:!h-14 md:!w-[64px] rounded-xl bg-white/10 p-1 md:p-2 object-contain border border-white/10"
           />
           <div>
-            <h1 className="text-base font-bold">JBM Electro</h1>
-            <p className="text-xs text-slate-400">Client Portal</p>
+            <h1 className="!text-base md:!text-lg font-bold truncate">JBM Electro</h1>
+            <p className="text-sm text-slate-400">Client Portal</p>
           </div>
         </div>
       </div>
@@ -316,7 +317,7 @@ export default function ClientDashboard() {
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"
         >
           <User className="h-5 w-5 flex-shrink-0" />
-          <span className="text-sm font-medium flex-1 text-left">Account</span>
+          <span className="text-base font-medium flex-1 text-left">Account</span>
           <ChevronDown
             className={`h-4 w-4 transition-transform flex-shrink-0 ${
               accountMenuOpen ? "rotate-180" : ""
@@ -336,8 +337,8 @@ export default function ClientDashboard() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-xs text-slate-400">Logged in as</p>
-                <p className="text-sm font-semibold text-white truncate">{user?.name || "Customer"}</p>
-                <p className="text-xs text-slate-400 truncate">{user?.email || "customer@example.com"}</p>
+                <p className="text-base font-semibold text-white truncate">{user?.name || "Customer"}</p>
+                <p className="text-sm text-slate-400 truncate">{user?.email || "customer@example.com"}</p>
               </div>
             </div>
             <div className="h-px bg-slate-600" />
@@ -347,17 +348,17 @@ export default function ClientDashboard() {
                 setAccountMenuOpen(false);
                 setActiveTab("settings");
               }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-600 rounded transition-all duration-200"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-600 rounded transition-all duration-200"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-5 w-5" />
               Settings
             </button>
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-300 hover:bg-red-600/20 rounded transition-all duration-200"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-300 hover:bg-red-600/20 rounded transition-all duration-200"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-5 w-5" />
               Logout
             </button>
           </div>
@@ -376,11 +377,19 @@ export default function ClientDashboard() {
         <div className="fixed inset-0 z-40 md:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Close customer menu"
           />
           <div className="relative z-50 w-64">
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              className="absolute right-4 top-4 text-slate-200 hover:text-white z-50"
+              aria-label="Close sidebar"
+            >
+              <X className="h-5 w-5" />
+            </button>
             <Sidebar isMobile />
           </div>
         </div>

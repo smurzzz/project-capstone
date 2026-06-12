@@ -104,7 +104,8 @@ export const applyForMembership = async (req, res) => {
             appliedAt: new Date()
         };
 
-        // Handle file upload if present
+        // File uploads require manual verification; store path for staff to review
+        // during application approval process
         if (req.file) {
             // Store the file path or URL
             customer.idDocument = req.file.path || `uploads/${req.file.filename}`;
@@ -480,8 +481,6 @@ export const rejectApplication = async (req, res) => {
             actorId: staffId,
             notes: reason || 'Application rejected'
         });
-
-        // TODO: Send email notification to customer
 
         res.status(200).json({
             success: true,

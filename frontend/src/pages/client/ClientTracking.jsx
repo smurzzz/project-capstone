@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Calendar, Package, Search } from "lucide-react";
+import { Calendar, Package, Search, X } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import {
@@ -32,7 +32,7 @@ const appointmentStatusColors = {
 export default function ClientTracking() {
   const { user } = useAuth();
   const [trackingId, setTrackingId] = useState("");
-  const [searchResult, setSearchResult] = useState(undefined);
+  const [searchResults, setSearchResults] = useState(undefined);
   const [myOrders, setMyOrders] = useState([]);
   const [myAppointments, setMyAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,29 +74,52 @@ export default function ClientTracking() {
     fetchUserData();
   }, [fetchUserData]);
 
+  const buildOrderDateVariants = (dateString) => {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return [];
+
+    const year = date.getFullYear().toString();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return [
+      `${year}${month}${day}`,
+      `${month}${day}${year}`,
+      `${day}${month}${year}`,
+    ];
+  };
+
   const searchById = (id) => {
     const normalizedId = id.trim().toLowerCase();
+    const cleanedDigits = normalizedId.replace(/[^0-9]/g, "");
 
-    const order = myOrders.find((item) => {
+    const matchedOrders = myOrders.filter((item) => {
       const orderId = item.orderId || item.referenceNumber || item._id;
-      return (
-        item.referenceNumber?.toLowerCase() === normalizedId ||
-        orderId?.toLowerCase() === normalizedId
-      );
+      const normalizedOrderId = orderId?.toLowerCase() || "";
+      const normalizedReference = item.referenceNumber?.toLowerCase() || "";
+
+      const matchesId = normalizedOrderId.includes(normalizedId) || normalizedReference.includes(normalizedId);
+      const dateVariants = buildOrderDateVariants(item.createdAt);
+      const matchesDate = cleanedDigits
+        ? dateVariants.some((variant) => variant.includes(cleanedDigits) || cleanedDigits.includes(variant))
+        : false;
+
+      return matchesId || matchesDate;
     });
 
     const appointment = myAppointments.find((item) => {
-      const appointmentId =
-        item.appointmentId ||
-        `APT-${item._id?.toString().slice(-6).toUpperCase()}`;
+      const appointmentId = item.appointmentId || `APT-${item._id?.toString().slice(-6).toUpperCase()}`;
+      const normalizedAppointmentId = appointmentId?.toLowerCase() || "";
 
       return (
-        appointmentId?.toLowerCase() === normalizedId ||
-        item._id?.toString().toLowerCase() === normalizedId
+        normalizedAppointmentId.includes(normalizedId) ||
+        item._id?.toString().toLowerCase().includes(normalizedId)
       );
     });
 
-    setSearchResult(order || appointment || null);
+    setSearchResults(
+      matchedOrders.length > 0 ? { orders: matchedOrders } : appointment ? { appointment } : null
+    );
   };
 
   useEffect(() => {
@@ -109,6 +132,11 @@ export default function ClientTracking() {
   const handleSearch = (event) => {
     event.preventDefault();
     searchById(trackingId);
+  };
+
+  const handleClearSearch = () => {
+    setTrackingId("");
+    setSearchResults(undefined);
   };
 
   if (loading) {
@@ -139,63 +167,83 @@ export default function ClientTracking() {
         </CardHeader>
           <CardContent className="px-4 py-5 sm:px-6 sm:py-6">
           <form onSubmit={handleSearch} className="mx-auto grid w-full max-w-6xl items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <Input
-              placeholder="Enter Order ID (e.g., ORD-20260611-ABCDE) or Appointment ID (e.g., APT-20260611-XXXXX)"
-              value={trackingId}
-              onChange={(event) => setTrackingId(event.target.value)}
-              className="h-10"
-            />
+            <div className="relative w-full">
+              <Input
+                placeholder="Enter order date (YYYYMMDD or MMDDYYYY) or part of the order ID"
+                value={trackingId}
+                onChange={(event) => setTrackingId(event.target.value)}
+                className="h-10 pr-10"
+              />
+              {trackingId && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
             <Button type="submit" className="h-10 gap-2">
               <Search className="h-4 w-4" />
               Track
             </Button>
           </form>
 
-          {searchResult && (
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              {"referenceNumber" in searchResult ? (
-                <div className="space-y-2">
+          {searchResults && searchResults.orders && searchResults.orders.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+                <p className="text-sm text-blue-900">Found {searchResults.orders.length} order(s) matching your search.</p>
+              </div>
+              {searchResults.orders.map((order) => (
+                <div key={order._id} className="rounded-lg bg-white border border-slate-200 p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-4">
-                    <h4 className="font-semibold">Order {searchResult.referenceNumber || searchResult.orderId || searchResult._id}</h4>
-                    <Badge className={orderStatusColors[searchResult.status] || "bg-gray-100 text-gray-800"}>
-                      {searchResult.status}
+                    <h4 className="font-semibold">Order {order.referenceNumber || order.orderId || order._id}</h4>
+                    <Badge className={orderStatusColors[order.status] || "bg-gray-100 text-gray-800"}>
+                      {order.status}
                     </Badge>
                   </div>
-                  {searchResult.referenceNumber && (
-                    <p className="text-sm">
-                      <strong>Reference:</strong> {searchResult.referenceNumber}
+                  {order.referenceNumber && (
+                    <p className="text-sm text-gray-600">
+                      <strong>Reference:</strong> {order.referenceNumber}
                     </p>
                   )}
-                  <p className="text-sm">
-                    <strong>Items:</strong> {searchResult.itemCount || 0} | <strong>Total:</strong> PHP{" "}
-                    {searchResult.total.toLocaleString()}
+                  <p className="text-sm text-gray-600">
+                    <strong>Placed on:</strong> {new Date(order.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <strong>Items:</strong> {order.itemCount || 0} | <strong>Total:</strong> PHP {Number(order.total || 0).toLocaleString()}
                   </p>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-4">
-                    <h4 className="font-semibold">Appointment {searchResult.appointmentId}</h4>
-                    <Badge
-                      className={
-                        appointmentStatusColors[searchResult.status] || "bg-gray-100 text-gray-800"
-                      }
-                    >
-                      {searchResult.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm">
-                    <strong>Service:</strong> {searchResult.service}
-                  </p>
-                  <p className="text-sm">
-                    <strong>Date:</strong> {new Date(searchResult.date).toLocaleDateString()} at{" "}
-                    {searchResult.timeSlot}
-                  </p>
-                </div>
-              )}
+              ))}
             </div>
           )}
 
-          {trackingId && searchResult === null && (
+          {searchResults && searchResults.appointment && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-4">
+                  <h4 className="font-semibold">Appointment {searchResults.appointment.appointmentId}</h4>
+                  <Badge
+                    className={
+                      appointmentStatusColors[searchResults.appointment.status] || "bg-gray-100 text-gray-800"
+                    }
+                  >
+                    {searchResults.appointment.status}
+                  </Badge>
+                </div>
+                <p className="text-sm">
+                  <strong>Service:</strong> {searchResults.appointment.service}
+                </p>
+                <p className="text-sm">
+                  <strong>Date:</strong> {new Date(searchResults.appointment.date).toLocaleDateString()} at {searchResults.appointment.timeSlot}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {trackingId && searchResults === null && (
             <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-800">No results found for "{trackingId}"</p>
             </div>

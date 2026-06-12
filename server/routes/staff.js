@@ -15,12 +15,14 @@ import {
 
 const router = express.Router();
 
-// Allow authenticated staff to update their own password
+// Authenticated staff self-service: allows staff to update their own password
+// without requiring admin intervention for routine credential rotations
 router.put("/me/password", verifyToken, verifyStaff, updateOwnPassword);
 
 router.use(verifyToken, verifyAdmin);
 
-// Admin routes
+// Admin-only management: restricted to admins to prevent staff from
+// creating accounts or modifying peer credentials
 router.get("/", getAllStaff);
 router.get("/stats", getStaffStats);
 router.get("/:id", getStaffById);

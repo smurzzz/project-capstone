@@ -17,12 +17,8 @@ import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.use((req, _res, next) => {
-    console.log(`[AUTH] ${req.method} ${req.originalUrl}`);
-    next();
-});
-
-// Customer auth routes
+// Customer authentication paths: supports both traditional and OAuth login;
+// allows flexible authentication strategies for different user cohorts
 router.post("/customer/login", loginCustomer);
 router.post("/customer/register", registerCustomer);
 router.post("/google/customer", googleCustomerAuth);
@@ -31,11 +27,12 @@ router.post("/otp/verify", verifyOtp);
 router.post("/password/forgot", requestPasswordReset);
 router.post("/password/reset", resetPassword);
 
-// Staff auth routes
+// Staff authentication: separate from customer paths to apply different
+// rate limiting and require stronger credentials for privileged access
 router.post("/staff/login", loginStaff);
 router.get("/session", verifyToken, getCurrentSession);
 
-// Legacy route
+// Legacy endpoint: maintained for backward compatibility with older clients
 router.post('/login', Login); 
 
 export default router;

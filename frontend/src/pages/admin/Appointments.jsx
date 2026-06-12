@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { AlertCircle, Calendar as CalendarIcon, CheckCircle, Clock, Mail, MapPin, Phone, UserRound, Wrench } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
@@ -102,6 +102,22 @@ export default function Appointments() {
     .filter(apt => apt.date && (apt.status === "Scheduled" || apt.status === "Confirmed"))
     .map(apt => apt.date.split("T")[0]);
 
+  // Memoize modifier functions to prevent unnecessary re-renders and event delays
+  const blockedModifier = useCallback((date) => {
+    const dateStr = date.toISOString().slice(0, 10);
+    return blockedDates.includes(dateStr);
+  }, [blockedDates]);
+
+  const fullyBookedModifier = useCallback((date) => {
+    const dateStr = date.toISOString().slice(0, 10);
+    return fullyBookedDates.includes(dateStr) && !blockedDates.includes(dateStr);
+  }, [fullyBookedDates, blockedDates]);
+
+  const appointmentModifier = useCallback((date) => {
+    const dateStr = date.toISOString().slice(0, 10);
+    return appointmentDates.includes(dateStr) && !blockedDates.includes(dateStr) && !fullyBookedDates.includes(dateStr);
+  }, [appointmentDates, blockedDates, fullyBookedDates]);
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -171,7 +187,7 @@ export default function Appointments() {
   return (
     <div className="space-y-6 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Appointment Scheduling</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Appointment Management</h1>
         <p className="text-gray-500">Manage customer appointments and schedules</p>
       </div>
 
@@ -207,8 +223,8 @@ export default function Appointments() {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-        <span className="text-sm font-semibold text-slate-700">View:</span>
+      <div className="flex flex-wrap items-center gap-2 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
+        <span className="text-xs font-semibold text-slate-700">View:</span>
         {[
           { key: "all", label: "All appointments" },
           { key: "today", label: "Today" },
@@ -217,7 +233,7 @@ export default function Appointments() {
           <button
             key={option.key}
             type="button"
-            className={`rounded-full px-4 py-2 text-sm transition ${
+            className={`rounded-full px-3 py-1.5 text-xs transition ${
               viewMode === option.key
                 ? "bg-slate-950 text-white"
                 : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
@@ -243,18 +259,9 @@ export default function Appointments() {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   modifiers={{
-                    blocked: (date) => {
-                      const dateStr = date.toISOString().slice(0, 10);
-                      return blockedDates.includes(dateStr);
-                    },
-                    fullyBooked: (date) => {
-                      const dateStr = date.toISOString().slice(0, 10);
-                      return fullyBookedDates.includes(dateStr) && !blockedDates.includes(dateStr);
-                    },
-                    appointment: (date) => {
-                      const dateStr = date.toISOString().slice(0, 10);
-                      return appointmentDates.includes(dateStr) && !blockedDates.includes(dateStr) && !fullyBookedDates.includes(dateStr);
-                    }
+                    blocked: blockedModifier,
+                    fullyBooked: fullyBookedModifier,
+                    appointment: appointmentModifier,
                   }}
                   modifiersClassNames={{
                     blocked: "bg-red-50 text-red-700 line-through opacity-80",

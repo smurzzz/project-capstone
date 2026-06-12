@@ -162,7 +162,7 @@ export default function AdminDashboard() {
                     <p className="text-xl sm:text-2xl mt-2 font-bold">
                       {stat.title === "Total Revenue" ? (
                         <span className="inline-flex items-baseline gap-1">
-                          <span className="text-base font-semibold text-gray-600">PHP</span>
+                          <span className="text-base font-semibold text-gray-900">PHP</span>
                           <span className="text-xl sm:text-2xl font-bold text-gray-900">
                             {String(stat.value).replace(/^PHP\s*/, "")}
                           </span>
@@ -224,48 +224,48 @@ export default function AdminDashboard() {
         <CardHeader>
           <CardTitle>Recent Orders</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Order ID</th>
-                  <th className="text-left py-3 px-4">Customer</th>
-                  <th className="text-left py-3 px-4 hidden md:table-cell">Date</th>
-                  <th className="text-left py-3 px-4">Amount</th>
-                  <th className="text-left py-3 px-4">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order._id} className="border-b last:border-0">
-                    <td className="py-3 px-4">
-                      {order.orderId || order.referenceNumber || order._id}
-                    </td>
-                    <td className="py-3 px-4">{order.customerName}</td>
-                    <td className="py-3 px-4 hidden md:table-cell">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "-"}
-                    </td>
-                    <td className="py-3 px-4">{formatMoney(order.total)}</td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`inline-block px-2 py-1 rounded-full text-xs ${statusColor(
-                          order.status
-                        )}`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto rounded-md border border-slate-200">
+            <table className="w-full border-collapse">
+              <thead className="sticky top-0 bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500 border-b">
+                <tr>
+                    <th className="text-left py-4 px-5 min-w-[160px]">Order ID</th>
+                    <th className="text-left py-4 px-5 min-w-[160px]">Customer</th>
+                    <th className="text-left py-4 px-5 min-w-[120px] hidden md:table-cell">Date</th>
+                    <th className="text-left py-4 px-5 min-w-[120px]">Amount</th>
+                    <th className="text-left py-4 px-5 min-w-[120px]">Status</th>
                   </tr>
-                ))}
-                {recentOrders.length === 0 && (
-                  <tr>
-                    <td className="py-8 px-4 text-center text-gray-500" colSpan={5}>
-                      No recent orders yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
+                </thead>
+                <tbody>
+                  {recentOrders.map((order) => (
+                    <tr key={order._id} className="border-b bg-white last:border-0 hover:bg-slate-50">
+                      <td className="py-4 px-5 align-top text-sm min-w-[160px]">
+                        {order.orderId || order.referenceNumber || order._id}
+                      </td>
+                      <td className="py-4 px-5 align-top text-sm min-w-[160px]">{order.customerName}</td>
+                      <td className="py-4 px-5 hidden md:table-cell align-top text-sm min-w-[120px]">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "-"}
+                      </td>
+                      <td className="py-4 px-5 align-top text-sm min-w-[120px]">{formatMoney(order.total)}</td>
+                      <td className="py-4 px-5 align-top text-sm min-w-[120px]">
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs ${statusColor(
+                            order.status
+                          )}`}
+                        >
+                          {order.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {recentOrders.length === 0 && (
+                    <tr>
+                      <td className="py-8 px-5 text-center text-gray-500" colSpan={5}>
+                        No recent orders yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
             </table>
           </div>
         </CardContent>

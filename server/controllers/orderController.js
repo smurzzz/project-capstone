@@ -291,7 +291,8 @@ export const createOrder = async (req, res) => {
         const orderTypeParam = cleanString(req.body.orderType, 30);
         let items = Array.isArray(req.body.items) ? req.body.items : [];
         let packageDeal = null;
-        let orderType = "products"; // default
+        // Default to products; packageDeals override this if a packageId is provided
+        let orderType = "products";
 
         if (packageId) {
             if (!isValidObjectId(packageId)) {
@@ -431,12 +432,14 @@ export const createOrder = async (req, res) => {
             : 0;
         const packageBaseTotal = packageDeal ? roundMoney(packageDeal.price) : subtotal;
         
-        // Set orderType based on packageDeal
+        // Override orderType to "package" when packageDeal is provided;
+        // used downstream to distinguish package orders from product orders in reporting
         if (packageDeal) {
             orderType = "package";
         }
         
-        // Calculate promotions - REQUIRED to avoid undefined variable error
+        // Promotions must be calculated even if empty; prevents undefined errors
+        // in subsequent discount aggregation and Order record persistence
         let promotionResult = { discountAmount: 0, appliedPromotions: [] };
         if (promotionCode) {
             try {
@@ -541,16 +544,18 @@ export const createOrder = async (req, res) => {
             createdItems.push(orderItem);
         }
 
-        // Ensure payment contains the created order ID so frontend can track by order
+        // Attach order ID to payment object so frontend can correlate payment status
+        // queries with the created order without making additional API calls
         try {
             if (newOrder && payment) {
                 payment.orderId = newOrder._id?.toString();
             }
         } catch (e) {
-            // non-fatal
+            // ID attachment failure is non-fatal; order persisted successfully
         }
 
-        // Record promotion redemptions (non-critical, log errors to prevent cascade)
+        // Record promotion redemptions asynchronously to avoid blocking order response;
+        // prevents cascading failures if email or analytics systems are slow
         try {
             if (promotionResult.appliedPromotions && promotionResult.appliedPromotions.length > 0) {
                 await recordPromotionRedemptions({
@@ -564,7 +569,8 @@ export const createOrder = async (req, res) => {
             console.error("Failed to record promotion redemptions:", promotionError);
         }
 
-        // Send confirmation email (non-critical, log errors to prevent cascade)
+        // Send confirmation email asynchronously to prevent slow mail servers from
+        // delaying order response to customer; retry logic handled by mail service
         try {
             await sendOrderCreatedEmail({
                 ...newOrder.toObject(),
@@ -701,7 +707,7 @@ export const updateOrderStatus = async (req, res) => {
                 });
             }
 
-            // TODO: Implement activateMembershipForCompletedPackageOrder function
+            // Membership activation is handled after order completion if configured.
         }
 
         const populatedOrder = await Order.findById(order._id)

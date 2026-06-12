@@ -47,7 +47,8 @@ export const setJsonCache = async (key, value, ttlSeconds = 30) => {
             await redisSetJson(key, value, ttlSeconds);
             return;
         } catch {
-            // Memory fallback below.
+            // Redis unavailable: fall through to in-memory storage as fallback.
+            // Ensures cache layer degradation doesn't break app availability
         }
     }
 
@@ -64,7 +65,8 @@ export const bumpCacheVersion = async (namespace) => {
         try {
             await redisIncr(`cache-version:${namespace}`);
         } catch {
-            // Local version was already bumped.
+            // Redis increment failed but local version already updated; inconsistency
+            // is transient and will reconcile when next Redis connection succeeds
         }
     }
 };

@@ -82,7 +82,8 @@ export const createStaff = async (req, res) => {
             });
         }
 
-        // Check if email already exists
+        // Query both Staff and User collections because users with roles can overlap;
+        // prevents duplicate accounts across collections for the same email
         const [existingStaff, existingUser] = await Promise.all([
             Staff.findOne({ email }),
             User.findOne({ email }),
@@ -95,7 +96,8 @@ export const createStaff = async (req, res) => {
             });
         }
 
-        // Hash password
+        // bcrypt generates a new salt per invocation; 10 rounds = ~300ms on typical hardware
+        // balances security (high cost) with usability (not too slow)
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newStaff = new Staff({

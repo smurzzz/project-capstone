@@ -8,7 +8,8 @@ export const getJwtSecret = () => {
         throw new Error("JWT_SECRET must be set");
     }
 
-    // Disallow common placeholder secrets to prevent insecure deployments.
+    // Reject placeholder secrets to fail-safe: prevents accidental deployment
+    // with development defaults that would compromise production security
     const normalized = String(secret).trim().toLowerCase();
     const isPlaceholder =
         normalized === "your-secret-key" ||
@@ -19,7 +20,8 @@ export const getJwtSecret = () => {
         throw new Error("JWT_SECRET must not be a placeholder value");
     }
 
-    // Basic strength check: require a decent length.
+    // Minimum 20 characters prevents weak keys that can be cracked via brute force;
+    // aligns with industry best practice for symmetric signing keys
     if (String(secret).length < 20) {
         throw new Error("JWT_SECRET is too short");
     }

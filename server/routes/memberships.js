@@ -11,7 +11,9 @@ router.post("/apply", verifyToken, membershipController.applyForMembership);
 router.get("/me", verifyToken, membershipController.getMyMembership);
 router.get("/me/status", verifyToken, membershipController.getMyMembership);
 router.get("/me/history", verifyToken, membershipController.getMyMembershipHistory);
-router.get("/benefits/:tier", membershipController.getApplicationById); // Public endpoint for benefits
+// Benefits endpoint is public: allows frontend to render tier descriptions and
+// benefits before customer authentication, reducing friction for discovery
+router.get("/benefits/:tier", membershipController.getApplicationById);
 
 /**
  * Admin Routes (Protected)

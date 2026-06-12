@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Eye, Filter, Search } from "lucide-react";
+import { Eye, Filter, Search, X } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card.jsx";
@@ -171,16 +171,26 @@ export default function Orders() {
       </div>
 
       <Card>
-        <CardContent className="flex min-h-24 items-center p-4">
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-3 pt-5 md:grid-cols-[minmax(0,1fr)_12rem]">
+        <CardContent className="flex min-h-24 items-center justify-center py-5 px-4">
+          <div className="w-full max-w-6xl grid items-center gap-3 md:grid-cols-[minmax(0,1fr)_12rem]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
                 placeholder="Search by order ID, customer, or email..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="h-10 pl-10"
+                className="h-10 pl-10 pr-10"
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-10 w-full">
@@ -215,23 +225,23 @@ export default function Orders() {
             <div className="overflow-x-auto" ref={bottomScrollRef}>
               <table ref={tableRef} className="min-w-[1200px] w-full table-auto">
                 <thead>
-                  <tr className="border-b">
-                    <th className="min-w-[13rem] whitespace-nowrap text-left py-3 px-4">Order ID</th>
-                    <th className="min-w-[14rem] whitespace-nowrap text-left py-3 px-4">Customer</th>
-                    <th className="min-w-[10rem] whitespace-nowrap text-left py-3 px-4">Type</th>
-                    <th className="min-w-[12rem] whitespace-nowrap text-left py-3 px-4 hidden md:table-cell">Date</th>
-                    <th className="min-w-[10rem] whitespace-nowrap text-left py-3 px-4">Amount</th>
-                    <th className="min-w-[14rem] whitespace-nowrap text-left py-3 px-4">Payment</th>
-                    <th className="min-w-[12rem] whitespace-nowrap text-left py-3 px-4">Reference</th>
-                    <th className="min-w-[10rem] whitespace-nowrap text-left py-3 px-4">Status</th>
-                    <th className="min-w-[8rem] whitespace-nowrap text-left py-3 px-4">Actions</th>
+                  <tr className="border-b bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
+                    <th className="min-w-[13rem] whitespace-nowrap text-left py-4 px-5">Order ID</th>
+                    <th className="min-w-[14rem] whitespace-nowrap text-left py-4 px-5">Customer</th>
+                    <th className="min-w-[10rem] whitespace-nowrap text-left py-4 px-5">Type</th>
+                    <th className="min-w-[12rem] whitespace-nowrap text-left py-4 px-5 hidden md:table-cell">Date</th>
+                    <th className="min-w-[10rem] whitespace-nowrap text-left py-4 px-5">Amount</th>
+                    <th className="min-w-[14rem] whitespace-nowrap text-left py-4 px-5">Payment</th>
+                    <th className="min-w-[12rem] whitespace-nowrap text-left py-4 px-5">Reference</th>
+                    <th className="min-w-[10rem] whitespace-nowrap text-left py-4 px-5">Status</th>
+                    <th className="min-w-[8rem] whitespace-nowrap text-left py-4 px-5">Actions</th>
                   </tr>
                 </thead>
               <tbody>
                 {filteredOrders.map((order) => (
-                  <tr key={order._id} className="border-b last:border-0">
-                    <td className="min-w-[13rem] whitespace-nowrap py-3 px-4">{order.orderId || order._id}</td>
-                    <td className="min-w-[14rem] py-3 px-4">
+                  <tr key={order._id} className="border-b bg-white last:border-0 hover:bg-slate-50">
+                    <td className="min-w-[13rem] whitespace-nowrap py-4 px-5">{order.orderId || order._id}</td>
+                    <td className="min-w-[14rem] py-4 px-5">
                       <div>
                         <p className="whitespace-nowrap overflow-hidden text-ellipsis">{order.customerId?.name || order.fullName || "Guest"}</p>
                         <p className="text-xs text-gray-500 hidden sm:block truncate">
@@ -239,13 +249,13 @@ export default function Orders() {
                         </p>
                       </div>
                     </td>
-                    <td className="min-w-[10rem] whitespace-nowrap py-3 px-4">
+                    <td className="min-w-[10rem] whitespace-nowrap py-4 px-5">
                       <Badge variant="outline">{getOrderTypeLabel(order)}</Badge>
                     </td>
-                    <td className="min-w-[12rem] whitespace-nowrap py-3 px-4 hidden md:table-cell">
+                    <td className="min-w-[12rem] whitespace-nowrap py-4 px-5 hidden md:table-cell">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="min-w-[10rem] whitespace-nowrap py-3 px-4">
+                    <td className="min-w-[10rem] whitespace-nowrap py-4 px-5">
                       <div className="space-y-1">
                         <span className={order.membershipDiscountAmount > 0 ? "font-semibold text-green-700" : "font-semibold text-slate-900"}>
                           {formatCurrency(order.total)}
@@ -257,7 +267,7 @@ export default function Orders() {
                         )}
                       </div>
                     </td>
-                    <td className="min-w-[14rem] py-3 px-4">
+                    <td className="min-w-[14rem] py-4 px-5">
                       <div className="flex flex-col gap-1 truncate">
                         <Badge variant="outline" className="truncate">{order.paymentMethod}</Badge>
                         <Badge className={paymentStatusColors[order.paymentStatus] || "bg-gray-100 text-gray-700"}>
@@ -265,17 +275,17 @@ export default function Orders() {
                         </Badge>
                       </div>
                     </td>
-                    <td className="min-w-[12rem] whitespace-nowrap py-3 px-4">
+                    <td className="min-w-[12rem] whitespace-nowrap py-4 px-5">
                       {String(order.paymentMethod || "").toLowerCase().includes("gcash")
                         ? (order.referenceNumber || "N/A")
                         : "N/A"}
                     </td>
-                    <td className="min-w-[10rem] whitespace-nowrap py-3 px-4">
+                    <td className="min-w-[10rem] whitespace-nowrap py-4 px-5">
                       <Badge className={statusColors[order.status] || "bg-gray-100 text-gray-700"}>
                         {order.status}
                       </Badge>
                     </td>
-                    <td className="min-w-[8rem] whitespace-nowrap py-3 px-4">
+                    <td className="min-w-[8rem] whitespace-nowrap py-4 px-5">
                       <Button variant="ghost" size="sm" onClick={() => handleViewDetails(order)}>
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -284,7 +294,7 @@ export default function Orders() {
                 ))}
                 {filteredOrders.length === 0 && (
                   <tr>
-                    <td className="py-8 px-4 text-center text-gray-500" colSpan={9}>
+                    <td className="py-8 px-5 text-center text-gray-500" colSpan={9}>
                       No orders found.
                     </td>
                   </tr>
@@ -297,73 +307,73 @@ export default function Orders() {
       </Card>
 
       <Dialog open={Boolean(selectedOrder)} onOpenChange={(open) => !open && setSelectedOrder(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Order Details - {detailOrder?.orderId || detailOrder?._id}</DialogTitle>
+        <DialogContent className="max-w-2xl rounded-[2rem] border border-slate-200 bg-white shadow-2xl p-6">
+          <DialogHeader className="border-b border-slate-200 pb-4 mb-4">
+            <DialogTitle className="text-2xl font-semibold tracking-tight">Order Details - {detailOrder?.orderId || detailOrder?._id}</DialogTitle>
           </DialogHeader>
           {detailOrder && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 shadow-sm">
                 <div>
-                  <p className="text-sm text-gray-500">Customer</p>
-                  <p>{detailOrder.customerId?.name || detailOrder.fullName}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Customer</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{detailOrder.customerId?.name || detailOrder.fullName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Type</p>
-                  <p>{getOrderTypeLabel(detailOrder)}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Type</p>
+                  <p className="mt-2 text-sm text-slate-800">{getOrderTypeLabel(detailOrder)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Phone</p>
-                  <p>{detailOrder.contactNumber}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Phone</p>
+                  <p className="mt-2 text-sm text-slate-800">{detailOrder.contactNumber}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p>{detailOrder.customerId?.contactInfo?.email || detailOrder.email || "N/A"}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Email</p>
+                  <p className="mt-2 text-sm text-slate-800">{detailOrder.customerId?.contactInfo?.email || detailOrder.email || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Date</p>
-                  <p>{new Date(detailOrder.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Date</p>
+                  <p className="mt-2 text-sm text-slate-800">{new Date(detailOrder.createdAt).toLocaleDateString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Payment Method</p>
-                  <p>{detailOrder.paymentMethod}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Payment Method</p>
+                  <p className="mt-2 text-sm text-slate-800">{detailOrder.paymentMethod}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Payment Status</p>
-                  <p>{String(detailOrder.paymentStatus || "pending").replaceAll("_", " ")}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Payment Status</p>
+                  <p className="mt-2 text-sm text-slate-800">{String(detailOrder.paymentStatus || "pending").replaceAll("_", " ")}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-sm text-gray-500">Order ID</p>
-                  <p>{detailOrder.orderId || detailOrder._id}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Order ID</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{detailOrder.orderId || detailOrder._id}</p>
                 </div>
                 {detailOrder.referenceNumber && (
                   <div className="col-span-2">
-                    <p className="text-sm text-gray-500">Gateway Reference</p>
-                    <p>{detailOrder.paymentReference}</p>
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Gateway Reference</p>
+                    <p className="mt-2 text-sm text-slate-800">{detailOrder.paymentReference}</p>
                   </div>
                 )}
                 {detailOrder.paymentCheckoutUrl && (
                   <div className="col-span-2">
-                    <p className="text-sm text-gray-500">Checkout URL</p>
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Checkout URL</p>
                     <a
                       href={detailOrder.paymentCheckoutUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-blue-600 underline"
+                      className="mt-2 inline-block text-blue-600 underline"
                     >
                       Open payment checkout
                     </a>
                   </div>
                 )}
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Delivery Address</p>
-                <p>{detailOrder.address}</p>
+              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Delivery Address</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900">{detailOrder.address}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm font-medium text-slate-700">Customer Notes</p>
-                  <span className="text-xs uppercase tracking-[0.18em] text-slate-400">Info</span>
+                  <p className="text-sm font-semibold text-slate-700">Customer Notes</p>
+                  <span className="text-[0.65rem] uppercase tracking-[0.24em] text-slate-400">Info</span>
                 </div>
                 <div className="mt-3 text-sm leading-6 text-slate-700 space-y-2">
                   {detailOrder.notes ? (
@@ -371,7 +381,7 @@ export default function Orders() {
                       detailOrder.notes.includes("|") ? (
                         <>
                           <p>{detailOrder.notes.split("|")[0].trim()}</p>
-                          <p className="italic text-gray-600">{detailOrder.notes.split("|")[1].trim()}</p>
+                          <p className="italic text-slate-500">{detailOrder.notes.split("|")[1].trim()}</p>
                         </>
                       ) : (
                         <p>{detailOrder.notes}</p>
@@ -384,38 +394,40 @@ export default function Orders() {
                   )}
                 </div>
               </div>
-              <div className="border-t pt-4">
-                <p className="text-sm text-gray-500 mb-2">Order Items</p>
-                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-500 mb-3">Order Items</p>
+                <div className="space-y-3">
                   {detailOrder.orderType === 'membership' && detailOrder.packageName ? (
-                    <div className="flex justify-between items-center py-2">
+                    <div className="flex justify-between items-center rounded-2xl bg-slate-50 p-4">
                       <div>
-                        <p className="font-semibold text-gray-900">{detailOrder.packageName}</p>
-                        <p className="text-xs text-gray-500">Membership Package</p>
+                        <p className="font-semibold text-slate-900">{detailOrder.packageName}</p>
+                        <p className="text-xs text-slate-500">Membership Package</p>
                       </div>
-                      <span className="text-sm font-medium">x1</span>
+                      <span className="text-sm font-medium text-slate-900">x1</span>
                     </div>
                   ) : (
                     <>
                       {detailItems.map((item) => (
-                        <div key={item._id} className="flex justify-between">
-                          <span>{item.productName}</span>
-                          <span>x{item.quantity}</span>
+                        <div key={item._id} className="flex justify-between rounded-2xl bg-slate-50 px-4 py-3">
+                          <span className="text-sm text-slate-800">{item.productName}</span>
+                          <span className="text-sm font-medium text-slate-900">x{item.quantity}</span>
                         </div>
                       ))}
-                      {detailItems.length === 0 && <p className="text-sm text-gray-500">No item details loaded.</p>}
+                      {detailItems.length === 0 && (
+                        <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-500">No item details loaded.</div>
+                      )}
                     </>
                   )}
-                  <div className="space-y-1 pt-2 border-t">
+                  <div className="space-y-1 pt-4 border-t border-slate-200">
                     {detailOrder.membershipDiscountAmount > 0 ? (
-                      <div className="flex justify-between items-center font-semibold bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex justify-between items-center rounded-2xl bg-green-50 border border-green-200 p-3">
                         <div className="flex items-center gap-2">
                           <Badge className="bg-green-600 text-white">Member Price</Badge>
                         </div>
                         <span className="text-green-700 text-lg">{formatCurrency(detailOrder.total)}</span>
                       </div>
                     ) : (
-                      <div className="flex justify-between items-center font-semibold">
+                      <div className="flex justify-between items-center rounded-2xl bg-slate-100 px-4 py-3 font-semibold text-slate-900">
                         <span>Total Amount</span>
                         <span>{formatCurrency(detailOrder.total)}</span>
                       </div>

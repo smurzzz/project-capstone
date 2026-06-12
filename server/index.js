@@ -5,6 +5,8 @@ import path from "path"
 import { fileURLToPath } from "url"
 import connectDb from "./db/connect.js"
 import dotenv from "dotenv"
+import helmet from "helmet"
+import morgan from "morgan"
 import { createRateLimiter, sanitizeInput, securityHeaders } from "./middleware/security.js"
 
 // Routes
@@ -25,6 +27,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const projectRoot = path.resolve(__dirname, "..")
 
+// Load environment variables: prefer project root, then server-specific overrides
 dotenv.config({ path: path.join(projectRoot, ".env") })
 dotenv.config({ path: path.join(__dirname, ".env") })
 dotenv.config({ path: path.join(__dirname, ".env.local"), override: true })
@@ -48,6 +51,8 @@ const isAllowedLocalDevOrigin = (origin) => /^http:\/\/(localhost|127\.0\.0\.1):
 
 app.set("trust proxy", 1)
 app.disable("x-powered-by")
+// Standard security headers via helmet, keep custom headers afterwards
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }))
 app.use(securityHeaders)
 app.use(cors({
     origin(origin, callback) {
@@ -66,6 +71,9 @@ app.use(cors({
 }))
 app.use(express.json({ limit: "6mb" }))
 app.use(sanitizeInput)
+
+// HTTP request logging
+app.use(isDevelopment ? morgan("dev") : morgan("combined"))
 
 // Auth routes (public). Keep auth attempts on a tighter limiter than normal API traffic.
 const authRateLimitMax = Number(process.env.AUTH_RATE_LIMIT_MAX || (isDevelopment ? 1000 : 120));
@@ -107,7 +115,13 @@ app.use((error, req, res, next) => {
         return res.status(403).json({ success: false, message: "Origin not allowed" })
     }
 
-    console.error("Unhandled error:", error);
+    // Avoid leaking stack traces in production
+    if (isDevelopment) {
+        console.error("Unhandled error:", error)
+    } else {
+        console.error("Unhandled error:", error && error.message ? error.message : error)
+    }
+
     return res.status(500).json({ success: false, message: "Internal server error" })
 })
 
@@ -116,7 +130,7 @@ const port = process.env.PORT || 5000
 const startServer = async () => {
     await connectDb()
     app.listen(port, () => {
-        console.log("server is running on http://localhost:" + port);
+        console.log(`Server is running on http://localhost:${port}`)
     })
 }
 

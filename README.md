@@ -261,12 +261,44 @@ project-capstone/
 
 ## 📝 Environment Variables
 
-Create a `.env` file in the server directory:
+Create a `server/.env` file from `server/.env.example` and fill in your production values.
 
 ```
-PORT=5000
-URI=mongodb://localhost:27017/ecommerce
-JWT_SECRET=your-secret-key-here
+cp server/.env.example server/.env
+```
+
+Required server variables include:
+
+- `PORT`
+- `NODE_ENV=production`
+- `MONGODB_URI` or `URI`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
+- `CORS_ORIGIN`
+- `PUBLIC_APP_URL`
+- `MAIL_FROM`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`
+- `PAYMENT_GATEWAY` and `PAYMONGO_SECRET_KEY` when using live checkout
+
+Frontend deployment uses environment variables managed by the hosting provider:
+
+- `VITE_API_BASE_URL=https://your-api-domain.com/api`
+- `VITE_GOOGLE_CLIENT_ID`
+
+## 🚀 Production commands
+
+From `server`:
+
+```bash
+npm ci
+npm start
+```
+
+From `frontend`:
+
+```bash
+npm ci
+npm run build
 ```
 
 ## 🔒 Security Features

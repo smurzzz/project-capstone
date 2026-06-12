@@ -140,12 +140,8 @@ const handleSubmit = async (event) => {
         address: user?.address || ""
       }
     };
-    
-    console.log("Submitting appointment:", appointmentData);
-    console.log("Current user:", user);
-    
+
     const response = await appointmentsAPI.create(appointmentData);
-    console.log("Appointment creation response:", response);
 
     toast.success("Appointment booked successfully!");
 
@@ -302,7 +298,7 @@ const handleSubmit = async (event) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                  <Label htmlFor="notes">Notes</Label>
                   <Textarea
                     id="notes"
                     placeholder="Any specific concerns or requirements..."

@@ -86,8 +86,11 @@ export const getPackagesForMembershipApplication = async (req, res) => {
             .populate("items.productId", "productName imageUrl srp price stockLevel")
             .sort({ price: 1 });
 
-        // Filter out packages with "B" in their name (case-insensitive)
-        const filteredPackages = packages.filter(pkg => !pkg.name.toLowerCase().includes("b"));
+        const filteredPackages = packages.filter(pkg => 
+            // Exclude "B" tier packages from membership applications: ensures membership path
+            // directs customers to specific approved entry-level packages only
+            !pkg.name.toLowerCase().includes("b")
+        );
 
         res.status(200).json({
             success: true,

@@ -389,10 +389,10 @@ export default function MembershipApplicationForm() {
           {/* Additional Information Section */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div>
-              <Label htmlFor="additionalInfo" className="text-gray-700 font-medium">Notes</Label>
+              <Label htmlFor="additionalInfo" className="text-gray-700 font-medium">Special Instructions</Label>
               <Textarea
                 id="additionalInfo"
-                placeholder="What interests you most about our membership program? Any questions we should know about?..."
+                placeholder="Share any special instructions or important details for processing your membership application..."
                 value={additionalInfo}
                 onChange={(event) => setAdditionalInfo(event.target.value)}
                 maxLength={500}

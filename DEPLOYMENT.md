@@ -22,8 +22,8 @@ Server:
 
 - `PORT`
 - `NODE_ENV=production`
-- `MONGODB_URI`
-- `JWT_SECRET`
+- `MONGODB_URI` or `URI`
+- `JWT_SECRET` (must be strong and not a placeholder)
 - `JWT_EXPIRES_IN`
 - `CORS_ORIGIN`
 - `PUBLIC_APP_URL`
@@ -38,6 +38,31 @@ Frontend:
 - `VITE_GOOGLE_CLIENT_ID`
 
 ## Production deployment
+
+Recommended production build steps:
+
+1. In `server`:
+   - copy `server/.env.example` to `server/.env`
+   - set secure secrets in the host provider
+   - run `npm ci`
+   - run `npm start`
+
+2. In `frontend`:
+   - configure `VITE_API_BASE_URL` with the API base URL
+   - run `npm ci`
+   - run `npm run build`
+   - deploy the generated `/dist` folder to Vercel or another static hosting provider
+
+3. Confirm production readiness:
+   - `NODE_ENV=production` is enabled on the server
+   - `JWT_SECRET` is not a placeholder
+   - `CORS_ORIGIN` only allows trusted frontend domains
+   - `PUBLIC_APP_URL` matches the frontend deployment URL
+   - the API health endpoint returns success at `/api/health`
+
+4. Keep secrets out of the repository and use the hosting provider's environment manager instead of `.env` files.
+
+For Render, Vercel, Railway, or similar hosts, the same build and start commands apply.
 
 1. Deploy `server` to Render using the included `render.yaml`.
 2. In Render, set the server environment variables listed above. Keep secrets in Render's environment manager, not in Git.

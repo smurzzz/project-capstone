@@ -723,9 +723,6 @@ export const updateEmailPreferences = async (req, res) => {
  */
 export const updateCustomerPassword = async (req, res) => {
     try {
-        // Debug: log authenticated user info for troubleshooting
-        console.log("[updateCustomerPassword] req.user:", JSON.stringify(req.user));
-
         if (req.user?.type !== "customer") {
             return res.status(403).json({
                 success: false,

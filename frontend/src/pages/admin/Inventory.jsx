@@ -13,6 +13,7 @@ import {
   Tags,
   Trash2,
   Upload,
+  X,
 } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
@@ -65,6 +66,10 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [scrollWidth, setScrollWidth] = useState(0);
+  const [showTopScroll, setShowTopScroll] = useState(false);
+  const topScrollRef = useRef(null);
+  const tableScrollRef = useRef(null);
   const imageInputRef = useRef(null);
 
   async function fetchProducts(showSpinner = false) {
@@ -83,6 +88,18 @@ export default function Inventory() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  const handleTopScroll = () => {
+    if (topScrollRef.current && tableScrollRef.current) {
+      tableScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+  };
+
+  const handleBottomScroll = () => {
+    if (topScrollRef.current && tableScrollRef.current) {
+      topScrollRef.current.scrollLeft = tableScrollRef.current.scrollLeft;
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -254,6 +271,23 @@ export default function Inventory() {
   const formMinStock = Number(formData.minStock || 0);
   const formStockValue = formStock * formPrice;
 
+  useEffect(() => {
+    const updateScrollState = () => {
+      const wrapper = tableScrollRef.current;
+      if (wrapper) {
+        const width = wrapper.scrollWidth;
+        setScrollWidth(width);
+        setShowTopScroll(width > wrapper.clientWidth);
+      } else {
+        setShowTopScroll(false);
+      }
+    };
+
+    updateScrollState();
+    window.addEventListener("resize", updateScrollState);
+    return () => window.removeEventListener("resize", updateScrollState);
+  }, [filteredInventory.length]);
+
   if (loading) {
     return (
       <div className="grid min-h-[70vh] place-items-center p-6">
@@ -342,8 +376,8 @@ export default function Inventory() {
       )}
 
       <Card className="border-slate-200 shadow-sm">
-        <CardContent className="flex min-h-24 items-center p-4">
-          <div className="mx-auto grid w-full max-w-6xl items-center gap-3 pt-5 lg:grid-cols-[auto_minmax(0,1fr)_220px_auto]">
+        <CardContent className="flex min-h-24 items-center justify-center py-5 px-4">
+          <div className="w-full max-w-6xl grid items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_220px_auto]">
             <div className="hidden h-10 w-10 items-center justify-center text-gray-400 lg:flex">
               <Search className="h-5 w-5" />
             </div>
@@ -353,8 +387,18 @@ export default function Inventory() {
                 placeholder="Search by name, SKU, or category..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="h-10 pl-10 lg:pl-3"
+                className="h-10 pl-10 lg:pl-3 pr-10"
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
             <select
               value={categoryFilter}
@@ -386,19 +430,32 @@ export default function Inventory() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-2xl border border-slate-200">
-            <table className="w-full">
+          {showTopScroll && (
+            <div
+              ref={topScrollRef}
+              className="overflow-x-auto rounded-t-2xl border border-slate-200 border-b-0 bg-white"
+              onScroll={handleTopScroll}
+            >
+              <div style={{ width: `${scrollWidth}px`, height: 1 }} />
+            </div>
+          )}
+          <div
+            ref={tableScrollRef}
+            className="overflow-x-auto rounded-b-2xl border border-slate-200 border-t-0 bg-white"
+            onScroll={handleBottomScroll}
+          >
+            <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
-                  <th className="px-4 py-3 text-left">Product</th>
-                  <th className="hidden px-4 py-3 text-left lg:table-cell">Picture</th>
-                  <th className="hidden px-4 py-3 text-left md:table-cell">SKU</th>
-                  <th className="hidden px-4 py-3 text-left lg:table-cell">Category</th>
-                  <th className="px-4 py-3 text-left">Quantity</th>
-                  <th className="hidden px-4 py-3 text-left sm:table-cell">Price</th>
-                  <th className="hidden px-4 py-3 text-left xl:table-cell">Supplier</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Actions</th>
+                  <th className="px-5 py-4 text-left min-w-[180px]">Product</th>
+                  <th className="hidden px-5 py-4 text-left min-w-[100px] lg:table-cell">Picture</th>
+                  <th className="hidden px-5 py-4 text-left min-w-[90px] md:table-cell">SKU</th>
+                  <th className="hidden px-5 py-4 text-left min-w-[120px] lg:table-cell">Category</th>
+                  <th className="px-5 py-4 text-left min-w-[130px]">Quantity</th>
+                  <th className="hidden px-5 py-4 text-left min-w-[110px] sm:table-cell">Price</th>
+                  <th className="hidden px-5 py-4 text-left min-w-[110px] xl:table-cell">Supplier</th>
+                  <th className="px-5 py-4 text-left min-w-[100px]">Status</th>
+                  <th className="px-5 py-4 text-left min-w-[180px]">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -407,14 +464,14 @@ export default function Inventory() {
                   const isLowStock = stockState !== "stocked";
                   return (
                     <tr key={item._id} className="border-b bg-white last:border-0 hover:bg-slate-50">
-                      <td className="py-3 px-4">
+                      <td className="py-4 px-5">
                         <div>
                           <p className="font-semibold text-slate-900">{item.productName}</p>
                           <p className="text-xs text-gray-500 md:hidden">{item.sku || "No SKU"}</p>
                         </div>
                       </td>
-                      <td className="py-3 px-4 hidden lg:table-cell">
-                        <div className="h-14 w-16 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center">
+                      <td className="py-4 px-5 hidden lg:table-cell">
+                        <div className="h-16 w-20 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center">
                           {item.imageUrl ? (
                             <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-contain p-1" />
                           ) : (
@@ -422,21 +479,21 @@ export default function Inventory() {
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 hidden md:table-cell">{item.sku || "-"}</td>
-                      <td className="py-3 px-4 hidden lg:table-cell">
+                      <td className="py-4 px-5 hidden md:table-cell text-sm">{item.sku || "-"}</td>
+                      <td className="py-4 px-5 hidden lg:table-cell">
                         <Badge variant="outline">{item.category || "Uncategorized"}</Badge>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-4 px-5">
                         <span className={isLowStock ? "font-semibold text-amber-600" : "font-semibold text-slate-900"}>{item.stockLevel}</span>
                       </td>
-                      <td className="py-3 px-4 hidden sm:table-cell">{formatMoney(item.price)}</td>
-                      <td className="py-3 px-4 hidden xl:table-cell">{item.supplier || "-"}</td>
-                      <td className="py-3 px-4">
+                      <td className="py-4 px-5 hidden sm:table-cell text-sm">{formatMoney(item.price)}</td>
+                      <td className="py-4 px-5 hidden xl:table-cell text-sm">{item.supplier || "-"}</td>
+                      <td className="py-4 px-5">
                         <Badge className={`${stockBadgeClass[stockState]} border`}>
                           {stockLabel[stockState]}
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-4 px-5">
                         <div className="flex flex-wrap gap-2">
                           <Button
                             variant="outline"
@@ -465,7 +522,7 @@ export default function Inventory() {
                 })}
                 {filteredInventory.length === 0 && (
                   <tr>
-                    <td className="py-8 px-4 text-center text-gray-500" colSpan={9}>
+                    <td className="py-8 px-5 text-center text-gray-500" colSpan={9}>
                       No inventory items match your filters.
                     </td>
                   </tr>

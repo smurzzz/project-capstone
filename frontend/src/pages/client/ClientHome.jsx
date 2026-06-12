@@ -56,10 +56,11 @@ export default function ClientHome({ onNavigateTab }) {
         setMembership(membershipResponse.data.data?.membership || null);
         setPackageDeals((packagesResponse.data.data || []).slice(0, 3));
         setFeaturedProducts(productsResponse.data.data || []);
+        const completedOrders = orders.filter((order) => order.status !== "Cancelled");
         setStats({
           orders: orders.length,
           appointments: appointments.filter((appointment) => appointment.status !== "Cancelled").length,
-          spent: orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
+          spent: completedOrders.reduce((sum, order) => sum + Number(order.total || 0), 0),
           pending: orders.filter((order) => order.status === "Pending").length,
         });
       } catch (error) {

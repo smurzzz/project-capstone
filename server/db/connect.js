@@ -38,7 +38,9 @@ const connectDb = async () => {
             autoIndex: process.env.NODE_ENV !== "production",
         });
 
-        console.log(`MongoDB connected to ${mongoose.connection.name}`);
+        if (process.env.NODE_ENV !== "production") {
+            console.log(`MongoDB connected to ${mongoose.connection.name}`);
+        }
     } catch (error) {
         console.error("MongoDB connection failed:", error.message);
         throw error;

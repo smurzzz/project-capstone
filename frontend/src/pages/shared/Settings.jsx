@@ -210,44 +210,13 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-[1fr_120px] gap-4 items-end">
-                  <div className="space-y-2">
-                    <Label htmlFor="profileImageUrl">Profile Picture</Label>
-                    <Input
-                      id="profileImageUrl"
-                      type="text"
-                      value={formData.profileImageUrl}
-                      onChange={(event) => setFormData({ ...formData, profileImageUrl: event.target.value })}
-                      placeholder="Click the preview to choose a file, or paste an image URL"
-                    />
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      className="hidden"
-                      onChange={handleProfileFile}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="relative h-28 w-28 rounded-lg border bg-gray-50 overflow-hidden flex items-center justify-center group"
-                    aria-label="Choose profile picture"
-                  >
-                    {formData.profileImageUrl ? (
-                      <img
-                        src={formData.profileImageUrl}
-                        alt="Profile preview"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <ImageIcon className="h-8 w-8 text-gray-400" />
-                    )}
-                    <span className="absolute inset-0 bg-black/45 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-xs">
-                      Choose file
-                    </span>
-                  </button>
-                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={handleProfileFile}
+                />
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">

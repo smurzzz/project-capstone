@@ -84,17 +84,21 @@ const validatePromotionPayload = (payload) => {
 };
 
 export const getPromotions = async (req, res) => {
-    // Promotions feature is disabled for this deployment
+    // Promotions feature disabled for Phase 1 deployment; returns empty set to prevent
+    // frontend crashes while infrastructure is validated; can be re-enabled by modifying
+    // route handlers when promotion business logic is ready for production
     return res.status(200).json({ success: true, data: [] });
 };
 
 export const createPromotion = async (req, res) => {
-    // Promotions are not supported; return clear rejection
+    // Promotions not enabled in this deployment phase; explicit rejection prevents
+    // accidental API usage before backend/database constraints are fully audited
     return res.status(400).json({ success: false, message: "Promotions are not supported in this deployment" });
 };
 
 export const updatePromotion = async (req, res) => {
-    // Promotions are disabled — do not allow updates
+    // Promotions disabled intentionally; prevents partial state mutations that could
+    // lead to data inconsistency during future re-enablement
     return res.status(400).json({ success: false, message: "Promotions are not supported in this deployment" });
 };
 
