@@ -44,7 +44,7 @@ export default function AdminMemberships() {
     try {
       const res = await membershipAPI.getMembershipStats();
       setStats(res?.data?.data || {});
-    } catch (e) {
+    } catch {
       // ignore stats failure
     }
   };

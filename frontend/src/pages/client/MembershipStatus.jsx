@@ -36,11 +36,6 @@ export default function MembershipStatus() {
   }, []);
 
   const membership = membershipData?.membership || null;
-  const status = membership?.status || "None";
-  const activationDate = membership?.joinedAt || membership?.approvedAt || null;
-  const expiryDate = membership?.expiresAt || null;
-  const isMember = Boolean(activationDate || expiryDate) && status !== "None";
-  const defaultDate = status === "None" ? null : membershipData?.applicationSubmittedAt || activationDate || expiryDate;
   const packageName = membershipData?.selectedPackageDeal?.name || membershipData?.entryPackage || "N/A";
   const paymentMethod = membershipData?.membershipPaymentInfo?.paymentMethod || "N/A";
   const paymentReference = membershipData?.membershipPaymentInfo?.referenceNumber || "N/A";

@@ -29,6 +29,21 @@ const appointmentStatusColors = {
   Completed: "bg-purple-100 text-purple-800",
 };
 
+const buildOrderDateVariants = (dateString) => {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return [];
+
+  const year = date.getFullYear().toString();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return [
+    `${year}${month}${day}`,
+    `${month}${day}${year}`,
+    `${day}${month}${year}`,
+  ];
+};
+
 export default function ClientTracking() {
   const { user } = useAuth();
   const [trackingId, setTrackingId] = useState("");
@@ -74,22 +89,7 @@ export default function ClientTracking() {
     fetchUserData();
   }, [fetchUserData]);
 
-  const buildOrderDateVariants = (dateString) => {
-    const date = new Date(dateString);
-    if (Number.isNaN(date.getTime())) return [];
-
-    const year = date.getFullYear().toString();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return [
-      `${year}${month}${day}`,
-      `${month}${day}${year}`,
-      `${day}${month}${year}`,
-    ];
-  };
-
-  const searchById = (id) => {
+  const searchById = useCallback((id) => {
     const normalizedId = id.trim().toLowerCase();
     const cleanedDigits = normalizedId.replace(/[^0-9]/g, "");
 
@@ -120,14 +120,14 @@ export default function ClientTracking() {
     setSearchResults(
       matchedOrders.length > 0 ? { orders: matchedOrders } : appointment ? { appointment } : null
     );
-  };
+  }, [myAppointments, myOrders]);
 
   useEffect(() => {
     if (!loading && orderQuery) {
       setTrackingId(orderQuery);
       searchById(orderQuery);
     }
-  }, [loading, orderQuery, myOrders, myAppointments]);
+  }, [loading, orderQuery, searchById]);
 
   const handleSearch = (event) => {
     event.preventDefault();

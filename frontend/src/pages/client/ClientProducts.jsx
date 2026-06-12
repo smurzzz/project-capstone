@@ -22,7 +22,6 @@ import { mergeProductDetails, mergeProductsDetails } from "../../utils/productDe
 import { toast } from "sonner";
 import { useCart } from "../../context/CartContext.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
 
 const getProductStock = (product) => Number(product?.stockLevel ?? product?.stock ?? 0);
 const normalizeFeatures = (features) => {
@@ -54,7 +53,6 @@ export default function ClientProducts() {
   const [modalQuantity, setModalQuantity] = useState(1);
   const { addToCart, getTotalItems } = useCart();
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   async function fetchProducts() {
     try {

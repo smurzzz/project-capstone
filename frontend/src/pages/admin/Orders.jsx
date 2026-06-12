@@ -37,11 +37,6 @@ const getOrderTypeLabel = (order) => {
   return "Regular";
 };
 
-const getDiscountLabel = (order) => {
-  if (order.membershipDiscountAmount > 0) return "Member discount";
-  return "Discount";
-};
-
 const formatCurrency = (value) => `PHP ${Number(value || 0).toLocaleString()}`;
 
 export default function Orders() {

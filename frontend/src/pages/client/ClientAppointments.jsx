@@ -141,7 +141,7 @@ const handleSubmit = async (event) => {
       }
     };
 
-    const response = await appointmentsAPI.create(appointmentData);
+    await appointmentsAPI.create(appointmentData);
 
     toast.success("Appointment booked successfully!");
 
