@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { HashRouter as Router, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Sidebar } from "./components/admin/Sidebar";
 import { AuthProvider } from "./context/AuthContext";
