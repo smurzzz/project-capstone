@@ -172,9 +172,9 @@ export default function MembershipApplicationForm() {
                   alt="JBM Electro Ventures logo"
                   className="h-10 w-10 rounded-xl bg-white p-1 object-contain"
                 />
-                <h1 className="text-lg font-bold text-gray-900">
+                <span className="text-lg font-bold text-gray-900">
                   JBM Electro Ventures
-                </h1>
+                </span>
               </div>
               <div>
                 <BackToHomeButton />
@@ -212,9 +212,9 @@ export default function MembershipApplicationForm() {
                 alt="JBM Electro Ventures logo"
                 className="h-10 w-10 rounded-xl bg-white p-1 object-contain"
               />
-              <h1 className="text-lg font-bold text-gray-900">
+              <span className="text-lg font-bold text-gray-900">
                 JBM Electro Ventures
-              </h1>
+              </span>
             </div>
             <div>
               <BackToHomeButton />

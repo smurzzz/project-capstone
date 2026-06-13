@@ -229,6 +229,8 @@ export const staffAPI = {
     getById: (id) => api.get(`/staff/${id}`),
     create: (staffData) => api.post("/staff", staffData),
     update: (id, staffData) => api.put(`/staff/${id}`, staffData),
+    updateMe: (staffData) => api.put(`/staff/me`, staffData),
+    updatePhoto: (data) => api.put(`/staff/me/photo`, data),
     updatePassword: (id, oldPassword, newPassword) =>
         api.put(`/staff/${id}/password`, { oldPassword, newPassword }),
     adminResetPassword: (id, newPassword) =>

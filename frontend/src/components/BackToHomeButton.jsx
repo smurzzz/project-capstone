@@ -13,7 +13,7 @@ export default function BackToHomeButton() {
   return (
     <Link to={homeLink}>
       <Button variant="outline" className="gap-2">
-        <Home className="h-4 w-4" />
+        <Home className="h-5 w-5 sm:h-4 sm:w-4" />
         <span className="hidden sm:inline">Back Home</span>
       </Button>
     </Link>

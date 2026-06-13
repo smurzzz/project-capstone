@@ -12,7 +12,7 @@ import {
   Settings,
   ShoppingCart,
   User,
-  UsersRound,
+  Users,
   X,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -26,8 +26,8 @@ const menuItems = [
   { name: "Appointments", path: "/admin/appointments", icon: <Calendar className="h-5 w-5" /> },
   { name: "Inventory", path: "/admin/inventory", icon: <Package className="h-5 w-5" /> },
   { name: "Package Deals", path: "/admin/packages", icon: <PackagePlus className="h-5 w-5" /> },
-  { name: "Staff", path: "/admin/staff", icon: <UsersRound className="h-5 w-5" /> },
-  { name: "Memberships", path: "/admin/memberships", icon: <UsersRound className="h-5 w-5" /> },
+  { name: "Staff", path: "/admin/staff", icon: <Users className="h-5 w-5" /> },
+  { name: "Memberships", path: "/admin/memberships", icon: <Users className="h-5 w-5" /> },
   { name: "FAQs", path: "/admin/faqs", icon: <Building2 className="h-5 w-5" /> },
   { name: "Reports", path: "/admin/reports", icon: <BarChart3 className="h-5 w-5" /> },
 ];
@@ -74,7 +74,7 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
             : "!w-64 h-[100dvh]"
         } bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col`}
       >
-        <div className="relative p-6 border-b border-slate-700">
+        <div className="sticky top-0 z-50 md:relative p-6 border-b border-slate-700 bg-transparent">
           <div className="flex items-center gap-3">
             <img
               src={logoSrc}
@@ -103,7 +103,8 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
             .filter(({ name }) => {
               const userRole = String(user?.role || "").toLowerCase();
               if (userRole === "staff") {
-                return name !== "Staff" && name !== "Memberships" && name !== "FAQs";
+                // For staff accounts: hide Staff and Memberships only — keep FAQs visible
+                return name !== "Staff" && name !== "Memberships";
               }
               return true;
             })
@@ -134,7 +135,7 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"
           >
             <User className="h-5 w-5 flex-shrink-0" />
-            <span className="text-sm font-medium flex-1 text-left">Account</span>
+            <span className="text-base font-medium flex-1 text-left">Account</span>
             <ChevronDown
               className={`h-4 w-4 transition-transform flex-shrink-0 ${
                 accountMenuOpen ? "rotate-180" : ""
@@ -155,24 +156,24 @@ export const Sidebar = ({ isMobile = false, open, onClose }) => {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-slate-400">Logged in as</p>
                   <p className="text-base font-semibold text-white truncate">{user?.name || "Admin User"}</p>
-                  <p className="text-xs text-slate-400 truncate">{user?.email || "admin@jbm.com"}</p>
+                  <p className="text-sm text-slate-400 truncate">{user?.email || "admin@jbm.com"}</p>
                 </div>
               </div>
               <div className="h-px bg-slate-600" />
               <button
                 type="button"
                 onClick={handleSettings}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-slate-600 rounded transition-all duration-200"
+                className="w-full flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-slate-300 transition-all duration-200 hover:bg-slate-600"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="h-5 w-5" />
                 Settings
               </button>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-300 hover:bg-red-600/20 rounded transition-all duration-200"
+                className="w-full flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-red-300 transition-all duration-200 hover:bg-red-600/20"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-5 w-5" />
                 Logout
               </button>
             </div>

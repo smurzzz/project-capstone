@@ -7,8 +7,8 @@ import {
   Search,
   ShieldCheck,
   UserCheck,
-  UserRound,
-  UsersRound,
+  User,
+  Users,
   UserX,
   X,
   Eye,
@@ -243,7 +243,7 @@ export default function StaffManagement() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StaffStat title="Total Staff" value={stats.totalStaff} icon={<UsersRound className="h-8 w-8 text-blue-600" />} />
+        <StaffStat title="Total Staff" value={stats.totalStaff} icon={<Users className="h-8 w-8 text-blue-600" />} />
         <StaffStat title="Active" value={stats.activeStaff} icon={<UserCheck className="h-8 w-8 text-green-600" />} />
         <StaffStat title="Admins" value={stats.admins} icon={<ShieldCheck className="h-8 w-8 text-indigo-600" />} />
         <StaffStat title="Inactive" value={inactiveStaff} icon={<UserX className="h-8 w-8 text-red-600" />} />
@@ -299,7 +299,7 @@ export default function StaffManagement() {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <UserRound className="h-5 w-5" />
+                            <User className="h-5 w-5" />
                           )}
                         </div>
                         <div>

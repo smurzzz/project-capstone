@@ -343,36 +343,36 @@ export default function ClientProducts() {
                   </div>
                 </div>
 
-                <div className="border-t border-slate-200 pt-4">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-slate-900">Description</h3>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {selectedProduct.description || "The best product for reliable performance and long-term durability."}
-                    </p>
-                  </div>
+                <div className="mt-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm mb-6">
+                  <h3 className="font-semibold text-slate-900">Description</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {selectedProduct.description || "The best product for reliable performance and long-term durability."}
+                  </p>
                 </div>
 
-                <Tabs value={productDialogTab} onValueChange={setProductDialogTab} className="space-y-4 border-t border-slate-200 pt-6">
-                  <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-transparent p-0">
-                    <TabsTrigger value="specifications" className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 bg-white py-3 px-2 text-xs font-medium text-slate-700 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 hover:bg-slate-50 transition-all">
-                      <Zap className="h-5 w-5" />
-                      <span className="leading-tight">Specs</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="features" className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 bg-white py-3 px-2 text-xs font-medium text-slate-700 data-[state=active]:border-green-600 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 hover:bg-slate-50 transition-all">
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="leading-tight">Features</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="compatibility" className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 bg-white py-3 px-2 text-xs font-medium text-slate-700 data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 hover:bg-slate-50 transition-all">
-                      <Cable className="h-5 w-5" />
-                      <span className="leading-tight">Compat</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="warranty" className="flex flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-slate-200 bg-white py-3 px-2 text-xs font-medium text-slate-700 data-[state=active]:border-amber-600 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700 hover:bg-slate-50 transition-all">
-                      <Shield className="h-5 w-5" />
-                      <span className="leading-tight">Warranty</span>
-                    </TabsTrigger>
-                  </TabsList>
+                <Tabs value={productDialogTab} onValueChange={setProductDialogTab} className="space-y-4 border-t border-slate-200 pt-8 pb-8 sm:pb-0">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
+                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-3 bg-transparent p-1">
+                      <TabsTrigger value="specifications" className="flex flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-2 px-2 text-[10px] font-semibold text-slate-700 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 hover:bg-slate-50 transition-all">
+                        <Zap className="h-4 w-4" />
+                        <span className="leading-tight">Specs</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="features" className="flex flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-2 px-2 text-[10px] font-semibold text-slate-700 data-[state=active]:border-green-600 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 hover:bg-slate-50 transition-all">
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="leading-tight">Features</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="compatibility" className="flex flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-2 px-2 text-[10px] font-semibold text-slate-700 data-[state=active]:border-purple-600 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 hover:bg-slate-50 transition-all">
+                        <Cable className="h-4 w-4" />
+                        <span className="leading-tight">Compat</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="warranty" className="flex flex-col items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white py-2 px-2 text-[10px] font-semibold text-slate-700 data-[state=active]:border-amber-600 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700 hover:bg-slate-50 transition-all">
+                        <Shield className="h-4 w-4" />
+                        <span className="leading-tight">Warranty</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
 
-                  <div className="pt-2">
+                  <div className="pt-2 pb-6 sm:pb-0">
                     <TabsContent value="specifications" className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 p-5 text-sm leading-7 text-slate-700 whitespace-pre-line m-0">
                       {hasText(selectedProduct.specifications)
                         ? selectedProduct.specifications
@@ -406,39 +406,41 @@ export default function ClientProducts() {
                         : <p className="italic text-slate-500">No warranty details have been added for this product yet.</p>}
                     </TabsContent>
                   </div>
-                  </Tabs>
+                </Tabs>
               </div>
             </div>
           </div>
 
-            <div className="flex flex-col gap-3 border-t border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 w-fit">
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={modalQuantity <= 1}
+            <div className="mt-4 rounded-b-3xl border-t border-slate-200 bg-slate-50 px-4 py-6 shadow-sm sm:px-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1.5 w-fit">
+                  <button
+                    type="button"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                    onClick={() => handleQuantityChange(-1)}
+                    disabled={modalQuantity <= 1}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-10 text-center text-sm font-semibold">{modalQuantity}</span>
+                  <button
+                    type="button"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                    onClick={() => handleQuantityChange(1)}
+                    disabled={modalQuantity >= getProductStock(selectedProduct)}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <Button
+                  className="w-full sm:w-auto justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800 h-10 px-4 py-2"
+                  onClick={() => handleAddToCart(selectedProduct)}
+                  disabled={getProductStock(selectedProduct) <= 0}
                 >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <span className="w-12 text-center text-sm font-semibold">{modalQuantity}</span>
-                <button
-                  type="button"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={modalQuantity >= getProductStock(selectedProduct)}
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
+                  <ShoppingCart className="h-4 w-4" />
+                  Add to Cart
+                </Button>
               </div>
-              <Button
-                className="w-full sm:w-auto justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800"
-                onClick={() => handleAddToCart(selectedProduct)}
-                disabled={getProductStock(selectedProduct) <= 0}
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Add to Cart
-              </Button>
             </div>
           </DialogContent>
         )}

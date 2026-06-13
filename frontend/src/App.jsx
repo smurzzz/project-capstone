@@ -157,7 +157,7 @@ const AdminLayout = () => {
               <Route
                 path="/faqs"
                 element={
-                  <ProtectedRoutes requireRole={["Admin"]}>
+                  <ProtectedRoutes requireRole={["Admin", "Staff"]}>
                     <AdminFAQ />
                   </ProtectedRoutes>
                 }

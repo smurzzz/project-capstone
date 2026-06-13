@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { AlertCircle, Calendar as CalendarIcon, CheckCircle, Clock, Mail, MapPin, Phone, UserRound, Wrench } from "lucide-react";
+import { AlertCircle, Calendar as CalendarIcon, CheckCircle, Clock, Mail, MapPin, Phone, User, Wrench } from "lucide-react";
 import { Badge } from "../../components/ui/badge.jsx";
 import { Button } from "../../components/ui/button.jsx";
 import { Calendar } from "../../components/ui/calendar.jsx";
@@ -401,7 +401,7 @@ export default function Appointments() {
                   </div>
 
                   <div className="space-y-3">
-                    <SummaryItem icon={<UserRound className="h-4 w-4" />} label="Customer" value={getCustomerName(selectedAppointment)} />
+                    <SummaryItem icon={<User className="h-4 w-4" />} label="Customer" value={getCustomerName(selectedAppointment)} />
                     <SummaryItem icon={<CalendarIcon className="h-4 w-4" />} label="Date" value={getDisplayDate(selectedAppointment)} />
                     <SummaryItem icon={<Clock className="h-4 w-4" />} label="Time" value={getDisplayTime(selectedAppointment)} />
                   </div>
@@ -435,7 +435,7 @@ export default function Appointments() {
                     <p className="text-sm text-slate-500">Contact information connected to this appointment.</p>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <Info icon={<UserRound className="h-4 w-4" />} label="Customer" value={getCustomerName(selectedAppointment)} />
+                    <Info icon={<User className="h-4 w-4" />} label="Customer" value={getCustomerName(selectedAppointment)} />
                     <Info icon={<Mail className="h-4 w-4" />} label="Email" value={getCustomerEmail(selectedAppointment)} />
                     <Info icon={<Phone className="h-4 w-4" />} label="Phone" value={getPhone(selectedAppointment)} />
                     <Info icon={<MapPin className="h-4 w-4" />} label="Location" value={getLocation(selectedAppointment)} />
