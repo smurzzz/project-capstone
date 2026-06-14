@@ -130,6 +130,14 @@ export const verifyAdmin = (req, res, next) => {
  */
 export const verifyStaff = (req, res, next) => {
     if (req.user?.type !== "staff" || !isStaffRole(req.user?.role)) {
+        // Helpful debug when staff routes return 403: log token payload
+        try {
+            // Avoid leaking secrets in production; this log is primarily for local debugging
+            console.warn('[Auth.verifyStaff] Access denied for request. tokenPayload=', req.user);
+        } catch (err) {
+            console.warn('[Auth.verifyStaff] Access denied and failed to log token payload');
+        }
+
         return res.status(403).json({
             success: false,
             message: "Access denied. Staff privileges required",

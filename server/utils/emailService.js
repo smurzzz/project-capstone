@@ -222,6 +222,52 @@ export const sendAppointmentStatusEmail = ({ appointment }) => {
     return sendNotification({ to, subject, text, html });
 };
 
+export const sendMembershipStatusEmail = ({ to, name = "Customer", status, tier, expiresAt }) => {
+    let subject, title, message, statusHtml;
+
+    if (status === "Active") {
+        subject = "Your membership is now active!";
+        title = "Membership activated";
+        message = "Your membership has been activated.";
+        statusHtml = `<p style="background:#dcfce7;color:#166534;padding:12px;border-radius:6px;border-left:4px solid #16a34a;">✓ Your membership is <strong>active</strong></p>`;
+    } else if (status === "Pending") {
+        subject = "Membership application received";
+        title = "Application pending approval";
+        message = "Your membership application has been received and is pending approval.";
+        statusHtml = `<p style="background:#fef3c7;color:#92400e;padding:12px;border-radius:6px;border-left:4px solid #f59e0b;">⏳ Your membership is <strong>pending</strong> approval</p>`;
+    } else {
+        return false; // Only send for Active and Pending
+    }
+
+    const text = [
+        `Hello ${name},`,
+        "",
+        message,
+        `Tier: ${tier}`,
+        status === "Active" ? `Valid until: ${formatDate(expiresAt)}` : "",
+        "",
+        "Thank you for being part of JBM Electro Ventures.",
+    ].filter(Boolean).join("\n");
+
+    const html = buildTemplate({
+        title,
+        preview: message,
+        body: `
+            <p>Hello ${escapeHtml(name)},</p>
+            <p>${escapeHtml(message)}</p>
+            ${statusHtml}
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:18px 0;">
+                ${row("Membership tier", tier)}
+                ${status === "Active" ? row("Valid until", formatDate(expiresAt)) : ""}
+                ${row("Status", status)}
+            </table>
+            <p>If you have any questions, please contact our support team.</p>
+        `,
+    });
+
+    return sendNotification({ to, subject, text, html });
+};
+
 export const sendAdminNotificationEmail = ({ to, subject, title, message, details = {} }) => {
     const rows = Object.entries(details)
         .filter(([, value]) => value !== undefined && value !== null && value !== "")

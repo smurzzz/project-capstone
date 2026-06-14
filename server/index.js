@@ -103,7 +103,17 @@ app.use('/api/memberships', membershipsRoutes)
 app.use('/api/mail', mailRoutes)
 
 // Health check route
-app.use('/api/faqs', faqRoutes)
+// Lightweight debug middleware for FAQ endpoints to help diagnose 403/CORS/auth issues
+app.use('/api/faqs', (req, res, next) => {
+    try {
+        const origin = req.headers.origin || req.headers.referer || "(none)";
+        const auth = req.headers.authorization || "(none)";
+        console.info(`[FAQ-MW] ${req.method} ${req.originalUrl} Origin=${origin} Authorization=${auth ? '[present]' : '[missing]'} `);
+    } catch (err) {
+        console.warn('[FAQ-MW] failed to log headers', err.message);
+    }
+    next();
+}, faqRoutes)
 app.get('/api/health', (req, res) => {
     res.status(200).json({ success: true, message: "Server is running" })
 })

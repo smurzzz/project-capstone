@@ -33,6 +33,7 @@ export default function Appointments() {
   const [viewMode, setViewMode] = useState("all");
   const [blockedDates, setBlockedDates] = useState([]);
   const [fullyBookedDates, setFullyBookedDates] = useState([]);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   async function fetchAppointments() {
     try {
@@ -63,17 +64,33 @@ export default function Appointments() {
   }, []);
 
   const handleUpdateStatus = async () => {
-    if (!selectedAppointment || !newStatus) return;
+    if (!selectedAppointment?._id) {
+      toast.error("No appointment selected");
+      return;
+    }
 
+    const trimmedStatus = newStatus?.trim();
+    const validStatuses = ["Scheduled", "Confirmed", "Completed", "Cancelled"];
+
+    if (!trimmedStatus || !validStatuses.includes(trimmedStatus)) {
+      toast.error(`Invalid status: ${trimmedStatus || "empty"}`);
+      return;
+    }
+
+    setUpdatingStatus(true);
     try {
-      await appointmentsAPI.updateStatus(selectedAppointment._id, newStatus);
-      toast.success("Appointment status updated");
+      await appointmentsAPI.updateStatus(selectedAppointment._id, trimmedStatus);
+      toast.success("Appointment status updated successfully");
       setDialogOpen(false);
       setSelectedAppointment(null);
       setNewStatus("");
       fetchAppointments();
-    } catch {
-      toast.error("Failed to update appointment status");
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to update appointment status";
+      console.error("Appointment status update error:", message);
+      toast.error(message);
+    } finally {
+      setUpdatingStatus(false);
     }
   };
 
@@ -410,9 +427,9 @@ export default function Appointments() {
                 <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">Update Status</p>
                   <div className="mt-4 space-y-3">
-                    <Select value={newStatus} onValueChange={setNewStatus}>
+                    <Select value={newStatus || ""} onValueChange={(value) => setNewStatus(value)}>
                       <SelectTrigger className="h-11 rounded-2xl border-gray-300 bg-gray-200">
-                        <SelectValue />
+                        <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Scheduled">Scheduled</SelectItem>
@@ -421,8 +438,8 @@ export default function Appointments() {
                         <SelectItem value="Cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button className="h-11 w-full rounded-full bg-slate-950 text-white hover:bg-slate-800" onClick={handleUpdateStatus}>
-                      Update Status
+                    <Button className="h-11 w-full rounded-full bg-slate-950 text-white hover:bg-slate-800 disabled:opacity-50" onClick={handleUpdateStatus} disabled={updatingStatus}>
+                      {updatingStatus ? "Updating..." : "Update Status"}
                     </Button>
                   </div>
                 </div>

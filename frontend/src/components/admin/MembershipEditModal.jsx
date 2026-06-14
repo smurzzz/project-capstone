@@ -18,6 +18,7 @@ export default function MembershipEditModal({ customer, onClose, onSave }) {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [forceRemoving, setForceRemoving] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -66,6 +67,34 @@ export default function MembershipEditModal({ customer, onClose, onSave }) {
                         <div className="customer-avatar">
                             {customer?.name?.charAt(0).toUpperCase()}
                         </div>
+
+                    {/* Force remove section: admin-only irreversible action */}
+                    <div className="form-group border-t pt-4">
+                        <label className="text-sm font-semibold">Danger Zone</label>
+                        <p className="text-xs text-slate-500">Force-removing will permanently delete this customer's membership and set their role to Guest. This action is irreversible.</p>
+                        <div className="mt-3 flex items-center gap-2">
+                            <button
+                                type="button"
+                                className="btn btn-danger"
+                                disabled={forceRemoving}
+                                onClick={async () => {
+                                    if (!window.confirm('Are you sure you want to force-remove this membership? This cannot be undone.')) return;
+                                    setForceRemoving(true);
+                                    try {
+                                        await customersAPI.forceRemoveMembership(customer._id, formData.notes);
+                                        onSave();
+                                        onClose();
+                                    } catch (err) {
+                                        setError(err.response?.data?.message || 'Failed to force-remove membership');
+                                    } finally {
+                                        setForceRemoving(false);
+                                    }
+                                }}
+                            >
+                                {forceRemoving ? 'Removing...' : 'Force Remove Membership'}
+                            </button>
+                        </div>
+                    </div>
                         <div>
                             <p className="customer-name">{customer?.name}</p>
                             <p className="customer-email">{customer?.contactInfo?.email}</p>
@@ -88,15 +117,15 @@ export default function MembershipEditModal({ customer, onClose, onSave }) {
                                 onChange={handleChange}
                                 required
                             >
-                                {MEMBERSHIP_STATUSES.map(status => (
-                                    <option
-                                        key={status}
-                                        value={status}
-                                        disabled={status === 'None' && isExistingMember}
-                                    >
-                                        {status}
-                                    </option>
-                                ))}
+                                                        {MEMBERSHIP_STATUSES.map(status => (
+                                                            <option
+                                                                key={status}
+                                                                value={status}
+                                                                disabled={status === 'None' && isExistingMember}
+                                                            >
+                                                                {status}
+                                                            </option>
+                                                        ))}
                             </select>
                             {isExistingMember && (
                                 <p className="text-xs text-slate-500 mt-2">

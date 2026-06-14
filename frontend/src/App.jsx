@@ -64,8 +64,8 @@ const AdminLayout = () => {
         </div>
       )}
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col md:ml-64">
-        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm md:hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col md:ml-72">
+        <div className="sticky top-0 z-30 flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm md:hidden md:-ml-72">
           <Button
             variant="outline"
             size="icon"

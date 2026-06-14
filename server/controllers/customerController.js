@@ -8,6 +8,7 @@ import {
     normalizeEmail,
     isStrongPassword,
 } from "../utils/validation.js";
+import { sendMembershipStatusEmail } from "../utils/emailService.js";
 
 import bcrypt from "bcrypt";
 import { MEMBERSHIP_STATUSES, MEMBERSHIP_TIERS, getExpiryDate, expireActiveMemberships } from "../utils/membership.js";
@@ -442,9 +443,76 @@ export const updateMembership = async (req, res) => {
             notes,
         });
 
+        // Send email notification for Active or Pending status
+        if (["Active", "Pending"].includes(status)) {
+            await sendMembershipStatusEmail({
+                to: customer.contactInfo?.email,
+                name: customer.name,
+                status,
+                tier,
+                expiresAt: customer.membership.expiresAt,
+            });
+        }
+
         res.status(200).json({
             success: true,
             message: "Membership updated successfully",
+            data: customer,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
+
+/**
+ * Force remove membership (Admin/Staff only)
+ * This bypasses the "cannot downgrade existing Member to Guest" safeguard
+ * and records the action in membership history.
+ */
+export const forceRemoveMembership = async (req, res) => {
+    try {
+        if (!isValidObjectId(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid customer ID",
+            });
+        }
+
+        const customer = await Customer.findById(req.params.id);
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                message: "Customer not found",
+            });
+        }
+
+        const previousStatus = customer.membership?.status || "";
+        const previousTier = customer.membership?.tier || "";
+
+        // Force remove membership
+        customer.role = "Guest";
+        customer.membership = defaultMembership({ status: "None", tier: "Silver" });
+        customer.updatedAt = new Date();
+        await customer.save();
+
+        await recordMembershipHistory({
+            customerId: customer._id,
+            action: "force_removed",
+            previousStatus,
+            newStatus: customer.membership.status,
+            previousTier,
+            newTier: customer.membership.tier,
+            actorType: req.user?.type || "staff",
+            actorId: req.user?.id || null,
+            notes: cleanString(req.body.notes || "Forced membership removal by admin", 500),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Membership force-removed successfully",
             data: customer,
         });
     } catch (error) {

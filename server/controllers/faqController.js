@@ -53,6 +53,12 @@ export const getFAQById = async (req, res) => {
 
 export const createFAQ = async (req, res) => {
   try {
+    // Diagnostic log: show who is calling this route and whether auth header is present
+    try {
+      console.info('[FAQ.create] invoked by user:', req.user, 'Authorization present=', Boolean(req.headers.authorization));
+    } catch (logErr) {
+      console.warn('[FAQ.create] failed to log request user');
+    }
     const faqData = mapFAQInput(req.body);
 
     if (!faqData.question || !faqData.answer) {

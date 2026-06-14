@@ -12,6 +12,7 @@ import {
     deleteCustomer,
     getCustomerStats,
     updateMembership,
+    forceRemoveMembership,
     getMembershipHistory,
     getEmailPreferences,
     updateEmailPreferences
@@ -36,6 +37,7 @@ router.get("/:id", verifyToken, verifyStaff, getCustomerById);
 router.put("/:id", verifyToken, verifyStaff, updateCustomer);
 router.put("/:id/membership", verifyToken, verifyStaff, updateMembership);
 router.get("/:id/membership/history", verifyToken, verifyStaff, getMembershipHistory);
+router.post("/:id/membership/force-remove", verifyToken, verifyStaff, forceRemoveMembership);
 router.delete("/:id", verifyToken, verifyStaff, deleteCustomer);
 
 export default router;

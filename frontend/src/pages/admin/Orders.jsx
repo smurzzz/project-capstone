@@ -117,16 +117,30 @@ export default function Orders() {
   };
 
   const handleStatusUpdate = async () => {
-    if (!selectedOrder || !newStatus) return;
+    if (!selectedOrder?._id) {
+      toast.error("Order not selected");
+      return;
+    }
+
+    const trimmedStatus = newStatus?.trim();
+    const validStatuses = ["Pending", "Confirmed", "Completed", "Cancelled"];
+    
+    if (!trimmedStatus || !validStatuses.includes(trimmedStatus)) {
+      toast.error(`Invalid status: ${trimmedStatus || "empty"}`);
+      return;
+    }
 
     try {
-      await ordersAPI.updateStatus(selectedOrder._id, newStatus);
-      toast.success("Order status updated");
+      await ordersAPI.updateStatus(selectedOrder._id, trimmedStatus);
+      toast.success("Order status updated successfully");
       setSelectedOrder(null);
       setOrderDetails(null);
+      setNewStatus("");
       fetchOrders();
-    } catch {
-      toast.error("Failed to update order status");
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to update order status";
+      console.error("Order status update error:", message);
+      toast.error(message);
     }
   };
 
@@ -437,19 +451,23 @@ export default function Orders() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Select value={newStatus} onValueChange={setNewStatus}>
-                  <SelectTrigger id="order-status-select-trigger" className="flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Confirmed">Confirmed</SelectItem>
-                    <SelectItem value="Completed" disabled={!canCompleteOrder}>Completed</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button onClick={handleStatusUpdate}>Update Status</Button>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Select value={newStatus || ""} onValueChange={(value) => {
+                    setNewStatus(value);
+                  }}>
+                    <SelectTrigger id="order-status-select-trigger" className="flex-1">
+                      <SelectValue placeholder="Select new status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Confirmed">Confirmed</SelectItem>
+                      <SelectItem value="Completed" disabled={!canCompleteOrder}>Completed</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={handleStatusUpdate} className="w-full">Update Status</Button>
               </div>
             </div>
           )}

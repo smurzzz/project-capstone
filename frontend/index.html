@@ -8,6 +8,22 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // If a user opens a server route like /admin/... directly (no hash),
+      // redirect into the HashRouter URL (/#/admin/...) so client routing works.
+      (function () {
+        try {
+          var path = window.location.pathname || "";
+          var search = window.location.search || "";
+          if (!window.location.hash && path.startsWith("/admin")) {
+            var target = window.location.origin + "/#" + path + search + window.location.hash;
+            window.location.replace(target);
+          }
+        } catch (e) {
+          // fail silently
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

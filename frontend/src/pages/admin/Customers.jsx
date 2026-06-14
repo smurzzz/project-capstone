@@ -78,14 +78,19 @@ export default function Customers() {
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm("Are you sure you want to delete this customer?")) {
-            try {
-                await customersAPI.delete(id);
-                fetchCustomers();
-            } catch {
-                toast.error('Failed to delete customer');
+    const handleDelete = async (customer) => {
+        if (!window.confirm("Are you sure you want to delete this customer? This will force-remove membership (if any) and delete the profile.")) return;
+        try {
+            // If the customer is currently a Member, force-remove their membership first
+            if (customer.role === 'Member') {
+                await customersAPI.forceRemoveMembership(customer._id, "Deleted by admin via list");
             }
+
+            // Then delete the customer record (removes from table)
+            await customersAPI.delete(customer._id);
+            fetchCustomers();
+        } catch (err) {
+            toast.error('Failed to delete customer');
         }
     };
 
@@ -181,7 +186,7 @@ export default function Customers() {
                                     Edit
                                 </button>
                                 <button
-                                    onClick={() => handleDelete(customer._id)}
+                                    onClick={() => handleDelete(customer)}
                                     style={styles.deleteBtn}
                                 >
                                     Delete

@@ -146,6 +146,9 @@ export const customersAPI = {
     updateMembership: (id, membershipData) => api.put(`/customers/${id}/membership`, membershipData),
     getMembershipHistory: (id, limit = 50) =>
         api.get(`/customers/${id}/membership/history?limit=${limit}`)
+    ,
+    // Force remove membership (admin)
+    forceRemoveMembership: (id, notes = "") => api.post(`/customers/${id}/membership/force-remove`, { notes })
 };
 
 // Customer account password update

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext.jsx';
 import {
   Plus,
   Trash2,
@@ -30,6 +31,7 @@ export default function AdminFAQ() {
     category: 'General',
   });
   const [expandedId, setExpandedId] = useState(null);
+  const { user: currentUser } = useContext(AuthContext);
 
   useEffect(() => {
     fetchFAQs();
@@ -70,6 +72,12 @@ export default function AdminFAQ() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Ensure we have a staff session before attempting to call protected API
+    if (!currentUser || currentUser.type !== 'staff') {
+      setError('Staff login required to perform this action');
+      return;
+    }
+
     if (!formData.question.trim() || !formData.answer.trim()) {
       setError('Question and answer are required');
       return;
@@ -85,8 +93,11 @@ export default function AdminFAQ() {
       handleResetForm();
       setError(null);
     } catch (err) {
-
-      setError(err.response?.data?.error || 'Failed to save FAQ');
+      // Show best available server error message and log full response for debugging
+      const raw = err.response?.data?.message || err.response?.data?.error || err.message || err;
+      const serverMessage = typeof raw === 'string' ? raw : JSON.stringify(raw);
+      console.error('Failed to save FAQ', err.response || err);
+      setError(serverMessage || 'Failed to save FAQ');
     }
   };
 
@@ -197,9 +208,17 @@ export default function AdminFAQ() {
             <div className="space-y-2">
               {faqs.map((faq) => (
                 <div key={faq._id} className="border border-gray-200 rounded-lg overflow-hidden">
-                  <button
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setExpandedId(expandedId === faq._id ? null : faq._id)}
-                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setExpandedId(expandedId === faq._id ? null : faq._id);
+                      }
+                    }}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition cursor-pointer"
                   >
                     <div className="flex items-start gap-3 flex-1 text-left">
                       <ChevronDown
@@ -214,29 +233,31 @@ export default function AdminFAQ() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-2 ml-4 flex-shrink-0">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(faq);
-                        }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition"
-                        title="Edit FAQ"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(faq._id);
-                        }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-md transition"
-                        title="Delete FAQ"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </button>
+                      <div className="flex gap-2 ml-4 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(faq);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition"
+                          title="Edit FAQ"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(faq._id);
+                          }}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-md transition"
+                          title="Delete FAQ"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                  </div>
 
                   {expandedId === faq._id && (
                     <div className="px-4 py-4 bg-gray-50 border-t border-gray-200">

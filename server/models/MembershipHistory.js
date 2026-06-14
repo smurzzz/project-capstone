@@ -9,7 +9,7 @@ const membershipHistorySchema = new mongoose.Schema({
     },
     action: {
         type: String,
-        enum: ["registered", "approved", "renewed", "updated", "suspended", "rejected", "points_earned", "points_redeemed"],
+        enum: ["registered", "approved", "renewed", "updated", "suspended", "rejected", "points_earned", "points_redeemed", "force_removed"],
         required: true,
     },
     previousStatus: {

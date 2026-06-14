@@ -175,35 +175,36 @@ export default function ClientTracking() {
           <CardTitle>Track by ID</CardTitle>
           <CardDescription>Enter your order ID or appointment ID to track</CardDescription>
         </CardHeader>
-          <CardContent className="flex min-h-20 items-center px-4 py-8 sm:px-6 sm:py-8">
-          <form onSubmit={handleSearch} className="mx-auto grid w-full max-w-6xl items-center gap-3 pt-5 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <div className="relative flex h-10 items-center w-full">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Enter order date (YYYYMMDD or MMDDYYYY) or part of the order ID"
-                value={trackingId}
-                onChange={(event) => setTrackingId(event.target.value)}
-                className="h-10 w-full pl-10 pr-10 py-0 leading-none"
-              />
-              {trackingId && (
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+          <CardContent className="px-4 py-8 sm:px-6 sm:py-8">
+          <form onSubmit={handleSearch} className="mx-auto w-full max-w-6xl space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex h-10 items-center w-full">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Enter order date (YYYYMMDD or MMDDYYYY) or part of the order ID"
+                  value={trackingId}
+                  onChange={(event) => setTrackingId(event.target.value)}
+                  className="h-10 w-full pl-10 pr-10 py-0 leading-none"
+                />
+                {trackingId && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <Button type="submit" className="h-10 gap-2 w-full sm:w-auto">
+                <Search className="h-4 w-4" />
+                Track
+              </Button>
             </div>
-            <Button type="submit" className="h-10 gap-2">
-              <Search className="h-4 w-4" />
-              Track
-            </Button>
-          </form>
 
           {searchResults && searchResults.orders && searchResults.orders.length > 0 && (
-            <div className="mt-6 space-y-4">
+            <div className="space-y-4">
               <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
                 <p className="text-sm text-blue-900">Found {searchResults.orders.length} order(s) matching your search.</p>
               </div>
@@ -232,7 +233,7 @@ export default function ClientTracking() {
           )}
 
           {searchResults && searchResults.appointment && (
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-4">
                   <h4 className="font-semibold">Appointment {searchResults.appointment.appointmentId}</h4>
@@ -255,10 +256,11 @@ export default function ClientTracking() {
           )}
 
           {trackingId && searchResults === null && (
-            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-800">No results found for "{trackingId}"</p>
             </div>
           )}
+          </form>
         </CardContent>
       </Card>
 
