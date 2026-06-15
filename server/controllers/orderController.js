@@ -160,6 +160,12 @@ const restoreStockForOrder = async (orderId) => {
     }));
 };
 
+const sendOrderEmailInBackground = (task, context) => {
+    Promise.resolve()
+        .then(task)
+        .catch((error) => logger.error(context, error));
+};
+
 /**
  * Get all orders (Staff/Admin only)
  */
@@ -602,17 +608,11 @@ export const createOrder = async (req, res) => {
             logger.error("Order.recordPromotionRedemptions", promotionError);
         }
 
-        // Send confirmation email asynchronously to prevent slow mail servers from
-        // delaying order response to customer; retry logic handled by mail service
-        try {
-            await sendOrderCreatedEmail({
+        sendOrderEmailInBackground(() => sendOrderCreatedEmail({
                 ...newOrder.toObject(),
                 customerId: customer || null,
                 items: createdItems,
-            }, customer);
-        } catch (emailError) {
-            logger.error("Order.sendOrderCreatedEmail", emailError);
-        }
+            }, customer), "Order.sendOrderCreatedEmail");
 
         res.status(201).json({
             success: true,
@@ -744,11 +744,10 @@ export const updateOrderStatus = async (req, res) => {
             .populate("customerId", "name contactInfo role emailPreferences");
 
         if (previousStatus !== status) {
-            try {
-                await sendOrderStatusEmail(populatedOrder, populatedOrder.customerId);
-            } catch (emailError) {
-                logger.error("Order.sendOrderStatusEmail", emailError);
-            }
+            sendOrderEmailInBackground(
+                () => sendOrderStatusEmail(populatedOrder, populatedOrder.customerId),
+                "Order.sendOrderStatusEmail"
+            );
         }
 
         res.status(200).json({
@@ -843,7 +842,10 @@ export const cancelOrder = async (req, res) => {
         const populatedOrder = await Order.findById(order._id)
             .populate("customerId", "name contactInfo role");
 
-        await sendOrderStatusEmail(populatedOrder);
+        sendOrderEmailInBackground(
+            () => sendOrderStatusEmail(populatedOrder),
+            "Order.sendOrderStatusEmail"
+        );
 
         res.status(200).json({
             success: true,

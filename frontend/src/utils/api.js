@@ -1,7 +1,15 @@
 import axios from "axios";
 
-const defaultApiHost = typeof window !== "undefined" ? window.location.hostname : "localhost";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${defaultApiHost}:5000/api`;
+const LOCAL_API_BASE_URL = "http://localhost:5000/api";
+const PRODUCTION_API_BASE_URL = "https://project-capstone-4.onrender.com/api";
+
+// Vite env vars are the preferred source. If one is missing, keep local dev
+// working and make production builds point at the HTTPS backend instead of
+// inventing an insecure same-host URL.
+const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL ||
+    (import.meta.env.PROD ? PRODUCTION_API_BASE_URL : LOCAL_API_BASE_URL);
+const normalizedApiBaseUrl = API_BASE_URL.replace(/\/+$/, "");
 const GET_CACHE_TTL_MS = 30_000;
 const getCache = new Map();
 
@@ -45,7 +53,7 @@ const clearApiCache = () => {
 
 // Create axios instance with default config
 const api = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: normalizedApiBaseUrl,
     headers: {
         "Content-Type": "application/json"
     }

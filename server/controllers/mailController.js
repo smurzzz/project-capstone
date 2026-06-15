@@ -180,9 +180,9 @@ export const requestPasswordReset = async (req, res) => {
                 ? "http://localhost:5173"
                 : process.env.PUBLIC_APP_URL || process.env.CLIENT_URL || "";
             
-            // Always use hash format for client-side routing
+            // Use a normal path so email clients do not strip or mangle the fragment.
             resetUrl = appUrl
-                ? `${appUrl}/#/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(email)}`
+                ? `${appUrl}/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(email)}`
                 : "";
 
             emailSent = await sendPasswordResetEmail({

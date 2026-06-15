@@ -23,7 +23,6 @@ import promotionsRoutes from "./routes/promotions.js"
 import membershipsRoutes from "./routes/memberships.js"
 import mailRoutes from "./routes/mail.js"
 import faqRoutes from "./routes/faqs.js"
-import devAuthRoutes from "./routes/devAuth.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -52,9 +51,12 @@ const isDevelopment = process.env.NODE_ENV !== "production"
 const isAllowedLocalDevOrigin = (origin) => {
     return /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)
 }
+const isAllowedVercelOrigin = (origin) => {
+    return /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)
+}
 
 const corsOrigin = (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || isAllowedLocalDevOrigin(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isAllowedLocalDevOrigin(origin) || isAllowedVercelOrigin(origin)) {
         callback(null, true)
         return
     }
@@ -102,11 +104,6 @@ app.use('/api/orders', ordersRoutes)
 app.use('/api/reports', reportsRoutes)
 app.use('/api/memberships', membershipsRoutes)
 app.use('/api/mail', mailRoutes)
-
-// Development-only dev auth routes (provides a safe local dev sign-in)
-if (isDevelopment) {
-    app.use('/api/auth/dev', devAuthRoutes)
-}
 
 // Health check route
 // Lightweight debug middleware for FAQ endpoints to help diagnose 403/CORS/auth issues
