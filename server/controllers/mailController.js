@@ -193,9 +193,9 @@ export const requestPasswordReset = async (req, res) => {
             appUrl = appUrl.replace(/#.*$/, "").replace(/\/$/, "");
             console.log("[MAIL_CONTROLLER_NORMALIZED_URL]", appUrl);
             
-            // Always use hash format for client-side routing
+            // Use a normal path so email clients do not strip or mangle the fragment.
             resetUrl = appUrl
-                ? `${appUrl}/#/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(email)}`
+                ? `${appUrl}/reset-password?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(email)}`
                 : "";
             
             console.log("[MAIL_CONTROLLER_GENERATED_RESETURL]", resetUrl);

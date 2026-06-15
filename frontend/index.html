@@ -9,14 +9,17 @@
   <body>
     <div id="root"></div>
     <script>
-      // If a user opens a server route like /admin/... directly (no hash),
-      // redirect into the HashRouter URL (/#/admin/...) so client routing works.
+      // If a user opens a client route directly (no hash), redirect into the
+      // HashRouter URL (/#/...) so client routing works on Vercel and in emails.
       (function () {
         try {
           var path = window.location.pathname || "";
           var search = window.location.search || "";
-          if (!window.location.hash && path.startsWith("/admin")) {
-            var target = window.location.origin + "/#" + path + search + window.location.hash;
+          var isAsset = /\.(?:css|js|map|png|jpg|jpeg|gif|svg|webp|ico|txt|json)$/i.test(path);
+          var isApi = path.startsWith("/api/");
+          var isRoot = path === "/";
+          if (!window.location.hash && !isAsset && !isApi && !isRoot) {
+            var target = window.location.origin + "/#" + path + search;
             window.location.replace(target);
           }
         } catch (e) {

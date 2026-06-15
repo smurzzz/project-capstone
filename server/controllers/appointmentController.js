@@ -118,6 +118,12 @@ const canAccessAppointment = async (req, appointment) => {
     return Boolean(customer && String(customer._id) === String(appointment.customerId?._id || appointment.customerId));
 };
 
+const sendAppointmentEmailInBackground = (task, context) => {
+    Promise.resolve()
+        .then(task)
+        .catch((error) => logger.error(context, error));
+};
+
 /**
  * Get all appointments (Staff/Admin only)
  */
@@ -345,9 +351,12 @@ export const createAppointment = async (req, res) => {
             status: "Scheduled",
         });
 
-        await sendAppointmentCreatedEmail(
-            { ...newAppointment.toObject(), customerId: customer },
-            customer
+        sendAppointmentEmailInBackground(
+            () => sendAppointmentCreatedEmail(
+                { ...newAppointment.toObject(), customerId: customer },
+                customer
+            ),
+            "Appointment.sendAppointmentCreatedEmail"
         );
 
         return res.status(201).json({
@@ -412,7 +421,10 @@ export const updateAppointment = async (req, res) => {
         }).populate("customerId", "name contactInfo emailPreferences role");
 
         if (status && existingAppointment.status !== status) {
-            await sendAppointmentStatusEmail(appointment, appointment.customerId);
+            sendAppointmentEmailInBackground(
+                () => sendAppointmentStatusEmail(appointment, appointment.customerId),
+                "Appointment.sendAppointmentStatusEmail"
+            );
         }
 
         res.status(200).json({
@@ -467,7 +479,10 @@ export const updateAppointmentStatus = async (req, res) => {
         ).populate("customerId", "name contactInfo emailPreferences");
 
         if (existingAppointment.status !== status) {
-            await sendAppointmentStatusEmail(appointment, appointment.customerId);
+            sendAppointmentEmailInBackground(
+                () => sendAppointmentStatusEmail(appointment, appointment.customerId),
+                "Appointment.sendAppointmentStatusEmail"
+            );
         }
 
         res.status(200).json({
