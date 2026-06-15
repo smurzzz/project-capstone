@@ -175,12 +175,10 @@ export const requestPasswordReset = async (req, res) => {
                 expiresInMinutes: RESET_TTL_MINUTES,
             });
 
-            const requestOrigin = req.get("origin") || "";
-            const frontendFallback = process.env.NODE_ENV !== "production" ? "http://localhost:5173" : "";
-            let appUrl = process.env.PUBLIC_APP_URL || process.env.CLIENT_URL || requestOrigin || frontendFallback || `${req.protocol}://${req.get("host")}`;
-            
-            // Remove hash if it somehow got included, and normalize
-            appUrl = appUrl.replace(/#.*$/, "").replace(/\/$/, "");
+            // Always use localhost for development, env URL for production
+            const appUrl = process.env.NODE_ENV !== "production"
+                ? "http://localhost:5173"
+                : process.env.PUBLIC_APP_URL || process.env.CLIENT_URL || "";
             
             // Always use hash format for client-side routing
             resetUrl = appUrl

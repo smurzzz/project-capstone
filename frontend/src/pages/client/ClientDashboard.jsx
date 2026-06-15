@@ -296,7 +296,7 @@ export default function ClientDashboard() {
               ? `fixed inset-y-0 left-0 z-50 w-64 max-w-[80vw] transform transition-transform duration-300 ${
                   isSidebarOpen ? "translate-x-0" : "-translate-x-full"
                 }`
-              : "!w-64 h-[100dvh] flex flex-col"
+              : "md:relative md:translate-x-0 md:transition-none !w-64 h-[100dvh] flex flex-col"
           } bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col`}
         >
           <div className="sticky top-0 z-50 md:relative p-6 border-b border-slate-700 bg-transparent">
