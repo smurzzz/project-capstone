@@ -51,9 +51,12 @@ const isDevelopment = process.env.NODE_ENV !== "production"
 const isAllowedLocalDevOrigin = (origin) => {
     return /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin)
 }
+const isAllowedVercelOrigin = (origin) => {
+    return /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)
+}
 
 const corsOrigin = (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || isAllowedLocalDevOrigin(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isAllowedLocalDevOrigin(origin) || isAllowedVercelOrigin(origin)) {
         callback(null, true)
         return
     }
