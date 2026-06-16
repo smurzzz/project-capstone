@@ -297,6 +297,35 @@ export const sendAdminNotification = async (req, res) => {
     }
 };
 
+export const sendDeploymentTestEmail = async (req, res) => {
+    try {
+        const to = normalizeEmail(req.body.to || process.env.ADMIN_EMAIL || process.env.EMAIL_USER || process.env.SMTP_USER);
+        const subject = cleanString(req.body.subject || "Deployment test email", 200);
+        const message = cleanString(req.body.message || "This is a deployment test email.", 2000);
+
+        if (!to) {
+            return res.status(400).json({
+                success: false,
+                message: "Recipient email is required",
+            });
+        }
+
+        const sent = await sendAdminNotificationEmail({
+            to,
+            subject,
+            title: subject,
+            message,
+        });
+
+        return res.status(sent ? 200 : 503).json({
+            success: sent,
+            message: sent ? "Deployment test email sent" : "Email service is not configured",
+        });
+    } catch (error) {
+        handleControllerError(res, error, "Mail.sendDeploymentTestEmail", 500, "Failed to send deployment test email");
+    }
+};
+
 export const sendOrderReceipt = async (req, res) => {
     try {
         const order = await Order.findById(req.params.orderId).populate("customerId", "name contactInfo role");

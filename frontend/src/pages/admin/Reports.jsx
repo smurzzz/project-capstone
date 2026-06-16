@@ -172,9 +172,11 @@ const exportReportToExcel = (report, sections) => {
       </body>
     </html>
   `;
-  const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
+  const blob = new Blob([bom, html], { type: "application/vnd.ms-excel;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
+  link.style.display = "none";
   link.href = url;
   link.download = `jbm-report-${report.period?.type || "report"}-${report.period?.offset || 0}.xls`;
   document.body.appendChild(link);
