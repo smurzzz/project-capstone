@@ -169,14 +169,18 @@ export const applyForMembership = async (req, res) => {
             notes: `Applied for ${packageName} membership via application form`
         });
 
-        // Send pending membership email
+        const pendingEmailTo = customer.contactInfo?.email || String(email || "").toLowerCase().trim();
+        if (!pendingEmailTo) {
+            throw new Error('Pending membership email failed: missing customer email');
+        }
+
         await sendMembershipStatusEmail({
-            to: customer.contactInfo?.email,
+            to: pendingEmailTo,
             name: customer.name,
             status: 'Pending',
             tier: packageName,
-            expiresAt: null,
-        }).catch(err => console.error('Failed to send pending membership email:', err));
+            expiresAt: customer.membership.expiresAt,
+        });
 
         res.status(201).json({
             success: true,

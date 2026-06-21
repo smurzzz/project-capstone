@@ -87,7 +87,7 @@ export const sendOtpVerificationEmail = ({ to, name = "Customer", otp, expiresIn
 };
 
 export const sendPasswordResetEmail = ({ to, name = "Customer", resetToken, resetUrl, expiresInMinutes = 30 }) => {
-    // FORCE add hash to URL if missing - ensures client-side routing works
+    
     if (resetUrl && !resetUrl.includes("/#/")) {
         // Extract base URL (everything before /reset-password) and query string
         const match = resetUrl.match(/^(.+?)\/reset-password(\?.*)$/);
