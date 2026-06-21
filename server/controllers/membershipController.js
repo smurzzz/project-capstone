@@ -1,32 +1,12 @@
 import Customer from "../models/Customer.js";
-import Membership from "../models/Membership.js";
 import MembershipHistory from "../models/MembershipHistory.js";
 import Order from "../models/Order.js";
 import PackageDeal from "../models/PackageDeal.js";
 import User from "../models/User.js";
 import { cleanString, isValidObjectId } from "../utils/validation.js";
-import { sendMembershipApprovalEmail } from "../utils/emailService.js";
-import { getExpiryDate, expireActiveMemberships } from "../utils/membership.js";
-import { handleControllerError } from "../utils/errorResponse.js";
-import logger from "../utils/logger.js";
+import { sendMembershipApprovalEmail, sendMembershipStatusEmail } from "../utils/emailService.js";
 
-const buildMembershipOrderReference = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const suffix = Math.random().toString(36).slice(2, 7).toUpperCase();
-    return `ORD-${year}${month}${day}-${suffix}`;
-};
-
-const buildMembershipId = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
-    return `MEM-${year}${month}${day}-${suffix}`;
-};
+const buildMembershipOrderReference = () => `MEM-${Date.now()}-${Math.floor(Math.random() * 9000) + 1000}`;
 
 const getAuthenticatedAccount = async (tokenUser) => {
     const account = await User.findById(tokenUser?.id || tokenUser?._id);
@@ -116,8 +96,7 @@ export const applyForMembership = async (req, res) => {
             appliedAt: new Date()
         };
 
-        // File uploads require manual verification; store path for staff to review
-        // during application approval process
+        // Handle file upload if present
         if (req.file) {
             // Store the file path or URL
             customer.idDocument = req.file.path || `uploads/${req.file.filename}`;
@@ -128,44 +107,22 @@ export const applyForMembership = async (req, res) => {
 
         await customer.save();
 
-        // Create membership record for the application
-        let membershipRecord = null;
-        const membershipId = buildMembershipId();
-        let packagePrice = 0;
-        let packageDeal = null;
-
-        if (packageDealId && isValidObjectId(packageDealId)) {
-            packageDeal = await PackageDeal.findById(packageDealId);
-            packagePrice = packageDeal?.price || 0;
-        }
-
-        const paymentReference = referenceNumber || "";
-        const orderReference = buildMembershipOrderReference();
-        const orderNotes = additionalInfo
-            ? `Package: ${packageName} | Additional Info: ${additionalInfo}`
-            : `Package: ${packageName}`;
-
-        try {
-            membershipRecord = await Membership.create({
-                customerId: customer._id,
-                membershipId,
-                status: 'Pending',
-                tier: cleanString(packageName, 160),
-                packageDealId: packageDeal?._id || null,
-                packageName,
-                paymentMethod: paymentMethod || '',
-                paymentReference,
-                amount: packagePrice,
-                notes: orderNotes,
-                appliedAt: new Date(),
-            });
-        } catch (membershipError) {
-            logger.error('Membership.createRecord', membershipError);
-        }
-
         // Create a membership order record so the application appears in order management
         let membershipOrder = null;
         try {
+            let packagePrice = 0;
+            let packageDeal = null;
+
+            if (packageDealId && isValidObjectId(packageDealId)) {
+                packageDeal = await PackageDeal.findById(packageDealId);
+                packagePrice = packageDeal?.price || 0;
+            }
+
+            const orderReference = referenceNumber || buildMembershipOrderReference();
+            const orderNotes = additionalInfo
+                ? `Package: ${packageName} | Additional Info: ${additionalInfo}`
+                : `Package: ${packageName}`;
+
             membershipOrder = await Order.create({
                 customerId: customer._id,
                 fullName: customer.name,
@@ -177,10 +134,9 @@ export const applyForMembership = async (req, res) => {
                 paymentMethod: paymentMethod || '',
                 paymentStatus: 'pending',
                 paymentGateway: paymentMethod === 'GCash' ? 'gcash' : paymentMethod === 'Bank Transfer' ? 'bank_transfer' : 'manual',
-                paymentReference,
+                paymentReference: orderReference,
                 paymentCheckoutUrl: '',
                 referenceNumber: orderReference,
-                membershipId,
                 orderType: 'membership',
                 total: packagePrice,
                 discountAmount: 0,
@@ -191,13 +147,8 @@ export const applyForMembership = async (req, res) => {
                 notes: orderNotes,
                 status: 'Pending',
             });
-
-            if (membershipRecord) {
-                membershipRecord.orderId = membershipOrder._id;
-                await membershipRecord.save();
-            }
         } catch (orderError) {
-            logger.error('Membership.createOrder', orderError);
+            console.error('Failed to create membership order:', orderError);
         }
 
         if (String(account.customerId || "") !== String(customer._id)) {
@@ -218,18 +169,24 @@ export const applyForMembership = async (req, res) => {
             notes: `Applied for ${packageName} membership via application form`
         });
 
+        // Send pending membership email
+        await sendMembershipStatusEmail({
+            to: customer.contactInfo?.email,
+            name: customer.name,
+            status: 'Pending',
+            tier: packageName,
+            expiresAt: null,
+        }).catch(err => console.error('Failed to send pending membership email:', err));
+
         res.status(201).json({
             success: true,
             message: 'Membership application submitted successfully',
             data: {
                 customerId: customer._id,
-                membershipId: membershipRecord?.membershipId || null,
                 status: 'Pending',
                 tier: packageName,
                 order: membershipOrder ? {
                     id: membershipOrder._id,
-                    orderId: membershipOrder.orderId,
-                    membershipId: membershipOrder.membershipId,
                     referenceNumber: membershipOrder.referenceNumber,
                     paymentMethod: membershipOrder.paymentMethod,
                     paymentStatus: membershipOrder.paymentStatus,
@@ -238,7 +195,11 @@ export const applyForMembership = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.applyForMembership', 500, 'Failed to submit membership application');
+        console.error('Error applying for membership:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to submit membership application'
+        });
     }
 };
 
@@ -261,48 +222,24 @@ export const getMyMembership = async (req, res) => {
             ? await PackageDeal.findById(customer.selectedPackageDeal).select('name price description')
             : null;
 
-        const membershipOrder = await Order.findOne({ customerId: customer._id, orderType: 'membership' })
-            .sort({ createdAt: -1 });
-        const membershipRecord = await Membership.findOne({ customerId: customer._id })
-            .sort({ appliedAt: -1 });
-
         res.status(200).json({
             success: true,
             data: {
                 membership: customer.membership,
-                membershipRecord: membershipRecord ? {
-                    membershipId: membershipRecord.membershipId,
-                    status: membershipRecord.status,
-                    tier: membershipRecord.tier,
-                    packageName: membershipRecord.packageName,
-                    paymentMethod: membershipRecord.paymentMethod,
-                    paymentReference: membershipRecord.paymentReference,
-                    amount: membershipRecord.amount,
-                    appliedAt: membershipRecord.appliedAt,
-                    approvedAt: membershipRecord.approvedAt,
-                    joinedAt: membershipRecord.joinedAt,
-                    expiresAt: membershipRecord.expiresAt,
-                    orderId: membershipRecord.orderId,
-                } : null,
                 selectedPackageDeal,
                 entryPackage: customer.entryPackage,
                 membershipPaymentInfo: customer.membershipPaymentInfo,
                 applicationSubmittedAt: customer.applicationSubmittedAt,
                 applicationNotes: customer.applicationNotes,
                 status: customer.membership.status,
-                order: membershipOrder ? {
-                    id: membershipOrder._id,
-                    orderId: membershipOrder.orderId,
-                    membershipId: membershipOrder.membershipId,
-                    referenceNumber: membershipOrder.referenceNumber,
-                    paymentMethod: membershipOrder.paymentMethod,
-                    paymentStatus: membershipOrder.paymentStatus,
-                    total: membershipOrder.total,
-                } : null,
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.getMyMembership', 500, 'Failed to fetch membership information');
+        console.error('Error fetching membership:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch membership information'
+        });
     }
 };
 
@@ -332,7 +269,11 @@ export const getMyMembershipHistory = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.getMyMembershipHistory', 500, 'Failed to fetch membership history');
+        console.error('Error fetching history:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch membership history'
+        });
     }
 };
 
@@ -341,7 +282,6 @@ export const getMyMembershipHistory = async (req, res) => {
  */
 export const getAllApplications = async (req, res) => {
     try {
-        await expireActiveMemberships();
         const { status, tier, search } = req.query;
         const filter = {};
 
@@ -373,7 +313,11 @@ export const getAllApplications = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.getAllApplications', 500, 'Failed to fetch applications');
+        console.error('Error fetching applications:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch applications'
+        });
     }
 };
 
@@ -382,7 +326,6 @@ export const getAllApplications = async (req, res) => {
  */
 export const getApplicationById = async (req, res) => {
     try {
-        await expireActiveMemberships();
         const { applicationId } = req.params;
 
         if (!isValidObjectId(applicationId)) {
@@ -408,7 +351,11 @@ export const getApplicationById = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.getApplicationById', 500, 'Failed to fetch application');
+        console.error('Error fetching application:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch application'
+        });
     }
 };
 
@@ -445,26 +392,18 @@ export const approveApplication = async (req, res) => {
         customer.membership.tier = tier || customer.membership.tier;
         customer.membership.approvedAt = new Date();
 
-        const activationDate = customer.membership.joinedAt
-            ? new Date(customer.membership.joinedAt)
-            : new Date();
-        customer.membership.joinedAt = customer.membership.joinedAt || activationDate;
-        customer.membership.expiresAt = getExpiryDate(activationDate);
+        if (!customer.membership.joinedAt) {
+            customer.membership.joinedAt = new Date();
+        }
+
+        // Set expiration date (1 year from approval)
+        const expiresAt = new Date();
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        customer.membership.expiresAt = expiresAt;
+
         customer.role = 'Member';
 
         await customer.save();
-
-        const membershipRecord = await Membership.findOne({ customerId: customer._id })
-            .sort({ appliedAt: -1 });
-        if (membershipRecord) {
-            membershipRecord.status = 'Active';
-            membershipRecord.tier = customer.membership.tier;
-            membershipRecord.approvedAt = customer.membership.approvedAt;
-            membershipRecord.joinedAt = customer.membership.joinedAt;
-            membershipRecord.expiresAt = customer.membership.expiresAt;
-            membershipRecord.renewalCount = customer.membership.renewalCount || membershipRecord.renewalCount;
-            await membershipRecord.save();
-        }
 
         // Record history
         await MembershipHistory.create({
@@ -496,7 +435,11 @@ export const approveApplication = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.approveApplication', 500, 'Failed to approve application');
+        console.error('Error approving application:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to approve application'
+        });
     }
 };
 
@@ -530,14 +473,6 @@ export const rejectApplication = async (req, res) => {
         customer.membership.status = 'Rejected';
         await customer.save();
 
-        const membershipRecord = await Membership.findOne({ customerId: customer._id })
-            .sort({ appliedAt: -1 });
-        if (membershipRecord) {
-            membershipRecord.status = 'Rejected';
-            membershipRecord.notes = reason || membershipRecord.notes;
-            await membershipRecord.save();
-        }
-
         // Record history
         await MembershipHistory.create({
             customerId: customer._id,
@@ -549,6 +484,8 @@ export const rejectApplication = async (req, res) => {
             notes: reason || 'Application rejected'
         });
 
+        // TODO: Send email notification to customer
+
         res.status(200).json({
             success: true,
             message: 'Application rejected',
@@ -558,7 +495,11 @@ export const rejectApplication = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.rejectApplication', 500, 'Failed to reject application');
+        console.error('Error rejecting application:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to reject application'
+        });
     }
 };
 
@@ -586,7 +527,8 @@ export const renewMembership = async (req, res) => {
             });
         }
 
-        const expiresAt = getExpiryDate(new Date());
+        const expiresAt = new Date();
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
         customer.membership.expiresAt = expiresAt;
         customer.membership.renewalCount = (customer.membership.renewalCount || 0) + 1;
@@ -597,15 +539,6 @@ export const renewMembership = async (req, res) => {
         }
 
         await customer.save();
-
-        const membershipRecord = await Membership.findOne({ customerId: customer._id })
-            .sort({ appliedAt: -1 });
-        if (membershipRecord) {
-            membershipRecord.status = customer.membership.status;
-            membershipRecord.expiresAt = expiresAt;
-            membershipRecord.renewalCount = customer.membership.renewalCount;
-            await membershipRecord.save();
-        }
 
         // Record history
         await MembershipHistory.create({
@@ -627,7 +560,11 @@ export const renewMembership = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.renewMembership', 500, 'Failed to renew membership');
+        console.error('Error renewing membership:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to renew membership'
+        });
     }
 };
 
@@ -668,13 +605,6 @@ export const updateMembershipTier = async (req, res) => {
 
         await customer.save();
 
-        const membershipRecord = await Membership.findOne({ customerId: customer._id })
-            .sort({ appliedAt: -1 });
-        if (membershipRecord) {
-            membershipRecord.tier = tier;
-            await membershipRecord.save();
-        }
-
         // Record history
         await MembershipHistory.create({
             customerId: customer._id,
@@ -694,7 +624,11 @@ export const updateMembershipTier = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.updateMembershipTier', 500, 'Failed to update membership tier');
+        console.error('Error updating tier:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update membership tier'
+        });
     }
 };
 
@@ -728,14 +662,6 @@ export const suspendMembership = async (req, res) => {
 
         await customer.save();
 
-        const membershipRecord = await Membership.findOne({ customerId: customer._id })
-            .sort({ appliedAt: -1 });
-        if (membershipRecord) {
-            membershipRecord.status = 'Suspended';
-            membershipRecord.notes = reason || membershipRecord.notes;
-            await membershipRecord.save();
-        }
-
         // Record history
         await MembershipHistory.create({
             customerId: customer._id,
@@ -755,7 +681,11 @@ export const suspendMembership = async (req, res) => {
             }
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.suspendMembership', 500, 'Failed to suspend membership');
+        console.error('Error suspending membership:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to suspend membership'
+        });
     }
 };
 
@@ -764,7 +694,6 @@ export const suspendMembership = async (req, res) => {
  */
 export const getMembershipStats = async (req, res) => {
     try {
-        await expireActiveMemberships();
         const stats = {
             totalMembers: await Customer.countDocuments({ 'membership.status': { $in: ['Active', 'Approved'] } }),
             pending: await Customer.countDocuments({ 'membership.status': 'Pending' }),
@@ -789,7 +718,11 @@ export const getMembershipStats = async (req, res) => {
             data: stats
         });
     } catch (error) {
-        handleControllerError(res, error, 'Membership.getMembershipStats', 500, 'Failed to fetch membership statistics');
+        console.error('Error fetching stats:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch membership statistics'
+        });
     }
 };
 
